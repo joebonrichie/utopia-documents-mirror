@@ -1,0 +1,197 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=Qt
+DEPENDENCIES=OpenSSL
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_DIR}" ]; then
+    echo "Fetching Qt from git ..."
+    git clone git://gitorious.org/qt/qt.git ${PACKAGE_DIR}
+fi
+
+#echo "Extracting ${PACKAGE_FILENAME} ..."
+#${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+if [ x"$Qt_OPENSOURCE" = x"1" ]; then
+    QT_TYPE="-opensource -confirm-license"
+else
+    QT_TYPE="-commercial"
+fi
+
+CONFIGURE_OPTIONS="${QT_TYPE} \
+    -shared \
+    -qt-libtiff \
+    -qt-libpng \
+    -qt-libmng \
+    -qt-libjpeg \
+    -fast \
+    -no-accessibility \
+    -stl \
+    -no-qt3support \
+    -no-declarative \
+    -no-declarative-debug \
+    -no-scripttools \
+    -no-dbus \
+    -no-sql-db2 \
+    -no-sql-ibase \
+    -no-sql-mysql \
+    -no-sql-oci \
+    -no-sql-odbc \
+    -no-sql-psql \
+    -no-sql-sqlite \
+    -no-sql-sqlite2 \
+    -no-sql-tds \
+    -no-multimedia \
+    -no-phonon \
+    -no-phonon-backend \
+    -no-audio-backend \
+    -no-audio-backend \
+    -no-declarative \
+    -nomake examples \
+    -nomake demos \
+    -nomake docs \
+    -nomake translations \
+    -nomake tools"
+
+# default extra options are for non-windows
+CONFIGURE_EXTRA_OPTIONS="\
+    -no-nis \
+    -no-cups \
+    -no-iconv \
+    -no-nas-sound \
+    -no-sm \
+    -no-glib \
+    -system-freetype \
+    -rpath \
+    -system-zlib "
+
+
+
+CONFIGURE_PROG="./configure"
+MAKE_COMMAND="make -j3"
+INSTALL_COMMAND="make install"
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+        MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export MACOSX_ARCHFLAGS
+    #export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    #export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    #export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+
+    CONFIGURE_EXTRA_OPTIONS+="\
+	-prefix ${PREFIX}/build \
+	-libdir $PREFIX/lib \
+	-plugindir $PREFIX/lib \
+	-headerdir $PREFIX/include \
+	-bindir $PREFIX/bin \
+	-debug-and-release \
+	$MACOSX_ARCHFLAGS \
+	-platform unsupported/macx-clang-libc++ \
+	-no-framework "
+
+    if [ x"$MACOSX_SYSROOT" != x"/" ]; then
+        CONFIGURE_EXTRA_OPTIONS+="-sdk $MACOSX_SYSROOT "
+    fi
+
+elif [ x"${ARCH}" = x"Windows" ]; then
+    unset QTDIR
+    rm -Rf ${PREFIX}/Qt
+    mv ${PACKAGE_DIR} ${PREFIX}/Qt
+    cd ${PREFIX}/Qt
+
+    CONFIGURE_PROG="./configure.exe"
+    CONFIGURE_EXTRA_OPTIONS="\
+    -qt-zlib \
+    -debug-and-release \
+	-no-mmx \
+	-no-3dnow \
+	-no-sse \
+	-no-sse2 \
+	-platform win32-g++-4.6"
+
+    export INCLUDE="${PREFIX}/include"
+    export LIB="${PREFIX}/lib"
+    MAKE_COMMAND="make"
+    INSTALL_COMMAND=""
+else
+    CONFIGURE_EXTRA_OPTIONS+="\
+    -debug-and-release \
+	-prefix ${PREFIX}/build \
+	-libdir $PREFIX/lib \
+	-plugindir $PREFIX/lib \
+	-headerdir $PREFIX/include \
+	-bindir $PREFIX/bin \
+    -no-exceptions \
+	-no-mmx \
+	-no-3dnow \
+	-no-sse \
+	-no-sse2"
+fi
+
+# Fix the text layout bug that prevents hyphenation
+#patch -p1 <<'EOF'
+#$ diff -Nauw qt-everywhere-opensource-src-4.8.4/src/corelib/tools/qtextboundaryfinder.cpp.original qt-everywhere-opensource-src-4.8.4/src/corelib/tools/qtextboundaryfinder.cpp
+#--- qt-everywhere-opensource-src-4.8.4/src/corelib/tools/qtextboundaryfinder.cpp	2009-08-17 16:45:40.000000000 +0100
+#+++ qt-everywhere-opensource-src-4.8.4/src/corelib/tools/qtextboundaryfinder.cpp.original	2009-08-17 16:43:45.000000000 +0100
+#@@ -369,7 +369,7 @@
+#         break;
+#     case Line:
+#         Q_ASSERT(pos);
+#-        while (pos < length && d->attributes[pos-1].lineBreakType < HB_Break)
+#+        while (pos < length && d->attributes[pos-1].lineBreakType < HB_SoftHyphen)
+#             ++pos;
+#         break;
+#     }
+#EOF
+
+echo ${CONFIGURE_PROG} ${CONFIGURE_OPTIONS} ${CONFIGURE_EXTRA_OPTIONS}
+${CONFIGURE_PROG} ${CONFIGURE_OPTIONS} ${CONFIGURE_EXTRA_OPTIONS}
+${MAKE_COMMAND}
+${INSTALL_COMMAND}
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

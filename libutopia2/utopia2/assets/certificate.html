@@ -1,0 +1,141 @@
+<!--
+    
+     This file is part of the Utopia Documents application.
+         Copyright (c) 2008-2014 Lost Island Labs
+     
+     Utopia Documents is free software: you can redistribute it and/or modify
+     it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+     published by the Free Software Foundation.
+     
+     Utopia Documents is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+     Public License for more details.
+     
+     In addition, as a special exception, the copyright holders give
+     permission to link the code of portions of this program with the OpenSSL
+     library under certain conditions as described in each individual source
+     file, and distribute linked combinations including the two.
+     
+     You must obey the GNU General Public License in all respects for all of
+     the code used other than OpenSSL. If you modify file(s) with this
+     exception, you may extend this exception to your version of the file(s),
+     but you are not obligated to do so. If you do not wish to do so, delete
+     this exception statement from your version.
+     
+     You should have received a copy of the GNU General Public License
+     along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+    
+-->
+
+<html>
+  <head>
+    <style type="text/css">
+      body {
+        font-size: 10pt;
+        margin: 0px;
+        padding: 0px;
+      }
+
+      #summary > div {
+        padding-left: 150px;
+        padding-bottom: 0.1em;
+      }
+
+      #summary {
+        font-size: 1.1em;
+        padding: 1em 0px 1em 0px;
+        min-height: 90px;
+      }
+
+      #summary .field {
+        font-size: 0.9em;
+        color: #888;
+      }
+
+      #summary #subject-name {
+        font-weight: bold;
+      }
+
+      #notice {
+        padding-top: 1.2em;
+        font-size: 0.9em;
+      }
+
+      #details {
+        padding: 1em 0px;
+      }
+
+      #details .field {
+        clear: both;
+        float: left;
+        text-align: right;
+        color: #888;
+        width: 140px;
+      }
+
+      #details .field:after {
+        content: ':';
+      }
+
+      #details .value {
+        margin-left: 150px;
+      }
+
+      #details .field, #details .value {
+        padding-bottom: 0.2em;
+      }
+
+      #details .heading {
+        margin-left: 150px;
+        padding: 1em 0px 0.4em 0px;
+      }
+
+      #details .heading h2 {
+        display: inline;
+        font-size: inherit;
+        margin: 0px;
+        padding: 0px;
+      }
+
+      #subject, #issuer {
+        clear: both;
+      }
+
+      /* Hide some fields by default */
+      #effective, #summary #subject-cn, #host {
+        display: none;
+      }
+
+      %9 {
+        display: block;
+        color: #d00;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="certificate" style="float: left; padding: 5px 0px 0px 25px" />
+    <div id="summary">
+      <div id="subject-name">%2</div>
+      <div id="host">(But requested: %1)</div>
+      <div id="issuer-name"><span class="field">Issued by:</span> %3</div>
+      <div id="effective"><span class="field">Valid From:</span> %4</div>
+      <div id="expiry"><span class="field">Valid To:</span> %5</div>
+      <div id="notice">%6</div>
+    </div>
+    <div id="details">
+      <div id="subject">
+        <div class="heading">
+          <h2>Subject Information</h2>
+        </div>
+        %7
+      </div>
+      <div id="issuer">
+        <div class="heading">
+          <h2>Issuer Information</h2>
+        </div>
+        %8
+      </div>
+    </div>
+  </body>
+</html>

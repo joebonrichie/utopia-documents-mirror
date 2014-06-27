@@ -1,0 +1,1964 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [], 
+              "name": "name", 
+              "attrs": {}
+            }, 
+            {
+              "children": [], 
+              "name": "email", 
+              "attrs": {}
+            }
+          ], 
+          "name": "translator", 
+          "attrs": {}
+        }, 
+        {
+          "children": [], 
+          "name": "rights", 
+          "attrs": {
+            "license": "http://creativecommons.org/licenses/by-sa/3.0/"
+          }
+        }, 
+        {
+          "children": [], 
+          "name": "updated", 
+          "attrs": {}
+        }
+      ], 
+      "name": "info", 
+      "attrs": {}
+    }, 
+    {
+      "children": [], 
+      "name": "style-options", 
+      "attrs": {
+        "punctuation-in-quote": "false"
+      }
+    }, 
+    {
+      "children": [
+        {
+          "children": [], 
+          "name": "date-part", 
+          "attrs": {
+            "name": "day", 
+            "suffix": " "
+          }
+        }, 
+        {
+          "children": [], 
+          "name": "date-part", 
+          "attrs": {
+            "name": "month", 
+            "suffix": " "
+          }
+        }, 
+        {
+          "children": [], 
+          "name": "date-part", 
+          "attrs": {
+            "name": "year"
+          }
+        }
+      ], 
+      "name": "date", 
+      "attrs": {
+        "form": "text"
+      }
+    }, 
+    {
+      "children": [
+        {
+          "children": [], 
+          "name": "date-part", 
+          "attrs": {
+            "name": "day", 
+            "suffix": "."
+          }
+        }, 
+        {
+          "children": [], 
+          "name": "date-part", 
+          "attrs": {
+            "name": "month", 
+            "form": "numeric", 
+            "suffix": "."
+          }
+        }, 
+        {
+          "children": [], 
+          "name": "date-part", 
+          "attrs": {
+            "name": "year"
+          }
+        }
+      ], 
+      "name": "date", 
+      "attrs": {
+        "form": "numeric"
+      }
+    }, 
+    {
+      "children": [
+        {
+          "children": [
+            "data acces\u0103rii"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "accessed"
+          }
+        }, 
+        {
+          "children": [
+            "\u0219i"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "and"
+          }
+        }, 
+        {
+          "children": [
+            "\u0219i al\u021bii"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "and others"
+          }
+        }, 
+        {
+          "children": [
+            "anonim"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "anonymous"
+          }
+        }, 
+        {
+          "children": [
+            "anon."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "anonymous", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "la"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "at"
+          }
+        }, 
+        {
+          "children": [
+            "valabil la"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "available at"
+          }
+        }, 
+        {
+          "children": [
+            "de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "by"
+          }
+        }, 
+        {
+          "children": [
+            "circa"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "circa"
+          }
+        }, 
+        {
+          "children": [
+            "cca."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "circa", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "citat"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "cited"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "edi\u021bia"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "edi\u021biile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "edition"
+          }
+        }, 
+        {
+          "children": [
+            "ed"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "edition", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "et al."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "et-al"
+          }
+        }, 
+        {
+          "children": [
+            "\u00een curs de apari\u021bie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "forthcoming"
+          }
+        }, 
+        {
+          "children": [
+            "din"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "from"
+          }
+        }, 
+        {
+          "children": [
+            "ibidem"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "ibid"
+          }
+        }, 
+        {
+          "children": [
+            "\u00een"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "in"
+          }
+        }, 
+        {
+          "children": [
+            "sub tipar"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "in press"
+          }
+        }, 
+        {
+          "children": [
+            "internet"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "internet"
+          }
+        }, 
+        {
+          "children": [
+            "interviu"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "interview"
+          }
+        }, 
+        {
+          "children": [
+            "scrisoare"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "letter"
+          }
+        }, 
+        {
+          "children": [
+            "f\u0103r\u0103 dat\u0103"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "no date"
+          }
+        }, 
+        {
+          "children": [
+            "f.a."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "no date", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "online"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "online"
+          }
+        }, 
+        {
+          "children": [
+            "prezentat la"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "presented at"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "referin\u021b\u0103"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "referin\u021be"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "reference"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "ref."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "ref."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "reference", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "preluat \u00een"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "retrieved"
+          }
+        }, 
+        {
+          "children": [
+            "scal\u0103"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "scale"
+          }
+        }, 
+        {
+          "children": [
+            "versiunea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "version"
+          }
+        }, 
+        {
+          "children": [
+            "d.Hr."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "ad"
+          }
+        }, 
+        {
+          "children": [
+            "\u00ee.Hr."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "bc"
+          }
+        }, 
+        {
+          "children": [
+            "\u201e"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "open-quote"
+          }
+        }, 
+        {
+          "children": [
+            "\u201d"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "close-quote"
+          }
+        }, 
+        {
+          "children": [
+            "\u00ab"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "open-inner-quote"
+          }
+        }, 
+        {
+          "children": [
+            "\u00bb"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "close-inner-quote"
+          }
+        }, 
+        {
+          "children": [
+            "-"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "page-range-delimiter"
+          }
+        }, 
+        {
+          "children": [
+            "-lea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "ordinal"
+          }
+        }, 
+        {
+          "children": [
+            ""
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "ordinal-01", 
+            "match": "whole-number"
+          }
+        }, 
+        {
+          "children": [
+            "primul"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-01"
+          }
+        }, 
+        {
+          "children": [
+            "al doilea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-02"
+          }
+        }, 
+        {
+          "children": [
+            "al treilea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-03"
+          }
+        }, 
+        {
+          "children": [
+            "al patrulea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-04"
+          }
+        }, 
+        {
+          "children": [
+            "al cincilea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-05"
+          }
+        }, 
+        {
+          "children": [
+            "al \u0219aselea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-06"
+          }
+        }, 
+        {
+          "children": [
+            "al \u0219aptelea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-07"
+          }
+        }, 
+        {
+          "children": [
+            "al optulea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-08"
+          }
+        }, 
+        {
+          "children": [
+            "al nou\u0103lea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-09"
+          }
+        }, 
+        {
+          "children": [
+            "al zecelea"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "long-ordinal-10"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "cartea"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "c\u0103r\u021bile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "book"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "capitolul"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "capitolele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "chapter"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "coloana"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "coloanele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "column"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "figura"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "figurile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "figure"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "folio"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "folio"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "folio"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "num\u0103rul"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "numerele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "issue"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "linia"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "liniile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "line"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "nota"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "notele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "note"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "opusul"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "opusurile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "opus"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "pagina"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "paginile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "page"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "pagina"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "paginile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "number-of-pages"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "paragraful"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "paragrafele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "paragraph"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "partea"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "p\u0103r\u021bile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "part"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "sec\u021biunea"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "sec\u021biunile"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "section"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "sub verbo"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "sub verbis"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "sub verbo"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "versetul"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "versetele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "verse"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "volumul"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "volumele"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "volume"
+          }
+        }, 
+        {
+          "children": [
+            "cart."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "book", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "cap."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "chapter", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "col."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "column", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "fig."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "figure", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "fol."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "folio", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "nr."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "issue", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "l."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "line", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "n."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "note", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "op."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "opus", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "p."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "pp."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "page", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "p."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "pp."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "number-of-pages", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "par."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "paragraph", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "part."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "part", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "sec."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "section", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "s.v."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "s.vv."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "sub verbo", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "v."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "vv."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "verse", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "vol."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "vol."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "volume", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "\u00b6"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "\u00b6\u00b6"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "paragraph", 
+            "form": "symbol"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "\u00a7"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "\u00a7\u00a7"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "section", 
+            "form": "symbol"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "director"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "directori"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "director"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "editor"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "editori"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editor"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "editor"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "editori"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editorial-director"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "ilustrator"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "ilustratori"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "illustrator"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "traduc\u0103tor"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "traduc\u0103tori"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "translator"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "editor & traduc\u0103tor"
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "editori & traduc\u0103tori"
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editortranslator"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "dir."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "dir."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "director", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "ed."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "ed."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editor", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "ed."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "ed."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editorial-director", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "ilustr."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "ilustr."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "illustrator", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "trad."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "trad."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "translator", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            {
+              "children": [
+                "ed. & trad."
+              ], 
+              "name": "single", 
+              "attrs": {}
+            }, 
+            {
+              "children": [
+                "ed. & trad."
+              ], 
+              "name": "multiple", 
+              "attrs": {}
+            }
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editortranslator", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "coordonat de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "director", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "edi\u021bie de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editor", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "edi\u021bie de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editorial-director", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "ilustra\u021bii de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "illustrator", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "interviu de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "interviewer", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "\u00een"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "recipient", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "reviewed-author", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "traducere de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "translator", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "edi\u021bie & traducere de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editortranslator", 
+            "form": "verb"
+          }
+        }, 
+        {
+          "children": [
+            "de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "container-author", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "dir."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "director", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "ed."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editor", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "ed."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editorial-director", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "ilustr."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "illustrator", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "trad."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "translator", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "ed. & trad. de"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "editortranslator", 
+            "form": "verb-short"
+          }
+        }, 
+        {
+          "children": [
+            "ianuarie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-01"
+          }
+        }, 
+        {
+          "children": [
+            "februarie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-02"
+          }
+        }, 
+        {
+          "children": [
+            "martie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-03"
+          }
+        }, 
+        {
+          "children": [
+            "aprilie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-04"
+          }
+        }, 
+        {
+          "children": [
+            "mai"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-05"
+          }
+        }, 
+        {
+          "children": [
+            "iunie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-06"
+          }
+        }, 
+        {
+          "children": [
+            "iulie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-07"
+          }
+        }, 
+        {
+          "children": [
+            "august"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-08"
+          }
+        }, 
+        {
+          "children": [
+            "septembrie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-09"
+          }
+        }, 
+        {
+          "children": [
+            "octombrie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-10"
+          }
+        }, 
+        {
+          "children": [
+            "noiembrie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-11"
+          }
+        }, 
+        {
+          "children": [
+            "decembrie"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-12"
+          }
+        }, 
+        {
+          "children": [
+            "ian."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-01", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "feb."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-02", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "mar."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-03", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "apr."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-04", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "mai"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-05", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "iun."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-06", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "iul."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-07", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "aug."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-08", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "sep."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-09", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "oct."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-10", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "nov."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-11", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "dec."
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "month-12", 
+            "form": "short"
+          }
+        }, 
+        {
+          "children": [
+            "prim\u0103vara"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "season-01"
+          }
+        }, 
+        {
+          "children": [
+            "vara"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "season-02"
+          }
+        }, 
+        {
+          "children": [
+            "toamna"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "season-03"
+          }
+        }, 
+        {
+          "children": [
+            "iarna"
+          ], 
+          "name": "term", 
+          "attrs": {
+            "name": "season-04"
+          }
+        }
+      ], 
+      "name": "terms", 
+      "attrs": {}
+    }
+  ], 
+  "name": "locale", 
+  "attrs": {
+    "xmlns": "http://purl.org/net/xbiblio/csl", 
+    "version": "1.0", 
+    "xml:lang": "ro-RO"
+  }
+}

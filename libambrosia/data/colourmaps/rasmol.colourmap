@@ -1,0 +1,87 @@
+black                   0       0       0
+white                   255     255     255
+
+blue                    0       0       255
+green                   0       255     0
+cyan                    0       255     255
+
+red                     255     0       0
+magenta                 255     0       255
+yellow                  255     255     0
+
+orange                  255     165     0
+redorange               255     69      0
+violet                  238     130     238
+purple                  160     32      240
+greenblue               46      139     87
+
+residue.ASP		230	10	10
+residue.GLU		230	10	10
+residue.CYS		230	230	0
+residue.MET		230	230	0
+residue.LYS		20	90	255
+residue.ARG		20	90	255
+residue.SER		250	150	0
+residue.THR		250	150	0
+residue.PHE		50	50	170
+residue.TYR		50	50	170
+residue.ASN		0	220	220
+residue.GLN		0	220	220
+residue.GLY		235	235	235
+residue.LEU		15	130	15
+residue.VAL		15	130	15
+residue.ILE		15	130	15
+residue.ALA		200	200	200
+residue.TRP		180	90	180
+residue.HIS		130	130	210
+residue.PRO		220	150	130
+residue.HYP		220	150	130
+residue.PCA		220	150	130
+residue.U		154	255	154
+residue.C		255	154	77
+residue.G		255	114	114
+residue.A		143	143	255
+residue.T		154	255	154
+residue.I		143	143	255
+residue.?		255	104	255
+
+element.C		200	200	200
+element.O		240	0	0
+element.H		255	255	255
+element.N		143	143	255
+element.S		255	200	50
+element.Cl		0	255	0
+element.B		0	255	0
+element.P		255	165	0
+element.Fe		255	165	0
+element.Ba		255	165	0
+element.Na		0	0	255
+element.Mg		34	139	34
+element.Zn		165	42	42
+element.Ni		165	42	42
+element.Cu		165	42	42
+element.Br		165	42	42
+element.Ca		128	128	144
+element.Mn		128	128	144
+element.Al		128	128	144
+element.Ti		128	128	144
+element.Cr		128	128	144
+element.Ag		128	128	144
+element.Au		218	165	32
+element.Si		218	165	32
+element.F		218	165	32
+element.I		160	32	240
+element.?		255	20	147
+
+ss.helix                255	0       128
+ss.sheet                255	200	0
+ss.turn                 96	128	255
+ss.?                    255     255     255
+
+temp.hot		255	0	0
+temp.cold		0	0	255
+
+charge.+		0	0	255
+charge.-		255	0	0
+
+?			255	20	147

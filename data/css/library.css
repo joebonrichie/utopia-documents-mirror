@@ -1,0 +1,164 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2014 Lost Island Labs
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+
+Athenaeum--LibraryView
+{
+    background-color: #fafaff;
+}
+
+
+
+Athenaeum--BibliographicSearchBox
+{
+    border: 1px inset #b0b0b0;
+    border-radius: 11px;
+    height: 20px;
+    max-width: 140px;
+    padding: 0px 18px 0px 24px;
+}
+
+Athenaeum--BibliographicSearchBox:active
+{
+    border: 1px inset gray;
+}
+
+Athenaeum--BibliographicSearchBox QToolButton
+{
+    background: transparent;
+    width: 20px;
+    height: 20px;
+}
+
+Athenaeum--BibliographicSearchBox QToolButton#clearButton
+{
+    margin: 0px 1px 0px 0px;
+    width: 14px;
+}
+
+Athenaeum--BibliographicSearchBox QToolButton#searchDomainButton
+{
+    margin: 0px 0px 0px 2px;
+}
+
+
+
+
+
+
+/* QScrollBar (horizontal) */
+
+QScrollBar:horizontal
+{
+  height: 12px;
+  margin: 2px;
+  background-clip: margin;
+  background-color: rgba(255, 255, 255, 128);
+}
+
+QScrollBar::handle:horizontal
+{
+  background-color: rgba(0, 0, 0, 100);
+  border-radius: 4px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 100);
+  min-width: 20px;
+}
+
+QScrollBar::sub-page:horizontal
+{
+  background: none;
+  width: 0px;
+}
+
+QScrollBar::add-page:horizontal
+{
+  background: none;
+  width: 0px;
+}
+
+QScrollBar::add-line:horizontal
+{
+  width: 0px;
+  subcontrol-position: bottom;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal
+{
+  width: 0px;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+}
+
+/* QScrollBar (vertical) */
+
+QScrollBar:vertical
+{
+  width: 12px;
+  margin: 2px;
+  background-clip: margin;
+  background-color: rgba(255, 255, 255, 128);
+}
+
+QScrollBar::handle:vertical
+{
+  background-color: rgba(0, 0, 0, 100);
+  border-radius: 4px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 100);
+  min-height: 20px;
+}
+
+QScrollBar::sub-page:vertical
+{
+  background: none;
+  height: 0px;
+}
+
+QScrollBar::add-page:vertical
+{
+  background: none;
+  height: 0px;
+}
+
+QScrollBar::add-line:vertical
+{
+  height: 0px;
+  subcontrol-position: bottom;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical
+{
+  height: 0px;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+}

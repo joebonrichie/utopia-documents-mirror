@@ -1,0 +1,117 @@
+#! /bin/bash
+
+# PACKAGE ####################################################################
+
+PACKAGE=Graphviz
+DEPENDENCIES=
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+source "VERSIONS"
+
+# DEPENDENCIES ###############################################################
+
+for d in ${DEPENDENCIES}; do
+    ./build_${d} $@
+done
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$1
+    MACOSX_SYSROOT=$2
+    shift 2
+    MACOSX_ARCHNAMES=$@
+    MACOSX_ARCHFLAGS=""
+    for archflag in $MACOSX_ARCHNAMES; do
+      MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+fi
+
+./configure \
+    --disable-dependency-tracking \
+    --enable-static=yes --enable-shared=no \
+    --without-cgraph \
+    --prefix="${PREFIX}/build" \
+    --enable-swig=no \
+    --enable-sharp=no \
+    --enable-guile=no \
+    --enable-io=no \
+    --enable-java=no \
+    --enable-lua=no \
+    --enable-ocaml=no \
+    --enable-perl=no \
+    --enable-php=no \
+    --enable-python=no \
+    --enable-python23=no \
+    --enable-python24=no \
+    --enable-python25=no \
+    --enable-r=no \
+    --enable-ruby=no \
+    --enable-tcl=no \
+    --enable-ltdl=no \
+    --with-x=no \
+    --with-rsvg=no \
+    --with-ghostscript=no \
+    --with-pangocairo=no \
+    --with-xlib=no \
+    --with-lasi=no \
+    --with-gtk=no \
+    --with-gts=no \
+    --with-gd=no \
+    --with-glade=no \
+    --with-devil=no \
+    --with-libgd=no \
+    --with-gdk-pixbuf=no \
+    --with-fontconfig=no \
+    --with-freetype2=no \
+    --with-digcola=no \
+    --with-expat=no \
+    --with-png=no \
+    --with-iconvincludedir=/usr/include \
+    --with-iconvlibdir=/usr/lib \
+    --libdir="$PREFIX/lib" --includedir="$PREFIX/include" \
+
+make install
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

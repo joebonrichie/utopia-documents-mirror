@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns="http://utopia.cs.manchester.ac.uk/2007/03/utopia-system#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xml:base="http://utopia.cs.manchester.ac.uk/2007/03/utopia-system">
+  <owl:Ontology rdf:about=""/>
+  <rdfs:Class rdf:ID="List"/>
+  <rdfs:Class rdf:ID="GroupAnnotation">
+    <rdfs:subClassOf>
+      <rdfs:Class rdf:ID="Annotation"/>
+    </rdfs:subClassOf>
+  </rdfs:Class>
+  <rdfs:Class rdf:ID="Authority"/>
+  <rdfs:Class rdf:ID="Alternative"/>
+  <rdfs:Class rdf:ID="ExtentAnnotation">
+    <rdfs:subClassOf rdf:resource="#Annotation"/>
+  </rdfs:Class>
+  <rdfs:Class rdf:ID="Arbitrary">
+    <rdfs:subClassOf rdf:resource="#Alternative"/>
+  </rdfs:Class>
+  <rdfs:Class rdf:ID="BooleanAnnotation">
+    <rdfs:subClassOf rdf:resource="#Annotation"/>
+  </rdfs:Class>
+  <rdfs:Class rdf:ID="ValueAnnotation">
+    <rdfs:subClassOf rdf:resource="#Annotation"/>
+  </rdfs:Class>
+  <rdfs:Class rdf:ID="Supercedence">
+    <rdfs:subClassOf rdf:resource="#Alternative"/>
+  </rdfs:Class>
+  <owl:ObjectProperty rdf:ID="uri"/>
+  <owl:ObjectProperty rdf:ID="value"/>
+  <owl:ObjectProperty rdf:ID="hasProvenance">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="has"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasAuthority">
+    <rdfs:subPropertyOf rdf:resource="#has"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="memberType"/>
+  <owl:ObjectProperty rdf:ID="hasMember">
+    <rdfs:subPropertyOf rdf:resource="#has"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="annotates"/>
+  <owl:ObjectProperty rdf:ID="hasInput">
+    <rdfs:subPropertyOf rdf:resource="#has"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasPart">
+    <rdfs:subPropertyOf rdf:resource="#has"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasOutput">
+    <rdfs:subPropertyOf rdf:resource="#has"/>
+  </owl:ObjectProperty>
+</rdf:RDF>
+
+<!-- Created with Protege (with OWL Plugin 3.2.1, Build 365)  http://protege.stanford.edu -->

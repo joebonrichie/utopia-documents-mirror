@@ -1,0 +1,12 @@
+To build Utopia Documents, run the configure script which will
+interactively configure the build process.
+
+    usage: ./configure [OPTIONS] - configure utopia build environment
+
+    where OPTIONS include:
+
+        --dep <dir>            - specify another dependencies dir
+        --plat <platform>      - platform name
+        --builddir <dir>       - build directory
+        --debug                - configure for debug build
+        --release              - configure for release build

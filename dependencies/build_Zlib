@@ -1,0 +1,85 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=Zlib
+DEPENDENCIES=
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+        MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export MACOSX_ARCHFLAGS
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+fi
+
+if [ x"${ARCH}" = x"Windows" ]; then
+  cp win32/Makefile.gcc Makefile
+  export INCLUDE_PATH="${PREFIX}/include"
+  export LIBRARY_PATH="${PREFIX}/lib"
+  export BINARY_PATH="${PREFIX}/bin"
+else
+  ./configure \
+      --prefix="${PREFIX}/build" \
+      --libdir="${PREFIX}/lib" \
+      --includedir="${PREFIX}/include"
+fi
+
+#make clean
+#make uninstall
+make
+make install
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

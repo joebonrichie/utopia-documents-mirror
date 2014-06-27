@@ -1,0 +1,262 @@
+##############################################################################
+#
+# Bash variable expansions for dependencies (sourced by build scripts)
+#
+##############################################################################
+
+ARCH=`uname -s`
+if [ x"${ARCH}" = x"MINGW32_NT-5.1" ]; then
+    ARCH="Windows"
+fi
+if [ x"${ARCH}" = x"MINGW32_NT-6.1" ]; then
+    ARCH="Windows"
+fi
+
+SOURCEFORGE_MIRROR="http://garr.dl.sourceforge.net/sourceforge"
+
+##############################################################################
+
+Boost_VER="1.49.0"
+Boost_DIR="boost_${Boost_VER//./_}"
+Boost_URL="${SOURCEFORGE_MIRROR}/boost/${Boost_DIR}.tar.gz"
+Boost_EXTRACT="bsdtar xzf"
+
+##############################################################################
+
+BJam_VER="3.1.18-1"
+BJam_DIR="boost-jam-${BJam_VER}-ntx86"
+BJam_URL="${SOURCEFORGE_MIRROR}/boost/${BJam_DIR}.zip"
+BJam_EXTRACT="unzip -o"
+
+##############################################################################
+
+Freetype_VER="2.4.11"
+Freetype_DIR="freetype-${Freetype_VER}"
+Freetype_URL="http://download-mirror.savannah.gnu.org/releases/freetype/${Freetype_DIR}.tar.bz2"
+Freetype_EXTRACT="tar xjf"
+
+##############################################################################
+
+Jpeg_VER="7"
+Jpeg_DIR="jpeg-${Jpeg_VER}"
+Jpeg_URL="http://www.ijg.org/files/jpegsrc.v${Jpeg_VER}.tar.gz"
+Jpeg_EXTRACT="tar xjf"
+
+##############################################################################
+
+T1_VER="5.1.2"
+T1_DIR="t1lib-${T1_VER}"
+T1_URL="http://sunsite.unc.edu/pub/Linux/libs/graphics/${T1_DIR}.tar.gz"
+T1_EXTRACT="tar xzf"
+
+##############################################################################
+
+Graphviz_VER="2.24.0"
+Graphviz_DIR="graphviz-${Graphviz_VER}"
+Graphviz_URL="http://www.graphviz.org/pub/graphviz/stable/SOURCES/${Graphviz_DIR}.tar.gz"
+Graphviz_EXTRACT="tar xzf"
+
+##############################################################################
+
+Raptor_VER="1.4.17"
+Raptor_DIR="raptor-${Raptor_VER}"
+Raptor_URL="http://download.librdf.org/source/${Raptor_DIR}.tar.gz"
+Raptor_EXTRACT="tar xzf"
+
+##############################################################################
+
+Zlib_VER="1.2.8"
+Zlib_DIR="zlib-${Zlib_VER}"
+Zlib_URL="http://www.zlib.net/${Zlib_DIR}.tar.gz"
+Zlib_EXTRACT="tar xzf"
+
+##############################################################################
+
+OpenSSL_VER="1.0.0d"
+OpenSSL_VER="0.9.8za"
+OpenSSL_DIR="openssl-${OpenSSL_VER}"
+OpenSSL_URL="http://www.openssl.org/source/${OpenSSL_DIR}.tar.gz"
+OpenSSL_EXTRACT="tar xzf"
+
+##############################################################################
+
+Expat_VER="2.1.0"
+Expat_DIR="expat-${Expat_VER}"
+Expat_URL="${SOURCEFORGE_MIRROR}/expat/${Expat_DIR}.tar.gz"
+Expat_EXTRACT="tar xzf"
+
+##############################################################################
+
+LXML_VER="3.2.4"
+LXML_DIR="lxml-${LXML_VER}"
+LXML_URL="http://lxml.de/files/${LXML_DIR}.tgz"
+LXML_EXTRACT="tar xzf"
+
+##############################################################################
+
+QGLViewer_VER="2.4.0"
+QGLViewer_DIR="libQGLViewer-${QGLViewer_VER}"
+QGLViewer_URL="http://www.libqglviewer.com/src/${QGLViewer_DIR}.tar.gz"
+QGLViewer_EXTRACT="tar xzf"
+
+##############################################################################
+
+QJson_VER="0.7.1"
+QJson_DIR="qjson"
+QJson_URL="http://downloads.sourceforge.net/project/qjson/qjson/${QJson_VER}/qjson-${QJson_VER}.tar.bz2"
+QJson_EXTRACT="tar xjf"
+
+##############################################################################
+
+RDFLib_VER="3.0.0"
+RDFLib_VER="2.4.2"
+RDFLib_DIR="rdflib-${RDFLib_VER}"
+RDFLib_URL="http://www.rdflib.net/${RDFLib_DIR}.tar.gz"
+RDFLib_EXTRACT="tar xzf"
+
+##############################################################################
+
+CSSSelect_VER="0.8"
+CSSSelect_DIR="cssselect-${CSSSelect_VER}"
+CSSSelect_URL="http://pypi.python.org/packages/source/c/cssselect/${CSSSelect_DIR}.tar.gz"
+CSSSelect_EXTRACT="tar xzf"
+
+##############################################################################
+
+Setuptools_VER="0.6c11"
+Setuptools_DIR="setuptools-${Setuptools_VER}"
+Setuptools_URL="http://pypi.python.org/packages/source/s/setuptools/${Setuptools_DIR}.tar.gz"
+Setuptools_EXTRACT="tar xzf"
+
+##############################################################################
+
+SUDS_VER="0.4"
+SUDS_DIR="python-suds-${SUDS_VER}"
+SUDS_URL="https://fedorahosted.org/releases/s/u/suds/python-suds-${SUDS_VER}.tar.gz"
+SUDS_EXTRACT="tar xzf"
+
+##############################################################################
+
+PIL_VER="1.1.7"
+PIL_DIR="Imaging-${PIL_VER}"
+PIL_URL="http://effbot.org/downloads/Imaging-${PIL_VER}.tar.gz"
+PIL_EXTRACT="tar xzf"
+
+##############################################################################
+
+GLEW_VER="1.5.1"
+GLEW_DIR="glew"
+GLEW_URL="${SOURCEFORGE_MIRROR}/glew/${GLEW_DIR}-${GLEW_VER}-src.tgz"
+GLEW_EXTRACT="tar xzf"
+
+##############################################################################
+
+SWIG_VER="2.0.4"
+SWIG_DIR="swig-${SWIG_VER}"
+SWIG_URL="${SOURCEFORGE_MIRROR}/swig/swig/swig-${SWIG_VER}.tar.gz"
+SWIG_EXTRACT="tar xzf"
+
+##############################################################################
+
+PCRE_VER="8.33"
+PCRE_DIR="pcre-${PCRE_VER}"
+PCRE_URL="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/${PCRE_DIR}.tar.gz"
+PCRE_EXTRACT="tar xzf"
+
+##############################################################################
+
+Qt_OPENSOURCE=1
+
+# remember to update pyside version below as well
+Qt_VER="4.8.6"
+if [ x"$Qt_OPENSOURCE" = x"1" ]; then
+    Qt_DIR="qt-everywhere-opensource-src-${Qt_VER}"
+else
+    Qt_DIR="qt-all-commercial-src-${Qt_VER}"
+fi
+
+Qt_URL="http://download.qt-project.org/official_releases/qt/4.8/${Qt_VER}/${Qt_DIR}.tar.gz"
+Qt_EXTRACT="tar xzf"
+
+##############################################################################
+
+APIEXTRACTOR_VER="0.10.10"
+APIEXTRACTOR_DIR="apiextractor-${APIEXTRACTOR_VER}"
+APIEXTRACTOR_URL="https://distfiles.macports.org/apiextractor/${APIEXTRACTOR_DIR}.tar.bz2"
+APIEXTRACTOR_EXTRACT="tar xjf"
+
+GENERATORRUNNER_VER="0.6.16"
+GENERATORRUNNER_DIR="generatorrunner-${GENERATORRUNNER_VER}"
+GENERATORRUNNER_URL="https://distfiles.macports.org/generatorrunner/${GENERATORRUNNER_DIR}.tar.bz2"
+GENERATORRUNNER_EXTRACT="tar xjf"
+
+#SHIBOKEN_VER="1.1.0"
+SHIBOKEN_VER="1.1.2"
+SHIBOKEN_DIR="shiboken-${SHIBOKEN_VER}"
+SHIBOKEN_URL="https://distfiles.macports.org/py-shiboken/${SHIBOKEN_DIR}.tar.bz2"
+SHIBOKEN_EXTRACT="tar xjf"
+
+#PySide_VER="qt4.7+1.1.0"
+PySide_VER="qt4.8+1.1.2"
+PySide_DIR="pyside-${PySide_VER}"
+PySide_URL="https://distfiles.macports.org/py-pyside/${PySide_DIR}.tar.bz2"
+PySide_EXTRACT="tar xjf"
+
+##############################################################################
+
+Python_VER="3.1.3"
+Python_VER="2.6.6"
+Python_VER="2.7.6"
+Python_DIR="Python-${Python_VER}"
+Python_URL="http://www.python.org/ftp/python/${Python_VER}/Python-${Python_VER}.tgz"
+Python_EXTRACT="tar xzf"
+
+##############################################################################
+
+OpenBabel_VER="2.3.2"
+OpenBabel_DIR="openbabel-${OpenBabel_VER}"
+OpenBabel_URL="${SOURCEFORGE_MIRROR}/openbabel/openbabel-${OpenBabel_VER}.tar.gz"
+OpenBabel_EXTRACT="tar xzf"
+
+Eigen_VER="3.1.2"
+Eigen_DIR="eigen-eigen-5097c01bcdc4"
+Eigen_URL="http://bitbucket.org/eigen/eigen/get/${Eigen_VER}.tar.gz"
+Eigen_EXTRACT="tar xzf"
+
+##############################################################################
+
+TCLAP_VER="1.2.1"
+TCLAP_DIR="tclap-${TCLAP_VER}"
+TCLAP_URL="${SOURCEFORGE_MIRROR}/tclap/tclap-${TCLAP_VER}.tar.gz"
+TCLAP_EXTRACT="tar xzf"
+
+GraphicsMagick_VER="1.3.12"
+GraphicsMagick_DIR="graphicsmagick-${GraphicsMagick_VER}"
+GraphicsMagick_URL="${SOURCEFORGE_MIRROR}/graphicsmagick/GraphicsMagick-${GraphicsMagick_VER}.tar.gz"
+GraphicsMagick_EXTRACT="tar xzf"
+
+GOCR_VER="0.50pre-patched"
+GOCR_DIR="gocr-${GOCR_VER}"
+GOCR_URL="${SOURCEFORGE_MIRROR}/osra/gocr-patched/gocr-${GOCR_VER}.tgz"
+GOCR_EXTRACT="tar xzf"
+
+Potrace_VER="1.10"
+Potrace_DIR="potrace-${Potrace_VER}"
+Potrace_URL="http://potrace.sourceforge.net/download/potrace-${Potrace_VER}.tar.gz"
+Potrace_EXTRACT="tar xzf"
+
+Ocrad_VER="0.21"
+Ocrad_DIR="ocrad-${Ocrad_VER}"
+Ocrad_URL="http://ftp.gnu.org/gnu/ocrad/ocrad-${Ocrad_VER}.tar.gz"
+Ocrad_EXTRACT="tar xzf"
+
+OSRA_VER="1.4.0"
+OSRA_DIR="osra-${OSRA_VER}"
+OSRA_URL="${SOURCEFORGE_MIRROR}/osra/osra/1.4.0/osra-${OSRA_VER}.tgz"
+OSRA_EXTRACT="tar xzf"
+
+##############################################################################
+# Local Variables:
+# mode: sh
+# End:
+##############################################################################

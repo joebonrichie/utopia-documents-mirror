@@ -1,0 +1,87 @@
+utopia-documents (2.4.1) UNRELEASED; urgency=medium
+
+  * Fixes crash caused by accessing string after it was freed.
+  * Improved pdf rendering/font handling.
+
+ -- The Utopia Project <info@utopiadocs.com>  Fri, 20 Jun 2014 15:50:23 +0100
+
+utopia-documents (2.4.0) UNRELEASED; urgency=medium
+
+  * Various minor bug fixes.
+  * Performance improvements.
+  * Support for newer Ubuntu releases.
+
+ -- The Utopia Project <info@utopiadocs.com>  Mon, 02 Jun 2014 10:39:33 +0100
+
+utopia-documents (2.3.0) UNRELEASED; urgency=low
+  * Added tabs to main window.
+  * Improvements to in-text citation matching.
+  * Many improvements to plugins.
+
+ -- The Utopia Project <info@utopiadocs.com>  Mon, 14 Oct 2013 10:23:00 +0100
+
+utopia-documents (2.2.2) UNRELEASED; urgency=low
+  * Fix for GeneCards links.
+  * Phrase lookups now strip punctuation from end of word.
+  * Improved "update available" message on Linux.
+
+ -- The Utopia Project <info@utopiadocs.com>  Tue, 21 May 2013 12:20:00 +0100
+
+utopia-documents (2.2.2) UNRELEASED; urgency=low
+  * Printing now available.
+  * GeneCards now integrated into Utopia’s search functionality.
+  * OpenPHACTS now integrated into Utopia’s search functionality.
+  * Fixed a table display bug that truncated various header values.
+  * Supports utopia:// protocol to support web links that open in utopia-documents without it being the default pdf handler.
+
+ -- The Utopia Project <info@utopiadocs.com>  Thu, 16 May 2013 12:38:19 +0100
+
+utopia-documents (2.2.1) UNRELEASED; urgency=low
+ * Added support for ASPB.
+ * Improved metadata.
+ * Fixed "About" dialog.
+ * Fixed some problems with opening from URLs.
+
+ -- The Utopia Project <info@utopiadocs.com>  Tue, 08 Jan 2013 14:03:12 +0000
+
+utopia-documents (2.2.0) UNRELEASED; urgency=low
+ * Qt QSharedPointer workaround. Should fix kubuntu bug report.
+ * Fixed table display bug.
+ * Improved display of references.
+ * User interface improvements.
+ * New plugins.
+
+ -- The Utopia Project <info@utopiadocs.com>  Mon, 26 Nov 2012 15:39:49 +0000
+
+utopia-documents (2.1.0) UNRELEASED; urgency=low
+  * First Linux release of Utopia 2.
+  * New sidebar and annotation rendering.
+  * Improved document metadata resolution.
+  * Improved title scraping for multi-line titles.
+  * PDFs can now be loaded directly from a URL on the clipboard.
+  * Improved account management in the preferences dialog box.
+  * Now includes links to supplementary material from several sources.
+  * Where available includes CrossMark information on updates, corrections and retractions of the document you’re reading.
+  * PLOS article level statistics have been included for relevant articles.
+
+ -- The Utopia Project <info@utopiadocs.com>  Mon, 20 Aug 2012 09:00:00 +0100
+
+utopia-documents (1.2.1) UNRELEASED; urgency=low
+  * Fixed utf32 subExtent method (fixes GPCRDB plugin).
+
+ -- The Utopia Project <info@utopiadocs.com>  Thu, 30 Jun 2011 22:50:34 +0100
+
+utopia-documents (1.2.0) UNRELEASED; urgency=low
+  * Fixed missing python-lxml dependency
+
+ -- The Utopia Project <info@utopiadocs.com>  Mon, 23 May 2011 17:34:20 +0100
+
+utopia-documents (1.2.0) UNRELEASED; urgency=low
+  * Support for the GNU/Linux Operating System.
+  * Full support for proxy auto-configuration scripts.
+  * Support for proxy authentication (Basic, Digest, NTLM).
+  * RSC catalogue integration.
+  * Stability improvements.
+  * Security improvements.
+
+ -- The Utopia Project <info@utopiadocs.com>  Mon, 23 May 2011 17:34:20 +0100

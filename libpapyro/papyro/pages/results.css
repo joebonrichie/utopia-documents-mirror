@@ -1,0 +1,351 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2014 Lost Island Labs
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+html, body {
+    font-size: 8pt;
+    line-height: 10pt;
+    -webkit-user-select: text;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    font-family: sans-serif;
+}
+
+* {
+    -webkit-user-select: text;
+    -webkit-box-sizing: border-box;
+}
+
+html {
+    padding: 0px 2px 0px 0px;
+}
+
+body {
+    overflow-y: auto;
+    height: 100%;
+}
+
+a {
+    text-decoration: none;
+}
+
+
+
+#-papyro-internal-results {
+  padding: 4px 4px 4px 0px;
+}
+
+.-papyro-internal-result {
+    padding: 2px 2px;
+    margin: 0px;
+    border-bottom: 1px solid #ddd;
+}
+
+.-papyro-internal-result:last-child {
+    border-bottom: none;
+}
+
+.-papyro-internal-result img {
+    max-width: 100%;
+}
+
+.-papyro-internal-result .-papyro-internal-header {
+    height: 30px;
+    -webkit-user-select: none;
+    position: relative;
+    cursor: pointer;
+    width: 100%;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-title {
+    font-weight: bold;
+    bottom: 50%;
+    width: 100%;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-description {
+    color: #777;
+    width: 100%;
+    top: 50%;
+    padding-top: 2px;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-meta {
+    width: 100%;
+    position: relative;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-title,
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-description {
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+    position: absolute;
+    padding-left: 0.8ex;
+    padding-right: 2ex;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-thumbnail {
+    float: right;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-graphics {
+    width: 0px;
+    white-space: nowrap;
+}
+
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-thumbnail img {
+    height: 30px;
+    width: 30px;
+}
+
+.-papyro-internal-result .-papyro-internal-body {
+    margin: 0px;
+    padding: 0px 1px 1px 1px;
+}
+
+.-papyro-internal-result .-papyro-internal-body .-papyro-internal-loading {
+    margin: 2px auto;
+    width: 32px;
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+    background: white;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.20);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+    background: #818FB4;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.03);
+    margin: 2px;
+}
+
+
+
+
+
+/**************************************************************************************************
+ * Standard content stylings
+ */
+
+.-papyro-internal-content {
+    background: #fff;
+    margin: 0px;
+    padding: 4px;
+    color: #555;
+    word-wrap: break-word;
+}
+
+.-papyro-internal-content h1,
+.-papyro-internal-content h2 {
+    font-weight: bold;
+}
+
+.-papyro-internal-content h3 {
+    font-weight: normal;
+}
+
+.-papyro-internal-content h2,
+.-papyro-internal-content h3 {
+    font-style: italic;
+}
+
+.-papyro-internal-content table,
+.-papyro-internal-content tr,
+.-papyro-internal-content td {
+    color: inherit;
+}
+
+.-papyro-internal-content ol,
+.-papyro-internal-content ul {
+    margin-left: 2em;
+    margin-right: 0;
+}
+
+.-papyro-internal-content li,
+.-papyro-internal-content p,
+.-papyro-internal-hyphenate {
+    /* FIXME once hyphenation works */
+    -text-align: justify;
+}
+
+.-papyro-internal-nohyphenate {
+    text-align: left !important;
+}
+
+.-papyro-internal-content li,
+.-papyro-internal-content table {
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
+}
+
+.-papyro-internal-content p {
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.-papyro-internal-content p:first-child,
+.-papyro-internal-content table:last-child {
+    margin-top: auto;
+}
+
+.-papyro-internal-content p:last-child,
+.-papyro-internal-content table:last-child {
+    margin-bottom: auto;
+}
+
+.-papyro-internal-content table {
+    width: 100%;
+    border-color: #aaa;
+    border-style: solid;
+}
+
+.-papyro-internal-content th,
+.-papyro-internal-content td {
+    padding: 0.2em;
+    text-align: inherit;
+}
+
+.-papyro-internal-content col.numeric,
+.-papyro-internal-content colgroup.numeric,
+.-papyro-internal-content th.numeric,
+.-papyro-internal-content td.numeric {
+    text-align: right;
+}
+
+.-papyro-internal-content thead,
+.-papyro-internal-content tbody,
+.-papyro-internal-content tfoot {
+    padding: 0.2em;
+    border-width: 1px;
+    border-style: inherit;
+    border-color: inherit;
+}
+
+.-papyro-internal-content thead,
+.-papyro-internal-content tfoot {
+    background: #D8D8E0;
+}
+
+.-papyro-internal-content thead {
+    text-align: left;
+}
+
+.-papyro-internal-content hr {
+    margin: 0.6em 0px;
+}
+
+.-papyro-internal-content .box {
+    border: solid 5px black;
+    -webkit-border-image: url(qrc:/images/border-rounded-box.png) 5 stretch stretch;
+    padding: 1px;
+    margin: 4px 0;
+    clear: both;
+}
+
+.-papyro-internal-content .right {
+    text-align: right;
+}
+
+
+.-papyro-internal-content .formula .element {
+    padding: 0 1px;
+}
+
+.-papyro-internal-content .formula .element:first-child {
+    padding: 0 1px 0 0;
+}
+
+.-papyro-internal-content .formula sub {
+    padding: 0 1px 0 0;
+    font-size:xx-small;
+    position:relative;
+    bottom:-0.3em;
+}
+
+/**************************************************************************************************
+ * Linkable sections
+ */
+
+.-papyro-internal-content .linkable .links_wrapper {
+    position: relative;
+}
+
+.-papyro-internal-content .linkable .links_wrapper > .links {
+    position: absolute;
+    right: 0px;
+    left: 0px;
+    z-index: 10;
+    background: #ddd;
+    border: solid 1px #aaa;
+}
+
+
+/**************************************************************************************************
+ * Expandable sections
+ */
+
+.-papyro-internal-content .expandable > .caption {
+    position: relative;
+    cursor: pointer;
+    font-weight: bold;
+    color: #558;
+    padding-left: 14px;
+}
+
+.-papyro-internal-content .expandable > .caption > img.arrow {
+    position: absolute;
+    left: 0px;
+}
+
+.-papyro-internal-content .expandable > .expansion {
+    padding-left: 14px;
+    padding-top: 0.4em;
+}
+
+.-papyro-internal-content .expandable {
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+* {
+  -webkit-hyphenate-character: "-";
+}

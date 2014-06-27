@@ -1,0 +1,103 @@
+<!--
+    
+     This file is part of the Utopia Documents application.
+         Copyright (c) 2008-2014 Lost Island Labs
+     
+     Utopia Documents is free software: you can redistribute it and/or modify
+     it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+     published by the Free Software Foundation.
+     
+     Utopia Documents is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+     Public License for more details.
+     
+     In addition, as a special exception, the copyright holders give
+     permission to link the code of portions of this program with the OpenSSL
+     library under certain conditions as described in each individual source
+     file, and distribute linked combinations including the two.
+     
+     You must obey the GNU General Public License in all respects for all of
+     the code used other than OpenSSL. If you modify file(s) with this
+     exception, you may extend this exception to your version of the file(s),
+     but you are not obligated to do so. If you do not wish to do so, delete
+     this exception statement from your version.
+     
+     You should have received a copy of the GNU General Public License
+     along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+    
+-->
+
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>pages/jquery.min.js</file>
+
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_flat_0_aaaaaa_40x100.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_flat_75_ffffff_40x100.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_55_fbf9ee_1x400.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_65_ffffff_1x400.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_75_dadada_1x400.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_95_fef1ec_1x400.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-bg_highlight-soft_75_cccccc_1x100.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-icons_222222_256x240.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-icons_2e83ff_256x240.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-icons_454545_256x240.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-icons_888888_256x240.png</file>
+        <file>pages/jquery-ui/css/smoothness/images/ui-icons_cd0a0a_256x240.png</file>
+        <file>pages/jquery-ui/css/smoothness/jquery-ui.css</file>
+        <file>pages/jquery-ui/jquery-ui.min.js</file>
+
+        <file>pages/jqplot/jquery.jqplot.css</file>
+        <file>pages/jqplot/jquery.jqplot.js</file>
+        <file>pages/jqplot/jqplot.BezierCurveRenderer.js</file>
+        <file>pages/jqplot/jqplot.barRenderer.js</file>
+        <file>pages/jqplot/jqplot.blockRenderer.js</file>
+        <file>pages/jqplot/jqplot.bubbleRenderer.js</file>
+        <file>pages/jqplot/jqplot.canvasAxisLabelRenderer.js</file>
+        <file>pages/jqplot/jqplot.canvasAxisTickRenderer.js</file>
+        <file>pages/jqplot/jqplot.canvasOverlay.js</file>
+        <file>pages/jqplot/jqplot.canvasTextRenderer.js</file>
+        <file>pages/jqplot/jqplot.categoryAxisRenderer.js</file>
+        <file>pages/jqplot/jqplot.ciParser.js</file>
+        <file>pages/jqplot/jqplot.cursor.js</file>
+        <file>pages/jqplot/jqplot.dateAxisRenderer.js</file>
+        <file>pages/jqplot/jqplot.donutRenderer.js</file>
+        <file>pages/jqplot/jqplot.dragable.js</file>
+        <file>pages/jqplot/jqplot.enhancedLegendRenderer.js</file>
+        <file>pages/jqplot/jqplot.funnelRenderer.js</file>
+        <file>pages/jqplot/jqplot.highlighter.js</file>
+        <file>pages/jqplot/jqplot.json2.js</file>
+        <file>pages/jqplot/jqplot.logAxisRenderer.js</file>
+        <file>pages/jqplot/jqplot.mekkoAxisRenderer.js</file>
+        <file>pages/jqplot/jqplot.mekkoRenderer.js</file>
+        <file>pages/jqplot/jqplot.meterGaugeRenderer.js</file>
+        <file>pages/jqplot/jqplot.ohlcRenderer.js</file>
+        <file>pages/jqplot/jqplot.pieRenderer.js</file>
+        <file>pages/jqplot/jqplot.pointLabels.js</file>
+        <file>pages/jqplot/jqplot.pyramidAxisRenderer.js</file>
+        <file>pages/jqplot/jqplot.pyramidGridRenderer.js</file>
+        <file>pages/jqplot/jqplot.pyramidRenderer.js</file>
+        <file>pages/jqplot/jqplot.trendline.js</file>
+
+        <file>pages/altmetric/jquery.altmetric.js</file>
+        <file>pages/altmetric/altmetric.css</file>
+
+        <file>pages/utils/jquery.tiptip.min.js</file>
+        <file>pages/utils/jquery.tmpl.min.js</file>
+        <file>pages/utils/jquery.rotate.min.js</file>
+        <file>pages/utils/hyphenate.js</file>
+        <file>pages/utils/spinners.min.js</file>
+
+        <file>pages/results.js</file>
+        <file>pages/results.css</file>
+        <file>pages/reset.css</file>
+
+        <file>pages/results.xml</file>
+
+        <file>icons/expandable_arrow.png</file>
+        <file>icons/result-header-stub-structure.png</file>
+
+    </qresource>
+</RCC>

@@ -1,0 +1,146 @@
+#! /bin/bash
+
+DEST=`pwd`
+
+cd `dirname $0`
+ROOT=`pwd`
+
+DEP="$ROOT/dependencies"
+PLAT=`uname -s`
+TYPE="Debug"
+GEN="Unix Makefiles"
+
+
+if [ "${PLAT:0:5}" = "MINGW" ]; then
+    PLAT="Win32"
+    GEN="MSYS Makefiles"
+fi
+
+echo "=============================================================================="
+echo "                       U T O P I A    D O C U M E N T S"
+echo "=============================================================================="
+echo
+
+usage () {
+
+    cat <<EOF
+    usage: $0 [OPTIONS] - configure utopia build environment
+
+    where OPTIONS include:
+
+        --dep <dir>            - specify another dependencies dir
+        --plat <platform>      - platform name [$PLAT]
+        --builddir <dir>       - build directory [build/$PLAT-$TYPE]
+        --debug                - configure for debug build
+        --release              - configure for release build
+
+EOF
+    exit 1
+}
+
+
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+
+        -h|--help)
+            usage
+            exit 1
+            ;;
+        -d|--dep*)
+            shift
+            DEP=$1
+            ;;
+        -p|--plat*)
+            shift
+            PLAT=$1
+            ;;
+        -b|--builddir*)
+            shift
+            SUGGEST=$1
+            ;;
+        -g|--debug)
+            TYPE="Debug"
+            ;;
+        -r|--release)
+            TYPE="Release"
+            ;;
+    esac
+    shift
+done
+
+cd "$DEST"
+
+if [ -e CMakeLists.txt ]; then
+    PWD=`pwd`
+    if [[ -z "$SUGGEST" ]]; then
+        SUGGEST="$PWD/build/$PLAT-$TYPE"
+    fi
+    echo "It is advisable to build in a subdirectory."
+    echo "Would you prefer to configure in '$SUGGEST'?"
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes)
+                mkdir -p "$SUGGEST"
+                DEST="$SUGGEST"
+                break
+                ;;
+            No) break
+                ;;
+        esac
+    done
+fi
+
+if [ -e CMakeCache.txt ]; then
+    echo "This directory is already configured; reconfigure losing changes?"
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes)
+                rm -f CMakeCache.txt
+                break
+                ;;
+            No)
+                echo "Aborted configuration."
+                exit 1
+                ;;
+        esac
+        done
+fi
+
+if [ ! -e "$DEP/dependencies.cmake" -o ! -e "$DEP/CMakeCache.txt" ]; then
+    echo "The dependencies have not been built; configure and build them now?"
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes)
+                cd "$DEP"
+                cmake -D "CMAKE_BUILD_TYPE:STRING=$TYPE" \
+                    -C "CMakeConfig/configurations/$PLAT.txt" \
+                    -C "CMakeConfig/configurations/common.txt" \
+		    -G "$GEN" . || exit 1
+                make || exit 1
+                break
+                ;;
+            No)
+                exit 1
+                ;;
+        esac
+        done
+fi
+
+cd "$DEST"
+
+cmake -D "UTOPIA_DEPENDENCIES_DIR:STRING=$DEP" -D "CMAKE_BUILD_TYPE:STRING=$TYPE" -C "$ROOT/CMakeConfig/configurations/$PLAT.txt" -C "$ROOT/CMakeConfig/configurations/common.txt" -G "$GEN" "$ROOT"
+
+echo "=============================================================================="
+echo
+echo "Configured a $PLAT $TYPE build of $ROOT"
+echo "Building in $DEST"
+echo "Uses dependencies from $DEP"
+echo
+echo "To build:"
+echo
+echo "cd \"$DEST\""
+echo "make -j4"
+echo
+echo "=============================================================================="

@@ -1,0 +1,1 @@
+set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix, prepended onto install directories.")

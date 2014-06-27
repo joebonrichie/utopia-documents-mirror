@@ -1,0 +1,68 @@
+###############################################################################
+#   
+#    This file is part of the Utopia Documents application.
+#        Copyright (c) 2008-2014 Lost Island Labs
+#    
+#    Utopia Documents is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+#    published by the Free Software Foundation.
+#    
+#    Utopia Documents is distributed in the hope that it will be useful, but
+#    WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#    Public License for more details.
+#    
+#    In addition, as a special exception, the copyright holders give
+#    permission to link the code of portions of this program with the OpenSSL
+#    library under certain conditions as described in each individual source
+#    file, and distribute linked combinations including the two.
+#    
+#    You must obey the GNU General Public License in all respects for all of
+#    the code used other than OpenSSL. If you modify file(s) with this
+#    exception, you may extend this exception to your version of the file(s),
+#    but you are not obligated to do so. If you do not wish to do so, delete
+#    this exception statement from your version.
+#    
+#    You should have received a copy of the GNU General Public License
+#    along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+#   
+###############################################################################
+
+#
+# Internal file for GetGitRevisionDescription.cmake
+#
+# Requires CMake 2.6 or newer (uses the 'function' command)
+#
+# Original Author:
+# 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
+# http://academic.cleardefinition.com
+# Iowa State University HCI Graduate Program/VRAC
+#
+# Copyright Iowa State University 2009-2010.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+set(HEAD_HASH)
+
+file(READ "@HEAD_FILE@" HEAD_CONTENTS LIMIT 1024)
+
+string(STRIP "${HEAD_CONTENTS}" HEAD_CONTENTS)
+if(HEAD_CONTENTS MATCHES "ref")
+	# named branch
+	string(REPLACE "ref: " "" HEAD_REF "${HEAD_CONTENTS}")
+	if(EXISTS "@GIT_DIR@/${HEAD_REF}")
+	configure_file("@GIT_DIR@/${HEAD_REF}" "@GIT_DATA@/head-ref" COPYONLY)
+	elseif(EXISTS "@GIT_DIR@/logs/${HEAD_REF}")
+		configure_file("@GIT_DIR@/logs/${HEAD_REF}" "@GIT_DATA@/head-ref" COPYONLY)
+		set(HEAD_HASH "${HEAD_REF}")
+	endif()
+else()
+	# detached HEAD
+	configure_file("@GIT_DIR@/HEAD" "@GIT_DATA@/head-ref" COPYONLY)
+endif()
+
+if(NOT HEAD_HASH)
+file(READ "@GIT_DATA@/head-ref" HEAD_HASH LIMIT 1024)
+string(STRIP "${HEAD_HASH}" HEAD_HASH)
+endif()

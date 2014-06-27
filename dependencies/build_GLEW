@@ -1,0 +1,140 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=GLEW
+DEPENDENCIES=
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+# GLEW is a mess and won't build on Linux!
+rm -Rf config.dos
+mv config config.dos
+mkdir config
+cd config.dos
+for f in *; do
+    tr -d '\r' < "$f" > "../config/$f"
+done
+cd ..
+
+chmod +x config/config.guess
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+        MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export MACOSX_ARCHFLAGS
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+    # Fix the noddy makefile on OS X
+    mv Makefile Makefile.lfcr
+    tr -d '\r' < Makefile.lfcr > Makefile
+    patch -p0 <<'EOF'
+--- Makefile.orig       2008-11-03 06:25:21.000000000 +0000
++++ Makefile    2009-11-19 11:42:23.000000000 +0000
+@@ -59,12 +59,12 @@
+ OPT = $(POPT)
+ endif
+ INCLUDE = -Iinclude
+-CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA)
++CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA) $(CFLAGS_ENV)
+
+ LIB.SRCS = src/glew.c
+ LIB.OBJS = $(LIB.SRCS:.c=.o)
+ LIB.SOBJS = $(LIB.SRCS:.c=.$(SHARED_OBJ_EXT))
+-LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS.GL)
++LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS.GL) $(LDFLAGS_ENV)
+ LIB.LIBS = $(GL_LDFLAGS)
+
+ GLEWINFO.BIN = glewinfo$(BIN.SUFFIX)
+@@ -73,7 +73,7 @@
+ VISUALINFO.BIN = visualinfo$(BIN.SUFFIX)
+ VISUALINFO.BIN.SRCS = src/visualinfo.c
+ VISUALINFO.BIN.OBJS = $(VISUALINFO_BIN.SRCS:.c=.o)
+-BIN.LIBS = -Llib $(LDFLAGS.DYNAMIC) -l$(NAME) $(LDFLAGS.EXTRA) $(LDFLAGS.GL)
++BIN.LIBS = -Llib $(LDFLAGS.DYNAMIC) -l$(NAME) $(LDFLAGS.EXTRA) $(LDFLAGS.GL) $(LDFLAGS_ENV)
+
+ all debug: lib/$(LIB.SHARED) lib/$(LIB.STATIC) bin/$(GLEWINFO.BIN) bin/$(VISUALINFO.BIN)
+
+@@ -81,7 +81,7 @@
+ mkdir lib
+
+ lib/$(LIB.STATIC): $(LIB.OBJS)
+-	$(AR) cr $@ $^
++	$(AR) csr $@ $^
+
+ lib/$(LIB.SHARED): $(LIB.SOBJS)
+ 	$(LD) $(LDFLAGS.SO) -o $@ $^ $(LIB.LDFLAGS) $(LIB.LIBS)
+EOF
+fi
+
+GLEW_DEST="${PREFIX}/build" \
+    INCDIR="${PREFIX}/include/GL" \
+    make install
+
+# LIBDIR seems to be ignored
+if [ -e lib/libGLEW.a ] ; then
+	install -m 644 "lib/libGLEW.a" "${PREFIX}/lib"
+fi
+
+if [ x"${ARCH}" = x"Windows" ]; then
+    if [ -e lib/libGLEW32.dll.a ] ; then
+        install -m 644 "lib/libGLEW32.dll.a" "${PREFIX}/lib"
+        install -m 644 "lib/GLEW32.dll" "${PREFIX}/bin"
+    fi
+else
+    if [ -e lib/libGLEW32.a ] ; then
+        install -m 644 "lib/libGLEW32.a" "${PREFIX}/lib"
+    fi
+fi
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

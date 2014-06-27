@@ -1,0 +1,253 @@
+black                   0       0       0
+white                   255     255     255
+
+blue                    0       0       255
+green                   0       255     0
+cyan                    0       255     255
+
+red                     255     0       0
+magenta                 255     0       255
+yellow                  255     255     0
+
+orange                  255     165     0
+redorange               255     69      0
+violet                  238     130     238
+purple                  160     32      240
+greenblue               46      139     87
+
+residue.ASP		230	10	10
+residue.GLU		230	10	10
+residue.CYS		230	230	0
+residue.MET		230	230	0
+residue.LYS		20	90	255
+residue.ARG		20	90	255
+residue.SER		250	150	0
+residue.THR		250	150	0
+residue.PHE		50	50	170
+residue.TYR		50	50	170
+residue.ASN		0	220	220
+residue.GLN		0	220	220
+residue.GLY		235	235	235
+residue.LEU		15	130	15
+residue.VAL		15	130	15
+residue.ILE		15	130	15
+residue.ALA		200	200	200
+residue.TRP		180	90	180
+residue.HIS		130	130	210
+residue.PRO		220	150	130
+
+residue.GLA		220	150	130
+residue.PCA		220	150	130
+residue.HYP		220	150	130
+residue.HYL		220	150	130
+residue.ACK		220	150	130
+residue.MEK		220	150	130
+residue.M2K		220	150	130
+residue.M3K		220	150	130
+residue.MSX		220	150	130
+residue.MSO		220	150	130
+residue.HSE		220	150	130
+residue.HCY		220	150	130
+residue.CSS		220	150	130
+residue.OGS		220	150	130
+residue.OGT		220	150	130
+residue.ASG		220	150	130
+residue.M3K		220	150	130
+residue.AC1		220	150	130
+residue.AC2		220	150	130
+residue.AC3		220	150	130
+residue.AC4		220	150	130
+
+residue.U		154	255	154
+residue.C		255	154	77
+residue.G		255	114	114
+residue.A		143	143	255
+residue.T		154	255	154
+residue.I		143	143	255
+residue.?		255	104	255
+
+element.C		170	170	170
+element.O		240	0	0
+element.H		255	255	255
+element.N		143	143	255
+element.S		255	200	50
+element.Cl		0	255	0
+element.B		0	255	0
+element.P		255	165	0
+element.Fe		255	165	0
+element.Ba		255	165	0
+element.Na		0	0	255
+element.Mg		34	139	34
+element.Zn		165	42	42
+element.Ni		165	42	42
+element.Cu		165	42	42
+element.Br		165	42	42
+element.Ca		128	128	144
+element.Mn		128	128	144
+element.Al		128	128	144
+element.Ti		128	128	144
+element.Cr		128	128	144
+element.Ag		128	128	144
+element.Au		218	165	32
+element.Si		218	165	32
+element.F		218	165	32
+element.I		160	32	240
+element.?		255	20	147
+
+ss.Helices		0	230	0
+ss.Sheets		255	0	0
+ss.Turns		0	0	128
+ss.?			220	220	220
+
+temp.hot		255	0	0
+temp.cold		0	0	255
+
+charge.+		0	0	255
+charge.-		255	0	0
+
+ambrosia.background		45	45	55
+ambrosia.background		0	0	0
+ambrosia.background     255 255 255
+
+ambrosia.lighting.ambient	40	40	40
+ambrosia.material.ambient	40	40	40
+ambrosia.lighting.ambient	110	110	110
+ambrosia.material.ambient	110	110	110
+ambrosia.lighting.diffuse	160	160	160
+ambrosia.material.diffuse	128	128	128
+residue.ALA		255	255	255
+residue.ARG		136	255	255
+residue.ASN		136	255	136
+residue.ASP		255	136	136
+residue.CYS		255	255	136
+residue.GLN		136	255	136
+residue.GLU		255	136	136
+residue.GLY		255	170	136
+residue.HIS		136	255	255
+residue.ILE		255	255	255
+residue.LEU		255	255	255
+residue.LYS		136	255	255
+residue.MET		255	255	255
+residue.PHE		255	136	255
+residue.PRO		255	170	136
+residue.SER		136	255	136
+residue.THR		136	255	136
+residue.TRP		255	136	255
+residue.TYR		255	136	255
+residue.VAL		255	255	255
+
+residue.U		154	255	154
+residue.C		255	154	77
+residue.G		255	114	114
+residue.A		143	143	255
+residue.T		154	255	154
+residue.I		143	143	255
+residue.?		255	104	255
+
+?           255 20  147
+
+extent/Sequence_Motif	130	200	100
+
+extent/Secondary_Structure/PDB	0	255	0
+extent/Secondary_Structure/PDB/Helices	0	230	0
+extent/Secondary_Structure/PDB/Sheets	230	0	0
+extent/Secondary_Structure/PDB/Turns	0	0	230
+extent/Secondary_Structure/DSSP	0	255	0
+extent/Secondary_Structure/DSSP/Helices	0	230	0
+extent/Secondary_Structure/DSSP/Sheets	230	0	0
+extent/Secondary_Structure/DSSP/Turns	0	0	230
+extent/Secondary_Structure/PFF	0	255	0
+extent/Secondary_Structure/PFF/Helices	0	230	0
+extent/Secondary_Structure/PFF/Sheets	230	0	0
+extent/Secondary_Structure/PFF/Turns	0	0	230
+extent/Secondary_Structure/UniProt	0	255	0
+extent/Secondary_Structure/UniProt/Helices	0	230	0
+extent/Secondary_Structure/UniProt/Sheets	230	0	0
+extent/Secondary_Structure/UniProt/Turns	0	0	230
+extent/DSSP/Secondary_Structure	0	255	0
+extent/DSSP/Secondary_Structure/Helices	0	230	0
+extent/DSSP/Secondary_Structure/Sheets	230	0	0
+extent/DSSP/Secondary_Structure/Turns	0	0	230
+
+extent/PFF/Tight_End_Fragments/Odd	255	255	0
+extent/PFF/Tight_End_Fragments/Even	55	255	55
+	
+extent/PFF/Fingerprint_Motif	130	200	100
+
+boolean/PFF/Topohydrophobic_Residues/Strict	50	150	255
+boolean/PFF/Topohydrophobic_Residues/Extended	50	255	150
+	
+boolean/PFF/Most_Interacting_Residues	255	70	20
+boolean/PFF/Binding_Sites	70	255	20
+	
+value/PFF/FoldX/value:max	0	0	255
+value/PFF/FoldX/value:min	255	255	255
+	
+value/PFF/Accessibility/value:max	255	0	0
+value/PFF/Accessibility/value:min	255	255	255
+	
+value/PFF/Torsion_Angles/Psi:max	150	0	255
+value/PFF/Torsion_Angles/Psi:min	255	255	255
+value/PFF/Torsion_Angles/Alpha:max	150	0	255
+value/PFF/Torsion_Angles/Alpha:min	255	255	255
+value/PFF/Torsion_Angles/Omega:max	150	0	255
+value/PFF/Torsion_Angles/Omega:min	255	255	255
+value/PFF/Torsion_Angles/Phi:max	150	0	255
+value/PFF/Torsion_Angles/Phi:min	255	255	255
+value/PFF/Torsion_Angles/Kappa:max	150	0	255
+value/PFF/Torsion_Angles/Kappa:min	255	255	255
+value/DSSP/Torsion_Angles/Psi	150	0	255
+value/DSSP/Torsion_Angles/Alpha	150	0	255
+value/DSSP/Torsion_Angles/Omega	150	0	255
+value/DSSP/Torsion_Angles/Phi	150	0	255
+value/DSSP/Torsion_Angles/Kappa	150	0	255
+		
+value/PFF/PoPMuSiC_Analyses/Destabilisation:max	0	150	255
+value/PFF/PoPMuSiC_Analyses/Destabilisation:min	255	255	255
+value/PFF/PoPMuSiC_Analyses/Stabilisation:max	0	150	255
+value/PFF/PoPMuSiC_Analyses/Stabilisation:min	255	255	255
+	
+value/PFF/Fugue/score:max	50	255	50
+value/PFF/Fugue/score:min	255	255	255
+
+value/PFF/Lattice/value:max	255	190	20
+value/PFF/Lattice/value:min	255	255	255
+
+value/PFF/Folding_Scores/Folding_Region_Conservation:max	0	100	255
+value/PFF/Folding_Scores/Folding_Region_Conservation:min	128	128	128
+value/PFF/Folding_Scores/Functional_Region_Conservation:max	255	0	0
+value/PFF/Folding_Scores/Functional_Region_Conservation:min	128	128	128
+value/PFF/Folding_Scores/Raw_Score:max	140	90	255
+value/PFF/Folding_Scores/Raw_Score:min	255	90	140
+
+value/Crescendo/score:min	169 23 255
+value/Crescendo/score:max	255 255 255
+
+boolean/SNPs        200 200 30
+boolean/SNPs        50 50 50
+extent/BlastProDom  56 155 200
+extent/ProfileScan  80 205 200
+extent/FPrintScan   180 55 80
+extent/superfamily  98 55 159
+extent/Gene3D       100  200 50
+
+
+extent/Predicted_ELM_instances	255 0 0
+extent/Predicted_coiled-coils	255 100 0
+extent/Transmembrane_regions_(tmap)	153 77 0
+
+
+extent/UniProt/Transmembrane_Domains	0	255	0
+extent/UniProt/Transmembrane_Domains/Helix	0	230	0
+extent/UniProt/Transmembrane_Domains/Inside	128	0	0
+extent/UniProt/Transmembrane_Domains/Outside	0	128	128
+
+extent/EMBOSS_tmap/Transmembrane_Domains	0	255	0
+extent/EMBOSS_tmap/Transmembrane_Domains/Helix	0	230	0
+extent/EMBOSS_tmap/Transmembrane_Domains/Inside	128	0	0
+extent/EMBOSS_tmap/Transmembrane_Domains/Outside	0	128	128
+
+extent/TMHMM/Transmembrane_Domains	0	255	0
+extent/TMHMM/Transmembrane_Domains/Helix	0	230	0
+extent/TMHMM/Transmembrane_Domains/Inside	128	0	0
+extent/TMHMM/Transmembrane_Domains/Outside	0	128	128

@@ -1,0 +1,131 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2014 Lost Island Labs
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+/*
+  html5doctor.com Reset Stylesheet
+  adapted from Eric Myer's Reset CSS
+  v1.4.1 
+  2010-03-01
+  Author: Richard Clark - http://richclarkdesign.com
+*/
+
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
+body {
+    background-color: transparent; /* So color or background can be set on the html element */
+    line-height: 1;
+}
+
+article,aside,canvas,details,figcaption,figure,
+footer,header,hgroup,menu,nav,section,summary { 
+    display:block;
+}
+
+nav ul {
+    list-style:none;
+}
+
+blockquote, q {
+    quotes:none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content:'';
+    content:none;
+}
+
+a {
+    margin:0;
+    padding:0;
+    border:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
+ins {
+    background-color:#ff9;
+    color:#000;
+    text-decoration:none;
+}
+
+mark {
+    background-color:#ff9;
+    color:#000; 
+    font-style:italic;
+    font-weight:bold;
+}
+
+del {
+    text-decoration: line-through;
+}
+
+abbr[title], dfn[title] {
+    border-bottom:1px dotted #000;
+    cursor:help;
+}
+
+table {
+    border-collapse:collapse;
+    border-spacing:0;
+}
+
+hr {
+    display:block;
+    height:1px;
+    border:0;   
+    border-top:1px solid #cccccc;
+    margin:1em 0;
+    padding:0;
+}
+
+input, select {
+    vertical-align:middle;
+}

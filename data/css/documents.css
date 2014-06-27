@@ -1,0 +1,496 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2014 Lost Island Labs
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+/*
+ * Specific UI elements
+ */
+
+/* 'Behind the page' should be blue */
+Papyro--PapyroWindow {
+    background-color: #405D8D;
+}
+
+/* However the whole page area (the tab) should be white */
+Papyro--PapyroTab {
+    background: white;
+}
+
+/* The lines between pages */
+Papyro--PapyroTab Papyro--DocumentView {
+    color: #eeeeee;
+}
+
+/* The lines between ares on the page */
+Papyro--PapyroTab QSplitterHandle {
+    color: #eeeeee;
+}
+
+/* Cosmetic line between the white pages and the blue background */
+#tab_bar_frame {
+    border: 1px solid black;
+    border-width: 0 1px 0 0;
+    padding: 0px -1px 0px 0px;
+}
+
+#search_control_layer {
+    padding-left: 48px;
+}
+
+
+
+/*
+ * General UI elements
+ */
+
+Papyro--PapyroWindow QToolButton {
+    border: none;
+    background: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+Papyro--Sliver QToolButton,
+#corner_frame QToolButton {
+    qproperty-iconSize: 24px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+
+
+
+/*
+ * Scrollbars
+ */
+
+Utopia--BubbleWidget QScrollBar,
+Utopia--BubbleDialog QScrollBar,
+Papyro--PapyroWindow QScrollBar {
+    margin: 2px;
+    border: 0px;
+    padding: 0px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 3%);
+}
+
+Utopia--BubbleWidget QScrollBar:vertical,
+Utopia--BubbleDialog QScrollBar:vertical,
+Papyro--PapyroWindow QScrollBar:vertical {
+    width: 13px;
+}
+
+Utopia--BubbleWidget QScrollBar:horizontal,
+Utopia--BubbleDialog QScrollBar:horizontal,
+Papyro--PapyroWindow QScrollBar:horizontal {
+    height: 13px;
+}
+
+Utopia--BubbleWidget QScrollBar::handle,
+Utopia--BubbleDialog QScrollBar::handle,
+Papyro--PapyroWindow QScrollBar::handle {
+    margin: 0px;
+    border: 0px;
+    padding: 0px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 20%);
+}
+
+Utopia--BubbleWidget QScrollBar::handle:hover,
+Utopia--BubbleWidget QScrollBar::handle:pressed,
+Utopia--BubbleDialog QScrollBar::handle:hover,
+Utopia--BubbleDialog QScrollBar::handle:pressed,
+Papyro--PapyroWindow QScrollBar::handle:hover,
+Papyro--PapyroWindow QScrollBar::handle:pressed {
+    background-color: #818FB4;
+}
+
+Utopia--BubbleWidget QScrollBar::handle:vertical,
+Utopia--BubbleDialog QScrollBar::handle:vertical,
+Papyro--PapyroWindow QScrollBar::handle:vertical {
+    min-height: 20px;
+}
+
+Utopia--BubbleWidget QScrollBar::handle:horizontal,
+Utopia--BubbleDialog QScrollBar::handle:horizontal,
+Papyro--PapyroWindow QScrollBar::handle:horizontal {
+    min-width: 20px;
+}
+
+Utopia--BubbleWidget QScrollBar::add-page,
+Utopia--BubbleWidget QScrollBar::sub-page,
+Utopia--BubbleWidget QScrollBar::add-line,
+Utopia--BubbleWidget QScrollBar::sub-line,
+Utopia--BubbleDialog QScrollBar::add-page,
+Utopia--BubbleDialog QScrollBar::sub-page,
+Utopia--BubbleDialog QScrollBar::add-line,
+Utopia--BubbleDialog QScrollBar::sub-line,
+Papyro--PapyroWindow QScrollBar::add-page,
+Papyro--PapyroWindow QScrollBar::sub-page,
+Papyro--PapyroWindow QScrollBar::add-line,
+Papyro--PapyroWindow QScrollBar::sub-line {
+    background: none;
+    width: 0px;
+    height: 0px;
+}
+
+
+
+
+/*
+ * Bibliographic search box
+ */
+
+Athenaeum--BibliographicSearchBox {
+    border: 2px solid #506D9D;
+    border-radius: 12px;
+    height: 20px;
+    padding: 0px 1px;
+    background: white;
+}
+
+Athenaeum--BibliographicSearchBox QLineEdit {
+    border: none;
+    background: transparent;
+    margin: 0px;
+    padding: 0px 0px 0px 3px;
+}
+
+Athenaeum--BibliographicSearchBox QLabel {
+    padding-left: 1px;
+    padding-right: -3px;
+    color: #999;
+}
+
+Athenaeum--BibliographicSearchBox QToolButton::menu-indicator {
+    image: none;
+}
+
+Athenaeum--BibliographicSearchBox QToolButton#clearButton {
+    margin: 0px 1px 0px 0px;
+    height: 18px;
+    width: 14px;
+}
+
+Athenaeum--BibliographicSearchBox QToolButton#searchDomainButton {
+    margin: 0px 0px 0px 2px;
+    width: 24px;
+    height: 18px;
+}
+
+
+
+
+/* Article list */
+
+Papyro--PapyroWindow Athenaeum--ArticleView {
+    background-color: transparent;
+    alternate-background-color: transparent;
+}
+
+Papyro--PapyroWindow Athenaeum--ArticleView Utopia--Spinner {
+    padding: 4px;
+}
+
+Papyro--PapyroWindow Athenaeum--ArticleView::item:hover {
+    background-color: rgba(255, 255, 255, 10);
+}
+
+Papyro--PapyroWindow Athenaeum--ArticleView::item:selected {
+    background-color: rgba(255, 255, 255, 50);
+}
+
+Papyro--PapyroWindow Athenaeum--ArticleView QScrollBar {
+    background-color: rgba(255, 255, 255, 3%);
+}
+
+Papyro--PapyroWindow Athenaeum--ArticleView QScrollBar::handle {
+    background-color: rgba(255, 255, 255, 20%);
+}
+
+Papyro--PapyroWindow Athenaeum--ArticleView QScrollBar::handle:hover,
+Papyro--PapyroWindow Athenaeum--ArticleView QScrollBar::handle:pressed {
+    background-color: rgb(255, 255, 255);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Papyro--SearchBar
+{
+  padding: 4px 4px 6px 4px;
+  margin: 0px;
+  border-top-style: none;
+  border-left-style: solid;
+  border-right-style: solid;
+  border-bottom-style: solid;
+  border-width: 1px;
+  border-color: rgba(64, 93, 141, 230);
+  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 6px;
+  background: rgba(64, 93, 141, 210);
+}
+
+#lookupBar
+{
+  padding: 2px 2px 0px 6px;
+  margin: 0px;
+  border-top-style: solid;
+  border-left-style: solid;
+  border-right-style: none;
+  border-bottom-style: none;
+  border-width: 1px;
+  border-color: rgba(64, 93, 141, 230);
+  border-top-left-radius: 6px;
+  background: rgba(64, 93, 141, 210);
+}
+
+#lookupBar QLineEdit,
+Papyro--SearchBar QLineEdit
+{
+  margin: 4px;
+  border: 1 inset gray;
+}
+
+Papyro--Pager
+{
+  background-color: #bbb;
+  border-width: 1px;
+  border-color: #888;
+  border-top-style: solid;
+  border-right-style: solid;
+  border-left-style: none;
+  border-bottom-style: none;
+  border-top-right-radius: 4px;
+}
+
+Papyro--PapyroWindow Papyro--Pager QScrollBar:horizontal
+{
+    background-color: #bbb;
+}
+
+
+
+Papyro--CitationPopup
+{
+    qproperty-bubbleBackground: #f6f6ff;
+    qproperty-bubbleBorder: #667;
+    color: black;
+}
+
+Papyro--CitationPopup QLabel
+{
+    color: #333;
+}
+
+QWidget[uiRole="Banner"]
+{
+  padding: 4;
+}
+
+QFrame#highlightingModeOptionFrame {
+    border: 1px solid black;
+    background-color: #405D8D;
+}
+
+Papyro--Sliver {
+    padding: 12px 0px 12px 1px;
+}
+
+QFrame#highlightingModeOptionFrame QAbstractButton
+{
+  qproperty-iconSize: 28px;
+}
+
+QFrame#highlightingModeOptionFrame QAbstractButton,
+Papyro--Sliver QAbstractButton,
+Papyro--Sliver QLabel
+{
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+
+
+Papyro--Sidebar QPushButton#back {
+  height: 20px;
+  border-image: url(:/images/back-button-bg.png) 2 2 2 14;
+  border-width: 2px 2px 2px 14px;
+  border-style: solid;
+  padding-left: 4px;
+  padding-right: 6px;
+  margin: 4px 2px;
+}
+
+Papyro--Sidebar QPushButton#back:pressed {
+  border-image: url(:/images/back-button-pressed-bg.png) 2 2 2 14;
+}
+
+Papyro--Sidebar QLabel {
+  color: #444;
+  margin: 4px 6px;
+}
+
+#source {
+    qproperty-bubbleBackground: #f6f6ff;
+    qproperty-bubbleBorder: #667;
+}
+
+#source QLabel {
+    color: #333;
+}
+
+Papyro--Sidebar Utopia--Spinner {
+  margin: 4px 4px 4px 2px;
+  min-height: 24;
+  min-width: 24;
+}
+
+
+
+
+
+
+
+
+
+#article_preview_bubble
+{
+    qproperty-bubbleBackground: #f6f6ff;
+    qproperty-bubbleBorder: #667;
+    padding 0px 0px 0px 0px;
+}
+
+#article_preview_bubble QTextEdit
+{
+    background: transparent;
+}
+
+#remote_search_header
+{
+    background: #506D9D;
+    border-radius: 12px;
+    padding: 0px;
+}
+
+#remote_search_label
+{
+    margin: 0px;
+    padding: 8px 8px 8px 14px;
+}
+
+#remote_search_label QLabel {
+    color: white;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
+QTabBar::tab {
+  width: 27px;
+}
+
+QTabBar::tab::selected {
+  border-width: 18px 0px 18px 1px;
+  border-image: url(:/images/tab-west-active.png) 18 0 18 1;
+  background: white;
+  background-clip: padding;
+}
+
+QTabBar::tab::!selected {
+  border-width: 18px 0px 18px 1px;
+  border-image: url(:/images/tab-west-inactive.png) 18 0 18 1;
+  background: #C8C8C8;
+  background-clip: padding;
+  color: #4D4D4D;
+}
+
+QTabWidget::pane {
+  border-style: solid;
+  border-color: black;
+  border-width: 0px 0px 0px 1px;
+  margin: 0px;
+  padding: 0px;
+  left: -1px;
+}
+
+QTabBar::tab {
+  margin-top: -8px;
+  margin-bottom: -8px;
+}
+
+QTabBar::tab:first {
+  margin-top: 4px;
+}
+
+QTabBar::tab:last {
+  margin-bottom: 4px;
+}
+
+QTabBar::tab:only-one {
+  margin: 0;
+}
+*/
+
+/*
+#rightColumn {
+  background-color: #ffffff;
+}
+*/
+
+
+
+
+#csl-preview {
+  padding: 6px;
+  border: 1px solid #667;
+  border-radius: 6px;
+  background: #f6f6ff;
+}

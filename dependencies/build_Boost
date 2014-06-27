@@ -1,0 +1,124 @@
+#!/bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ###################################################################
+
+PACKAGE=Boost
+DEPENDENCIES="BJam Python"
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+BITS="64"
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+        if [ "$archflag" = "i386" ]; then
+            BITS="32_64"
+        fi
+        MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export MACOSX_ARCHFLAGS
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+elif [ x"${ARCH}" = x"Windows" ]; then
+    # Remove borked code block from python jam script
+    patch -p1 <<'EOF'
+$ diff -Nauw boost_1_49_0/tools/build/v2/tools/python.jam.original boost_1_49_0/tools/build/v2/tools/python.jam
+--- boost_1_49_0/tools/build/v2/tools/python.jam	2009-08-17 16:45:40.000000000 +0100
++++ boost_1_49_0/tools/build/v2/tools/python.jam.original	2009-08-17 16:43:45.000000000 +0100
+@@ -476,15 +476,6 @@
+             exprs += $(s) ;
+         }
+
+-        # Invoke Python and ask it for all those values.
+-        if [ version.check-jam-version 3 1 17 ] || ( [ os.name ] != NT )
+-        {
+-            # Prior to version 3.1.17 Boost Jam's SHELL command did not support
+-            # quoted commands correctly on Windows. This means that on that
+-            # platform we do not support using a Python command interpreter
+-            # executable whose path contains a space character.
+-            python-cmd = \"$(python-cmd)\" ;
+-        }
+         local full-cmd =
+             $(python-cmd)" -c \"from sys import *; print('"$(format:J=\\n)"' % ("$(exprs:J=,)"))\"" ;
+
+EOF
+fi
+
+PATH="${PREFIX}/bin":~+:$PATH
+BJAM=bjam
+TOOLSET=
+LINKING="link=static"
+if [ x"${ARCH}" = x"Windows" ]; then
+    TOOLSET="toolset=gcc"
+    LINKING="link=shared"
+    BITS=32
+	(cd tools/build/v2/engine && ./build.sh && mv bin.ntx86/b* ../../../../)
+    #./bootstrap.sh --with-"${TOOLSET}" \
+	#--prefix="${PREFIX}"
+else
+    ./bootstrap.sh \
+	--prefix="${PREFIX}"
+fi
+
+${BJAM} ${TOOLSET} \
+    --prefix="${PREFIX}" \
+    variant=debug,release \
+    ${LINKING} \
+    threading=multi \
+    --with-thread \
+    --with-python \
+    --with-system \
+    architecture=x86 address-model=${BITS} \
+    --layout=tagged \
+    install
+
+#    define=U_STATIC_IMPLEMENTATION=1 \
+
+##############################################################################
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

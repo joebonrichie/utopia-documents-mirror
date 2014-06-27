@@ -1,0 +1,184 @@
+<!--
+    
+     This file is part of the Utopia Documents application.
+         Copyright (c) 2008-2014 Lost Island Labs
+     
+     Utopia Documents is free software: you can redistribute it and/or modify
+     it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+     published by the Free Software Foundation.
+     
+     Utopia Documents is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+     Public License for more details.
+     
+     In addition, as a special exception, the copyright holders give
+     permission to link the code of portions of this program with the OpenSSL
+     library under certain conditions as described in each individual source
+     file, and distribute linked combinations including the two.
+     
+     You must obey the GNU General Public License in all respects for all of
+     the code used other than OpenSSL. If you modify file(s) with this
+     exception, you may extend this exception to your version of the file(s),
+     but you are not obligated to do so. If you do not wish to do so, delete
+     this exception statement from your version.
+     
+     You should have received a copy of the GNU General Public License
+     along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+    
+-->
+
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+
+        <file>images/pager_loading.png</file>
+
+        <file>images/left-fade.png</file>
+
+	<file>icons/plot.png</file>
+	<file>icons/sequence.png</file>
+        <file>icons/sticky-note.png</file>
+	<file>icons/structure.png</file>
+	<file>icons/startup.png</file>
+        <file>icons/document-small-gray.png</file>
+        <file>icons/document-tiny-gray.png</file>
+        <file>icons/document-small.png</file>
+        <file>icons/document-tiny.png</file>
+        <file>icons/left-shuttle.png</file>
+        <file>icons/left-shuttle-gray.png</file>
+
+        <file>icons/splitter-arrows-horizontal.png</file>
+        <file>icons/splitter-arrows-vertical.png</file>
+
+        <file>icons/ud-logo.svg</file>
+        <file>icons/ud-logo.png</file>
+
+        <file>icons/fit-to-width.png</file>
+        <file>icons/fit-to-window.png</file>
+        <file>icons/one-up.png</file>
+        <file>icons/open.png</file>
+        <file>icons/two-up.png</file>
+        <file>icons/toolbar-area-select.png</file>
+        <file>icons/toolbar-text-select.png</file>
+        <file>icons/toolbar-pan.png</file>
+
+        <file>icons/embedded-play.png</file>
+        <file>icons/embedded-launch.png</file>
+
+        <file>icons/clear.png</file>
+        <file>icons/clearandsearch.png</file>
+        <file>icons/minus.png</file>
+        <file>icons/next.png</file>
+        <file>icons/nextpressed.png</file>
+        <file>icons/previous.png</file>
+        <file>icons/previouspressed.png</file>
+        <file>icons/padlock-open.png</file>
+        <file>icons/padlock-closed.png</file>
+        <file>icons/plus.png</file>
+        <file>icons/remove.png</file>
+        <file>icons/removepressed.png</file>
+        <file>icons/search.png</file>
+        <file>icons/separator.png</file>
+
+        <file>icons/approved.png</file>
+        <file>icons/approvedPortlandPressLtd.png</file>
+        <file>icons/approved-ppl.png</file>
+        <file>icons/approvedPMC.png</file>
+        <file>icons/pending.png</file>
+        <file>icons/collapse.png</file>
+        <file>icons/collapsepressed.png</file>
+        <file>icons/default.png</file>
+        <file>icons/expand.png</file>
+        <file>icons/expandpressed.png</file>
+        <file>icons/pinned.png</file>
+        <file>icons/pinnedpressed.png</file>
+        <file>icons/unpinned.png</file>
+        <file>icons/unpinnedpressed.png</file>
+        <file>icons/sourceACK.png</file>
+        <file>icons/sourceGPCRDB.png</file>
+        <file>icons/sourceconceptwiki.png</file>
+        <file>icons/sourceBioCyc.png</file>
+        <file>icons/sourcedbpedia.png</file>
+        <file>icons/sourceGlick.png</file>
+        <file>icons/sourceGlickGlossaryPortlandPressLtd.png</file>
+        <file>icons/sourceUniprot.png</file>
+        <file>icons/sourceutopia.png</file>
+        <file>icons/sourcePDB.png</file>
+        <file>icons/sourceAQ.png</file>
+        <file>icons/sourcePubMed.png</file>
+        <file>icons/sourceWikipedia.png</file>
+
+        <file>icons/launch.png</file>
+        <file>icons/launch-pressed.png</file>
+        <file>icons/play.png</file>
+        <file>icons/play-pressed.png</file>
+        <file>icons/pause.png</file>
+        <file>icons/pause-pressed.png</file>
+        <file>icons/magnify.png</file>
+        <file>icons/magnify-pressed.png</file>
+        <file>icons/graph.png</file>
+        <file>icons/graph-pressed.png</file>
+        <file>icons/table.png</file>
+        <file>icons/table-pressed.png</file>
+
+	<file>images/speech-bubble-empty.svg</file>
+	<file>images/utopia-spiral-black.svg</file>
+	<file>images/utopia-spiral-gray.png</file>
+	<file>images/invalid-image-spiral.png</file>
+
+
+        <file>icons/eye-disabled.png</file>
+        <file>icons/eye-active.png</file>
+        <file>icons/eye-off.png</file>
+        <file>icons/eye-on.png</file>
+
+        <file>icons/flow-disabled.png</file>
+        <file>icons/flow-active.png</file>
+        <file>icons/flow-off.png</file>
+        <file>icons/flow-on.png</file>
+
+        <file>icons/magnifyingglass-disabled.png</file>
+        <file>icons/magnifyingglass-active.png</file>
+        <file>icons/magnifyingglass-off.png</file>
+        <file>icons/magnifyingglass-on.png</file>
+
+        <file>icons/pages-disabled.png</file>
+        <file>icons/pages-active.png</file>
+        <file>icons/pages-off.png</file>
+        <file>icons/pages-on.png</file>
+
+        <file>icons/article-searchbox-background.png</file>
+
+        <file>icons/circle-arrow.svg</file>
+
+        <file>icons/chemspider.png</file>
+        <file>icons/other-links.png</file>
+        <file>icons/mime-pdf.png</file>
+
+        <file>icons/article-search.png</file>
+        <file>icons/article-search-close.png</file>
+
+        <file>icons/margin-table.png</file>
+
+        <file>images/handle-dark.png</file>
+        <file>images/handle-hover-dark.png</file>
+        <file>images/handle-track-dark.png</file>
+
+        <file>images/handle-light.png</file>
+        <file>images/handle-hover-light.png</file>
+        <file>images/handle-track-light.png</file>
+
+        <file>images/back-button-hover-bg.png</file>
+        <file>images/back-button-pressed-bg.png</file>
+        <file>images/back-button-bg.png</file>
+
+        <file>images/border-rounded-box.png</file>
+
+        <file>images/tab-west-active.png</file>
+        <file>images/tab-west-inactive.png</file>
+        <file>images/tab-west-hover.png</file>
+        <file>icons/broken-tab.png</file>
+
+    </qresource>
+</RCC>

@@ -1,0 +1,55 @@
+<!--
+    
+     This file is part of the Utopia Documents application.
+         Copyright (c) 2008-2014 Lost Island Labs
+     
+     Utopia Documents is free software: you can redistribute it and/or modify
+     it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+     published by the Free Software Foundation.
+     
+     Utopia Documents is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+     Public License for more details.
+     
+     In addition, as a special exception, the copyright holders give
+     permission to link the code of portions of this program with the OpenSSL
+     library under certain conditions as described in each individual source
+     file, and distribute linked combinations including the two.
+     
+     You must obey the GNU General Public License in all respects for all of
+     the code used other than OpenSSL. If you modify file(s) with this
+     exception, you may extend this exception to your version of the file(s),
+     but you are not obligated to do so. If you do not wish to do so, delete
+     this exception statement from your version.
+     
+     You should have received a copy of the GNU General Public License
+     along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+    
+-->
+
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+    
+        <file>images/splash.png</file>
+        <file>images/flowbrowser_loading.png</file>
+        <file>images/spinner0.png</file>
+        <file>images/spinner1.png</file>
+        <file>images/spinner2.png</file>
+        <file>images/spinner3.png</file>
+        <file>images/spinner4.png</file>
+        <file>images/spinner5.png</file>
+        <file>images/spinner6.png</file>
+        <file>images/spinner7.png</file>
+        <file>images/spacer17.png</file>
+        <file>images/tick-sphere-50.png</file>
+        <file>images/cross-sphere-50.png</file>
+        <file>images/pling-sphere-50.png</file>
+        <file>images/tiny-handle.png</file>
+        <file>images/torn-paper.png</file>
+        <file>images/utopia-spiral-black.svg</file>          	
+        <file>images/noimage.png</file>          	
+        <file>images/nouser.png</file>          	
+        <file>images/UtopiaDocuments-128.png</file>
+    </qresource>
+</RCC>

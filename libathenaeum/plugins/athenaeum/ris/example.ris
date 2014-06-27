@@ -1,0 +1,934 @@
+﻿TY  - RPRT
+A2  - Group, W3C OWL Working
+PB  - World Wide Web Consortium
+PY  - 2009
+ST  - OWL 2 Web Ontology Language Document Overview
+TI  - OWL 2 Web Ontology Language Document Overview
+UR  - http://www.w3.org/TR/2009/REC-owl2-overview-20091027/
+ID  - 12
+ER  - 
+
+
+TY  - CONF
+AU  - Alistair Miles, Brian M Matthews, Michael Wilson and Dan Brickley
+PB  - Dublin Core Metadata Initiative
+PY  - 2005
+SN  - ISBN:8489315442 9788489315440
+SP  - 5-13
+ST  - SKOS Core: Simple Knowledge organization for the Web
+T2  - International Conference on Dublin Core and Metadata Applications
+TI  - SKOS Core: Simple Knowledge organization for the Web
+ID  - 19
+ER  - 
+
+
+TY  - JOUR
+AD  - Department of Genetics, Stanford University School of Medicine, California, USA. cherry@stanford.edu
+AN  - 10802651
+AU  - Ashburner, M.
+AU  - Ball, C. A.
+AU  - Blake, J. A.
+AU  - Botstein, D.
+AU  - Butler, H.
+AU  - Cherry, J. M.
+AU  - Davis, A. P.
+AU  - Dolinski, K.
+AU  - Dwight, S. S.
+AU  - Eppig, J. T.
+AU  - Harris, M. A.
+AU  - Hill, D. P.
+AU  - Issel-Tarver, L.
+AU  - Kasarskis, A.
+AU  - Lewis, S.
+AU  - Matese, J. C.
+AU  - Richardson, J. E.
+AU  - Ringwald, M.
+AU  - Rubin, G. M.
+AU  - Sherlock, G.
+DA  - May
+DO  - 10.1038/75556
+ET  - 2000/05/10
+KW  - Animals
+Computer Communication Networks
+Databases, Factual
+Eukaryotic Cells/*physiology
+*Genes
+Humans
+Metaphysics
+Mice
+Molecular Biology/*trends
+*Sequence Analysis, DNA
+*Terminology as Topic
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=10802651
+LA  - eng
+IS  - 1
+N1  - Ashburner, M
+Ball, C A
+Blake, J A
+Botstein, D
+Butler, H
+Cherry, J M
+Davis, A P
+Dolinski, K
+Dwight, S S
+Eppig, J T
+Harris, M A
+Hill, D P
+Issel-Tarver, L
+Kasarskis, A
+Lewis, S
+Matese, J C
+Richardson, J E
+Ringwald, M
+Rubin, G M
+Sherlock, G
+HD33745/HD/NICHD NIH HHS/United States
+P41 HG00330/HG/NHGRI NIH HHS/United States
+P41 HG01315/HG/NHGRI NIH HHS/United States
+R01 HD033745-11/HD/NICHD NIH HHS/United States
+etc.
+Research Support, Non-U.S. Gov't
+Research Support, U.S. Gov't, P.H.S.
+United states
+Nature genetics
+Nat Genet. 2000 May;25(1):25-9.
+PY  - 2000
+SN  - 1061-4036 (Print)
+1061-4036 (Linking)
+SP  - 25-9
+ST  - Gene ontology: tool for the unification of biology. The Gene Ontology Consortium
+T2  - Nat Genet
+TI  - Gene ontology: tool for the unification of biology. The Gene Ontology Consortium
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=10802651
+VL  - 25
+ID  - 20
+ER  - 
+
+
+TY  - JOUR
+AB  - MOTIVATION: In recent years, the gulf between the mass of accumulating-research data and the massive literature describing and analyzing those data has widened. The need for intelligent tools to bridge this gap, to rescue the knowledge being systematically isolated in literature and data silos, is now widely acknowledged. RESULTS: To this end, we have developed Utopia Documents, a novel PDF reader that semantically integrates visualization and data-analysis tools with published research articles. In a successful pilot with editors of the Biochemical Journal (BJ), the system has been used to transform static document features into objects that can be linked, annotated, visualized and analyzed interactively (http://www.biochemj.org/bj/424/3/). Utopia Documents is now used routinely by BJ editors to mark up article content prior to publication. Recent additions include integration of various text-mining and biodatabase plugins, demonstrating the system's ability to seamlessly integrate on-line content with PDF articles. AVAILABILITY: http://getutopia.com.
+AD  - School of Computer Science, Faculty of Life Sciences, University of Manchester, Manchester, UK. teresa.k.attwood@manchester.ac.uk
+AN  - 20823323
+AU  - Attwood, T. K.
+AU  - Kell, D. B.
+AU  - McDermott, P.
+AU  - Marsh, J.
+AU  - Pettifer, S. R.
+AU  - Thorne, D.
+DA  - Sep 15
+DO  - btq383 [pii]
+10.1093/bioinformatics/btq383
+ET  - 2010/09/09
+KW  - *Information Services
+Internet
+*Literature
+Periodicals as Topic
+*Publications/classification
+Publishing
+*Research
+*Software
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=20823323
+LA  - eng
+IS  - 18
+N1  - Attwood, T K
+Kell, D B
+McDermott, P
+Marsh, J
+Pettifer, S R
+Thorne, D
+BBE0160651/Biotechnology and Biological Sciences Research Council/United Kingdom
+Research Support, Non-U.S. Gov't
+England
+Bioinformatics (Oxford, England)
+Bioinformatics. 2010 Sep 15;26(18):i568-74.
+SN  - 1367-4811 (Electronic)
+1367-4803 (Linking)
+SP  - i568-74
+ST  - Utopia documents: linking scholarly literature with research data
+T2  - Bioinformatics
+TI  - Utopia documents: linking scholarly literature with research data
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=20823323
+VL  - 26
+ID  - 2
+ER  - 
+
+
+TY  - JOUR
+AB  - We live in interesting times. Portents of impending catastrophe pervade the literature, calling us to action in the face of unmanageable volumes of scientific data. But it isn't so much data generation per se, but the systematic burial of the knowledge embodied in those data that poses the problem: there is so much information available that we simply no longer know what we know, and finding what we want is hard - too hard. The knowledge we seek is often fragmentary and disconnected, spread thinly across thousands of databases and millions of articles in thousands of journals. The intellectual energy required to search this array of data-archives, and the time and money this wastes, has led several researchers to challenge the methods by which we traditionally commit newly acquired facts and knowledge to the scientific record. We present some of these initiatives here - a whirlwind tour of recent projects to transform scholarly publishing paradigms, culminating in Utopia and the Semantic Biochemical Journal experiment. With their promises to provide new ways of interacting with the literature, and new and more powerful tools to access and extract the knowledge sequestered within it, we ask what advances they make and what obstacles to progress still exist? We explore these questions, and, as you read on, we invite you to engage in an experiment with us, a real-time test of a new technology to rescue data from the dormant pages of published documents. We ask you, please, to read the instructions carefully. The time has come: you may turn over your papers...
+AD  - School of Chemistry, The University of Manchester, Oxford Road, Manchester M13 9PL, UK. teresa.k.attwood@manchester.ac.uk
+AN  - 19929850
+AU  - Attwood, T. K.
+AU  - Kell, D. B.
+AU  - McDermott, P.
+AU  - Marsh, J.
+AU  - Pettifer, S. R.
+AU  - Thorne, D.
+DA  - Dec 15
+DO  - BJ20091474 [pii]
+10.1042/BJ20091474
+ET  - 2009/11/26
+KW  - Databases, Factual
+Humans
+Information Dissemination/*methods
+Information Storage and Retrieval/methods/trends
+International Cooperation
+*Internet
+*Periodicals as Topic
+Software
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=19929850
+LA  - eng
+IS  - 3
+N1  - Attwood, Teresa K
+Kell, Douglas B
+McDermott, Philip
+Marsh, James
+Pettifer, Steve R
+Thorne, David
+BBE0160651/Biotechnology and Biological Sciences Research Council/United Kingdom
+Research Support, Non-U.S. Gov't
+Review
+England
+The Biochemical journal
+Biochem J. 2009 Dec 10;424(3):317-33.
+PY  - 2009
+SN  - 1470-8728 (Electronic)
+0264-6021 (Linking)
+SP  - 317-33
+ST  - Calling International Rescue: knowledge lost in literature and data landslide!
+T2  - Biochem J
+TI  - Calling International Rescue: knowledge lost in literature and data landslide!
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=19929850
+VL  - 424
+ID  - 1
+ER  - 
+
+
+TY  - JOUR
+AU  - Bairoch, A.
+DO  - doi:10.1038/npre.2009.3092.1
+PY  - 2009
+ST  - The future of annotation/biocuration
+T2  - Nat. Precedings
+TI  - The future of annotation/biocuration
+ID  - 6
+ER  - 
+
+
+TY  - JOUR
+AU  - Barend Mons, Herman van Haagen, Christine Chichester, Peter-Bram ‘t Hoen, Johan T den Dunnen, Gertjan van Ommen, Erik van Mulligen, Bharat Singh, Rob Hooft, Marco Roos, Joel Hammond, Bruce Kiesel, Belinda Giardine, Jan Velterop, Paul Groth & Erik Schultes1,4
+IS  - 4
+PY  - 2011
+SP  - 281-283
+ST  - The value of data
+T2  - Nature Genetics
+TI  - The value of data
+VL  - 43
+ID  - 29
+ER  - 
+
+
+TY  - JOUR
+AB  - The corpus of the scientific literature has reached such size that a lot of useful data, dispersed throughout millions different articles, are now hard to recover. For instance, many articles in the biological domain describe relationships between entities (gene, proteins, small molecules, etc.) yet this crucial information cannot be efficiently used because of the difficulties in retrieving it automatically from unstructured text. Databases are striving to capture this valuable information and to organize it in a structured format ready for automatic analysis. However, the current database model, based on manual curation, is not sustainable because the limited support is not compatible with complete and accurate coverage of published information. Several proposals have been put forward to increase the efficiency and accuracy of the curation process. Here we present an experiment, designed by the editorial board of FEBS Letters, aimed at integrating each manuscript with a structured summary precisely reporting, with database identifiers and predefined controlled vocabularies, the protein interactions reported in the manuscript. The authors play an important role in this process as they are requested to provide structured information to be appended, in the form of human-readable paragraphs, at the end of traditional summaries. It is envisaged that the structured text will become an integral part of Medline abstracts. In 6 months time the experience gained with this experiment will form the basis for a community discussion to propose a widely accepted strategy for information storage and retrieval.
+AD  - Department of Biology, University of Rome, Tor Vergata, Rome, Italy.
+AN  - 18328820
+AU  - Ceol, A.
+AU  - Chatr-Aryamontri, A.
+AU  - Licata, L.
+AU  - Cesareni, G.
+DA  - Apr 9
+DO  - S0014-5793(08)00196-8 [pii]
+10.1016/j.febslet.2008.02.071
+ET  - 2008/03/11
+KW  - *Databases, Protein
+*Information Storage and Retrieval
+Protein Binding
+Publishing
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18328820
+LA  - eng
+IS  - 8
+N1  - Ceol, Arnaud
+Chatr-Aryamontri, Andrew
+Licata, Luana
+Cesareni, Gianni
+Research Support, Non-U.S. Gov't
+Review
+Netherlands
+FEBS letters
+FEBS Lett. 2008 Apr 9;582(8):1171-7. Epub 2008 Mar 6.
+PY  - 2008
+SN  - 0014-5793 (Print)
+0014-5793 (Linking)
+SP  - 1171-7
+ST  - Linking entries in protein interaction database to structured text: the FEBS Letters experiment
+T2  - FEBS Lett
+TI  - Linking entries in protein interaction database to structured text: the FEBS Letters experiment
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18328820
+VL  - 582
+ID  - 7
+ER  - 
+
+
+TY  - JOUR
+AB  - Developing cures for highly complex diseases, such as neurodegenerative disorders, requires extensive interdisciplinary collaboration and exchange of biomedical information in context. Our ability to exchange such information across sub-specialties today is limited by the current scientific knowledge ecosystem's inability to properly contextualize and integrate data and discourse in machine-interpretable form. This inherently limits the productivity of research and the progress toward cures for devastating diseases such as Alzheimer's and Parkinson's. SWAN (Semantic Web Applications in Neuromedicine) is an interdisciplinary project to develop a practical, common, semantically structured, framework for biomedical discourse initially applied, but not limited, to significant problems in Alzheimer Disease (AD) research. The SWAN ontology has been developed in the context of building a series of applications for biomedical researchers, as well as in extensive discussions and collaborations with the larger bio-ontologies community. In this paper, we present and discuss the SWAN ontology of biomedical discourse. We ground its development theoretically, present its design approach, explain its main classes and their application, and show its relationship to other ongoing activities in biomedicine and bio-ontologies.
+AD  - Massachusetts General Hospital, Boston, MA 02129, USA; Harvard Medical School, Boston, MA 02115, USA.
+AN  - 18583197
+AU  - Ciccarese, P.
+AU  - Wu, E.
+AU  - Wong, G.
+AU  - Ocana, M.
+AU  - Kinoshita, J.
+AU  - Ruttenberg, A.
+AU  - Clark, T.
+DA  - Oct
+DO  - S1532-0464(08)00058-0 [pii]
+10.1016/j.jbi.2008.04.010
+ET  - 2008/06/28
+KW  - Animals
+Biomedical Research/*methods
+*Database Management Systems
+Humans
+Information Dissemination/methods
+Information Storage and Retrieval/*methods
+Internet/supply & distribution
+Knowledge Bases
+Medicine/methods
+*Natural Language Processing
+Neurodegenerative Diseases/diagnosis/physiopathology
+Semantics
+Vocabulary, Controlled
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18583197
+LA  - eng
+IS  - 5
+N1  - Ciccarese, Paolo
+Wu, Elizabeth
+Wong, Gwen
+Ocana, Marco
+Kinoshita, June
+Ruttenberg, Alan
+Clark, Tim
+Research Support, Non-U.S. Gov't
+United States
+Journal of biomedical informatics
+J Biomed Inform. 2008 Oct;41(5):739-51. Epub 2008 May 4.
+PY  - 2008
+SN  - 1532-0480 (Electronic)
+1532-0464 (Linking)
+SP  - 739-51
+ST  - The SWAN biomedical discourse ontology
+T2  - J Biomed Inform
+TI  - The SWAN biomedical discourse ontology
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18583197
+VL  - 41
+ID  - 13
+ER  - 
+
+
+TY  - JOUR
+AU  - de Waard, A.
+DO  - http://doi.ieeecomputersociety.org/10.1109/MIS.2010.49
+IS  - 2
+PY  - 2010
+SP  - 83-88
+ST  - From Proteins to Fairytales: Directions in Semantic Publishing
+T2  - Intelligent Systems
+TI  - From Proteins to Fairytales: Directions in Semantic Publishing
+VL  - 25
+ID  - 15
+ER  - 
+
+
+TY  - JOUR
+AU  - Editorial
+PY  - 2007
+SP  - 317-318
+ST  - ALPSP/Charlesworth Awards 2007
+T2  - Learned Publishing
+TI  - ALPSP/Charlesworth Awards 2007
+VL  - 20
+ID  - 16
+ER  - 
+
+
+TY  - JOUR
+AB  - BioLit is a web server which provides metadata describing the semantic content of all open access, peer-reviewed articles which describe research from the major life sciences literature archive, PubMed Central. Specifically, these metadata include database identifiers and ontology terms found within the full text of the article. BioLit delivers these metadata in the form of XML-based article files and as a custom web-based article viewer that provides context-specific functionality to the metadata. This resource aims to integrate the traditional scientific publication directly into existing biological databases, thus obviating the need for a user to search in multiple locations for information relating to a specific item of interest, for example published experimental results associated with a particular biological database entry. As an example of a possible use of BioLit, we also present an instance of the Protein Data Bank fully integrated with BioLit data. We expect that the community of life scientists in general will be the primary end-users of the web-based viewer, while biocurators will make use of the metadata-containing XML files and the BioLit database of article data. BioLit is available at http://biolit.ucsd.edu.
+AD  - Skaggs School of Pharmacy and Pharmaceutical Sciences, University of California, San Diego, CA, 92093-0444, USA.
+AN  - 18515836
+AU  - Fink, J. L.
+AU  - Kushch, S.
+AU  - Williams, P. R.
+AU  - Bourne, P. E.
+DA  - Jul 1
+DO  - gkn317 [pii]
+10.1093/nar/gkn317
+ET  - 2008/06/03
+KW  - *Databases, Factual
+Databases, Protein
+Internet
+*PubMed
+*Software
+Systems Integration
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18515836
+LA  - eng
+IS  - Web Server issue
+N1  - Fink, J Lynn
+Kushch, Sergey
+Williams, Parker R
+Bourne, Philip E
+Research Support, U.S. Gov't, Non-P.H.S.
+England
+Nucleic acids research
+Nucleic Acids Res. 2008 Jul 1;36(Web Server issue):W385-9. Epub 2008 May 31.
+PY  - 2008
+SN  - 1362-4962 (Electronic)
+0305-1048 (Linking)
+SP  - W385-9
+ST  - BioLit: integrating biological literature with databases
+T2  - Nucleic Acids Res
+TI  - BioLit: integrating biological literature with databases
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18515836
+VL  - 36
+ID  - 8
+ER  - 
+
+
+TY  - JOUR
+AB  - Many scientists now manage the bulk of their bibliographic information electronically, thereby organizing their publications and citation material from digital libraries. However, a library has been described as "thought in cold storage," and unfortunately many digital libraries can be cold, impersonal, isolated, and inaccessible places. In this Review, we discuss the current chilly state of digital libraries for the computational biologist, including PubMed, IEEE Xplore, the ACM digital library, ISI Web of Knowledge, Scopus, Citeseer, arXiv, DBLP, and Google Scholar. We illustrate the current process of using these libraries with a typical workflow, and highlight problems with managing data and metadata using URIs. We then examine a range of new applications such as Zotero, Mendeley, Mekentosj Papers, MyNCBI, CiteULike, Connotea, and HubMed that exploit the Web to make these digital libraries more personal, sociable, integrated, and accessible places. We conclude with how these applications may begin to help achieve a digital defrost, and discuss some of the issues that will help or hinder this in terms of making libraries on the Web warmer places in the future, becoming resources that are considerably more useful to both humans and machines.
+AD  - School of Chemistry, The University of Manchester, Manchester, UK. duncan.hull@cs.man.ac.uk
+AN  - 18974831
+AU  - Hull, D.
+AU  - Pettifer, S. R.
+AU  - Kell, D. B.
+DA  - Oct
+DO  - 10.1371/journal.pcbi.1000204
+ET  - 2008/11/01
+KW  - Database Management Systems/*trends
+Databases, Bibliographic
+Humans
+Internet/*organization & administration/utilization
+Libraries, Digital/*organization & administration/utilization
+Library Automation/trends
+Library Collection Development/trends
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18974831
+LA  - eng
+IS  - 10
+N1  - Hull, Duncan
+Pettifer, Steve R
+Kell, Douglas B
+BB/E004431/1/Biotechnology and Biological Sciences Research Council/United Kingdom
+Research Support, Non-U.S. Gov't
+Review
+United States
+PLoS computational biology
+PLoS Comput Biol. 2008 Oct;4(10):e1000204. Epub 2008 Oct 31.
+PY  - 2008
+SN  - 1553-7358 (Electronic)
+1553-734X (Linking)
+SP  - e1000204
+ST  - Defrosting the digital library: bibliographic tools for the next generation web
+T2  - PLoS Comput Biol
+TI  - Defrosting the digital library: bibliographic tools for the next generation web
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18974831
+VL  - 4
+ID  - 5
+ER  - 
+
+
+TY  - JOUR
+AD  - Program in Molecular and Genetic Epidemiology, Harvard School of Public Health, Boston, MA, USA. dhunter@hsph.harvard.edu
+AN  - 16906050
+AU  - Hunter, D. J.
+DA  - Sep
+DO  - 10.1097/01.ede.0000229955.07579.f0
+00001648-200609000-00001 [pii]
+ET  - 2006/08/15
+KW  - Genome, Human/genetics
+*Genomics
+Humans
+Molecular Epidemiology/*trends
+*Proteomics
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=16906050
+LA  - eng
+IS  - 5
+N1  - Hunter, David J
+Editorial
+United States
+Epidemiology (Cambridge, Mass.)
+Epidemiology. 2006 Sep;17(5):487-9.
+PY  - 2006
+SN  - 1044-3983 (Print)
+1044-3983 (Linking)
+SP  - 487-9
+ST  - Genomics and proteomics in epidemiology: treasure trove or "high-tech stamp collecting"?
+T2  - Epidemiology
+TI  - Genomics and proteomics in epidemiology: treasure trove or "high-tech stamp collecting"?
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=16906050
+VL  - 17
+ID  - 27
+ER  - 
+
+
+TY  - RPRT
+AU  - McGuiness D., and van Harmelen F.
+PY  - 2004
+ST  - OWL Web Ontology Language Overview
+T2  - World Wide Web Consortium
+TI  - OWL Web Ontology Language Overview
+UR  - http://www.w3.org/TR/2004/REC-owl-features-20040210/
+ID  - 11
+ER  - 
+
+
+TY  - JOUR
+AB  - WikiProteins enables community annotation in a Wiki-based system. Extracts of major data sources have been fused into an editable environment that links out to the original sources. Data from community edits create automatic copies of the original data. Semantic technology captures concepts co-occurring in one sentence and thus potential factual statements. In addition, indirect associations between concepts have been calculated. We call on a 'million minds' to annotate a 'million concepts' and to collect facts from the literature with the reward of collaborative knowledge discovery. The system is available for beta testing at http://www.wikiprofessional.org.
+AD  - Erasmus Medical Centre, Department of Medical Informatics, Rotterdam, the Netherlands. b.mons@erasmusmc.nl
+AN  - 18507872
+AU  - Mons, B.
+AU  - Ashburner, M.
+AU  - Chichester, C.
+AU  - van Mulligen, E.
+AU  - Weeber, M.
+AU  - den Dunnen, J.
+AU  - van Ommen, G. J.
+AU  - Musen, M.
+AU  - Cockerill, M.
+AU  - Hermjakob, H.
+AU  - Mons, A.
+AU  - Packer, A.
+AU  - Pacheco, R.
+AU  - Lewis, S.
+AU  - Berkeley, A.
+AU  - Melton, W.
+AU  - Barris, N.
+AU  - Wales, J.
+AU  - Meijssen, G.
+AU  - Moeller, E.
+AU  - Roes, P. J.
+AU  - Borner, K.
+AU  - Bairoch, A.
+DO  - gb-2008-9-5-r89 [pii]
+10.1186/gb-2008-9-5-r89
+ET  - 2008/05/30
+KW  - *Databases, Protein
+Information Storage and Retrieval
+Internet
+Proteins/*genetics
+*Software
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18507872
+LA  - eng
+IS  - 5
+N1  - Mons, Barend
+Ashburner, Michael
+Chichester, Christine
+van Mulligen, Erik
+Weeber, Marc
+den Dunnen, Johan
+van Ommen, Gert-Jan
+Musen, Mark
+Cockerill, Matthew
+Hermjakob, Henning
+Mons, Albert
+Packer, Abel
+Pacheco, Roberto
+Lewis, Suzanna
+Berkeley, Alfred
+Melton, William
+Barris, Nickolas
+Wales, Jimmy
+Meijssen, Gerard
+Moeller, Erik
+Roes, Peter Jan
+Borner, Katy
+Bairoch, Amos
+Research Support, Non-U.S. Gov't
+England
+Genome biology
+Genome Biol. 2008;9(5):R89. Epub 2008 May 28.
+PY  - 2008
+SN  - 1465-6914 (Electronic)
+1465-6906 (Linking)
+SP  - R89
+ST  - Calling on a million minds for community annotation in WikiProteins
+T2  - Genome Biol
+TI  - Calling on a million minds for community annotation in WikiProteins
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=18507872
+VL  - 9
+ID  - 18
+ER  - 
+
+
+TY  - JOUR
+AD  - michael@odonnell99.freeserve.co.uk
+AN  - 10841145
+AU  - O'Donnell, M.
+DA  - Feb 5
+DO  - S0140-6736(00)82040-1 [pii]
+10.1016/S0140-6736(00)82040-1
+ET  - 2000/06/07
+KW  - Authorship
+Humans
+Periodicals as Topic/standards
+Publishing/*standards
+Writing/*standards
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=10841145
+LA  - eng
+IS  - 9202
+N1  - O'Donnell, M
+England
+Lancet
+Lancet. 2000 Feb 5;355(9202):489-91.
+PY  - 2000
+SN  - 0140-6736 (Print)
+0140-6736 (Linking)
+SP  - 489-91
+ST  - Evidence-based illiteracy: time to rescue "the literature"
+T2  - Lancet
+TI  - Evidence-based illiteracy: time to rescue "the literature"
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=10841145
+VL  - 355
+ID  - 28
+ER  - 
+
+
+TY  - JOUR
+AN  - 19513049
+AU  - Pafilis, E.
+AU  - O'Donoghue, S. I.
+AU  - Jensen, L. J.
+AU  - Horn, H.
+AU  - Kuhn, M.
+AU  - Brown, N. P.
+AU  - Schneider, R.
+DA  - Jun
+DO  - nbt0609-508 [pii]
+10.1038/nbt0609-508
+ET  - 2009/06/11
+KW  - *Genes
+*Information Storage and Retrieval
+*Internet
+*Proteins
+*Small Molecule Libraries
+*Software
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=19513049
+LA  - eng
+IS  - 6
+N1  - Pafilis, Evangelos
+O'Donoghue, Sean I
+Jensen, Lars J
+Horn, Heiko
+Kuhn, Michael
+Brown, Nigel P
+Schneider, Reinhard
+Letter
+United States
+Nature biotechnology
+Nat Biotechnol. 2009 Jun;27(6):508-10.
+PY  - 2009
+SN  - 1546-1696 (Electronic)
+1087-0156 (Linking)
+SP  - 508-10
+ST  - Reflect: augmented browsing for the life scientist
+T2  - Nat Biotechnol
+TI  - Reflect: augmented browsing for the life scientist
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=19513049
+VL  - 27
+ID  - 10
+ER  - 
+
+
+TY  - JOUR
+AU  - Paul Groth, Andrew Gibson and Jan Velterop
+DO  - 10.3233/ISU-2010-0613
+
+IS  - 1-2/2010
+PY  - 2010
+SN  - 0167-5265 (Print) 1875-8789 (Online)
+SP  - 51-56
+ST  - The anatomy of a nanopublication
+T2  - Information Services and Use
+TI  - The anatomy of a nanopublication
+VL  - 30
+ID  - 17
+ER  - 
+
+
+TY  - JOUR
+AU  - Pope, Glenn E. Krasner and Stephen T.
+IS  - 3
+PY  - 1988
+SP  - 26-49
+ST  - A cookbook for using the model-view controller user interface paradigm in Smalltalk-80
+T2  - Journal of Object-Oriented Programming
+TI  - A cookbook for using the model-view controller user interface paradigm in Smalltalk-80
+VL  - 1
+ID  - 21
+ER  - 
+
+
+TY  - JOUR
+AB  - The RCSB Protein Data Bank (RCSB PDB) web site (http://www.pdb.org) has been redesigned to increase usability and to cater to a larger and more diverse user base. This article describes key enhancements and new features that fall into the following categories: (i) query and analysis tools for chemical structure searching, query refinement, tabulation and export of query results; (ii) web site customization and new structure alerts; (iii) pair-wise and representative protein structure alignments; (iv) visualization of large assemblies; (v) integration of structural data with the open access literature and binding affinity data; and (vi) web services and web widgets to facilitate integration of PDB data and tools with other resources. These improvements enable a range of new possibilities to analyze and understand structure data. The next generation of the RCSB PDB web site, as described here, provides a rich resource for research and education.
+AD  - San Diego Supercomputer Center, University of California San Diego, 9500 Gilman Drive, Mailcode 0743, La Jolla, CA 92093-0743, USA. pwrose@ucsd.edu
+AN  - 21036868
+AU  - Rose, P. W.
+AU  - Beran, B.
+AU  - Bi, C.
+AU  - Bluhm, W. F.
+AU  - Dimitropoulos, D.
+AU  - Goodsell, D. S.
+AU  - Prlic, A.
+AU  - Quesada, M.
+AU  - Quinn, G. B.
+AU  - Westbrook, J. D.
+AU  - Young, J.
+AU  - Yukich, B.
+AU  - Zardecki, C.
+AU  - Berman, H. M.
+AU  - Bourne, P. E.
+DO  - gkq1021 [pii]
+10.1093/nar/gkq1021
+ET  - 2010/11/03
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=21036868
+LA  - eng
+IS  - Database issue
+N1  - Rose, Peter W
+Beran, Bojan
+Bi, Chunxiao
+Bluhm, Wolfgang F
+Dimitropoulos, Dimitris
+Goodsell, David S
+Prlic, Andreas
+Quesada, Martha
+Quinn, Gregory B
+Westbrook, John D
+Young, Jasmine
+Yukich, Benjamin
+Zardecki, Christine
+Berman, Helen M
+Bourne, Philip E
+Research Support, N.I.H., Extramural
+Research Support, U.S. Gov't, Non-P.H.S.
+England
+Nucleic acids research
+Nucleic Acids Res. 2011 Jan;39(Database issue):D392-401. Epub 2010 Oct 29.
+PY  - 2010
+SN  - 1362-4962 (Electronic)
+0305-1048 (Linking)
+SP  - D392-401
+ST  - The RCSB Protein Data Bank: redesigned web site and web services
+T2  - Nucleic Acids Res
+TI  - The RCSB Protein Data Bank: redesigned web site and web services
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=21036868
+VL  - 39
+ID  - 25
+ER  - 
+
+
+TY  - JOUR
+AB  - ABSTRACT : CiTO, the Citation Typing Ontology, is an ontology for describing the nature of reference citations in scientific research articles and other scholarly works, both to other such publications and also to Web information resources, and for publishing these descriptions on the Semantic Web. Citation are described in terms of the factual and rhetorical relationships between citing publication and cited publication, the in-text and global citation frequencies of each cited work, and the nature of the cited work itself, including its publication and peer review status. This paper describes CiTO and illustrates its usefulness both for the annotation of bibliographic reference lists and for the visualization of citation networks. The latest version of CiTO, which this paper describes, is CiTO Version 1.6, published on 19 March 2010. CiTO is written in the Web Ontology Language OWL, uses the namespace http://purl.org/net/cito/, and is available from http://purl.org/net/cito/. This site uses content negotiation to deliver to the user an OWLDoc Web version of the ontology if accessed via a Web browser, or the OWL ontology itself if accessed from an ontology management tool such as Protege 4 (http://protege.stanford.edu/). Collaborative work is currently under way to harmonize CiTO with other ontologies describing bibliographies and the rhetorical structure of scientific discourse.
+AD  - Image Bioinformatics Research Group, Department of Zoology, University of Oxford South Parks Road, Oxford OX1 3PS, UK. david.shotton@zoo.ox.ac.uk.
+AN  - 20626926
+AU  - Shotton, D.
+DO  - 2041-1480-1-S1-S6 [pii]
+10.1186/2041-1480-1-S1-S6
+ET  - 2010/07/16
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=20626926
+LA  - eng
+N1  - Shotton, David
+England
+Journal of biomedical semantics
+J Biomed Semantics. 2010 Jun 22;1 Suppl 1:S6.
+PY  - 2009
+SN  - 2041-1480 (Electronic)
+SP  - S6
+ST  - CiTO, the Citation Typing Ontology
+T2  - J Biomed Semantics
+TI  - CiTO, the Citation Typing Ontology
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=20626926
+VL  - 1 Suppl 1
+ID  - 3
+ER  - 
+
+
+TY  - JOUR
+AU  - Shotton, D.
+PY  - 2009
+M2  - 85-94
+ST  - Semantic Publishing: the coming revolution in scientific journal
+publishing
+T2  - Learned Publishing
+TI  - Semantic Publishing: the coming revolution in scientific journal
+publishing
+VL  - 22
+ID  - 14
+ER  - 
+
+
+TY  - JOUR
+AB  - Scientific innovation depends on finding, integrating, and re-using the products of previous research. Here we explore how recent developments in Web technology, particularly those related to the publication of data and metadata, might assist that process by providing semantic enhancements to journal articles within the mainstream process of scholarly journal publishing. We exemplify this by describing semantic enhancements we have made to a recent biomedical research article taken from PLoS Neglected Tropical Diseases, providing enrichment to its content and increased access to datasets within it. These semantic enhancements include provision of live DOIs and hyperlinks; semantic markup of textual terms, with links to relevant third-party information resources; interactive figures; a re-orderable reference list; a document summary containing a study summary, a tag cloud, and a citation analysis; and two novel types of semantic enrichment: the first, a Supporting Claims Tooltip to permit "Citations in Context", and the second, Tag Trees that bring together semantically related terms. In addition, we have published downloadable spreadsheets containing data from within tables and figures, have enriched these with provenance information, and have demonstrated various types of data fusion (mashups) with results from other research articles and with Google Maps. We have also published machine-readable RDF metadata both about the article and about the references it cites, for which we developed a Citation Typing Ontology, CiTO (http://purl.org/net/cito/). The enhanced article, which is available at http://dx.doi.org/10.1371/journal.pntd.0000228.x001, presents a compelling existence proof of the possibilities of semantic publication. We hope the showcase of examples and ideas it contains, described in this paper, will excite the imaginations of researchers and publishers, stimulating them to explore the possibilities of semantic publishing for their own research articles, and thereby break down present barriers to the discovery and re-use of information within traditional modes of scholarly communication.
+AD  - Image Bioinformatics Research Group, Department of Zoology, University of Oxford, Oxford, United Kingdom. david.shotton@zoo.ox.ac.uk
+AN  - 19381256
+AU  - Shotton, D.
+AU  - Portwin, K.
+AU  - Klyne, G.
+AU  - Miles, A.
+DA  - Apr
+DO  - 10.1371/journal.pcbi.1000361
+ET  - 2009/04/22
+KW  - Information Dissemination/*methods
+*Natural Language Processing
+*Periodicals as Topic
+*Publishing
+Research/*methods
+*Semantics
+*Writing
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=19381256
+LA  - eng
+IS  - 4
+N1  - Shotton, David
+Portwin, Katie
+Klyne, Graham
+Miles, Alistair
+United States
+PLoS computational biology
+PLoS Comput Biol. 2009 Apr;5(4):e1000361. Epub 2009 Apr 17.
+PY  - 2009
+SN  - 1553-7358 (Electronic)
+1553-734X (Linking)
+SP  - e1000361
+ST  - Adventures in semantic publishing: exemplar semantic enhancements of a research article
+T2  - PLoS Comput Biol
+TI  - Adventures in semantic publishing: exemplar semantic enhancements of a research article
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=19381256
+VL  - 5
+ID  - 9
+ER  - 
+
+
+TY  - JOUR
+AU  - Tillett, Barbara
+IS  - 1
+PY  - 2005
+ST  - What is FRBR A conceptual model for the bibliographic universe.
+T2  - The Australian Library Journal
+TI  - What is FRBR A conceptual model for the bibliographic universe.
+VL  - 54
+ID  - 22
+ER  - 
+
+
+TY  - BOOK
+AU  - Torczyner, H.
+CY  - New York
+PB  - H. N. Abrams
+PY  - 1977
+ST  - Magritte: Ideas and Images
+TI  - Magritte: Ideas and Images
+ID  - 26
+ER  - 
+
+
+TY  - JOUR
+AU  - Velterop, Jan
+DO  - DOI: 10.1163/095796511X560006
+PY  - 2010
+SP  - 119-122
+ST  - Nanopublications: the future of coping with information overload
+T2  - LOGOS
+TI  - Nanopublications: the future of coping with information overload
+VL  - 21
+ID  - 30
+ER  - 
+
+
+TY  - JOUR
+AB  - The GPCRDB is a Molecular Class-Specific Information System (MCSIS) that collects, combines, validates and disseminates large amounts of heterogeneous data on G protein-coupled receptors (GPCRs). The GPCRDB contains experimental data on sequences, ligand-binding constants, mutations and oligomers, as well as many different types of computationally derived data such as multiple sequence alignments and homology models. The GPCRDB provides access to the data via a number of different access methods. It offers visualization and analysis tools, and a number of query systems. The data is updated automatically on a monthly basis. The GPCRDB can be found online at http://www.gpcr.org/7tm/.
+AD  - CMBI, NCMLS, Radboud University Nijmegen Medical Centre, Geert Grooteplein Zuid 26-28, 6525 GA Nijmegen, The Netherlands.
+AN  - 21045054
+AU  - Vroling, B.
+AU  - Sanders, M.
+AU  - Baakman, C.
+AU  - Borrmann, A.
+AU  - Verhoeven, S.
+AU  - Klomp, J.
+AU  - Oliveira, L.
+AU  - de Vlieg, J.
+AU  - Vriend, G.
+DA  - Jan
+DO  - gkq1009 [pii]
+10.1093/nar/gkq1009
+ET  - 2010/11/04
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=21045054
+LA  - eng
+IS  - Database issue
+N1  - Vroling, Bas
+Sanders, Marijn
+Baakman, Coos
+Borrmann, Annika
+Verhoeven, Stefan
+Klomp, Jan
+Oliveira, Laerte
+de Vlieg, Jacob
+Vriend, Gert
+Research Support, Non-U.S. Gov't
+England
+Nucleic acids research
+Nucleic Acids Res. 2011 Jan;39(Database issue):D309-19. Epub 2010 Nov 2.
+PY  - 2010
+SN  - 1362-4962 (Electronic)
+0305-1048 (Linking)
+SP  - D309-19
+ST  - GPCRDB: information system for G protein-coupled receptors
+T2  - Nucleic Acids Res
+TI  - GPCRDB: information system for G protein-coupled receptors
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=21045054
+VL  - 39
+ID  - 23
+ER  - 
+
+
+TY  - JOUR
+AB  - GST (glutathione transferase) is a dimeric enzyme recognized for biotransformation of xenobiotics and endogenous toxic compounds. In the present study, residues forming the hydrophobic substrate-binding site (H-site) of a Delta class enzyme were investigated in detail for the first time by site-directed mutagenesis and crystallographic studies. Enzyme kinetics reveal that Tyr111 indirectly stabilizes GSH binding, Tyr119 modulates hydrophobic substrate binding and Phe123 indirectly modulates catalysis. Mutations at Tyr111 and Phe123 also showed evidence for positive co-operativity for GSH and 1-chloro-2,4-dinitrobenzene respectively, strongly suggesting a role for these residues in manipulating subunit-subunit communication. In the present paper we report crystal structures of the wild-type enzyme, and two mutants, in complex with S-hexylglutathione. This study has identified an aromatic 'zipper' in the H-site contributing a network of aromatic pi-pi interactions. Several residues of the cluster directly interact with the hydrophobic substrate, whereas others indirectly maintain conformational stability of the dimeric structure through the C-terminal domain (domain II). The Y119E mutant structure shows major main-chain rearrangement of domain II. This reorganization is moderated through the 'zipper' that contributes to the H-site remodelling, thus illustrating a role in co-substrate binding modulation. The F123A structure shows molecular rearrangement of the H-site in one subunit, but not the other, explaining weakened hydrophobic substrate binding and kinetic co-operativity effects of Phe123 mutations. The three crystal structures provide comprehensive evidence of the aromatic 'zipper' residues having an impact upon protein stability, catalysis and specificity. Consequently, 'zipper' residues appear to modulate and co-ordinate substrate processing through permissive flexing.
+AD  - Institute of Molecular Biosciences, Mahidol University, Salaya Campus, Nakhon Pathom, 73170, Thailand.
+AN  - 20196771
+AU  - Wongsantichon, J.
+AU  - Robinson, R. C.
+AU  - Ketterman, A. J.
+DA  - May 15
+DO  - BJ20091939 [pii]
+10.1042/BJ20091939
+ET  - 2010/03/04
+KW  - Binding Sites
+Catalysis
+Catalytic Domain
+Crystallography, X-Ray
+Glutathione Transferase/*chemistry/*metabolism
+Kinetics
+Models, Molecular
+Mutagenesis, Site-Directed
+Phenylalanine/genetics
+Protein Conformation
+Recombinant Proteins/chemistry/genetics/metabolism
+Substrate Specificity
+Tyrosine/genetics
+L1  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=20196771
+LA  - eng
+IS  - 1
+N1  - Wongsantichon, Jantana
+Robinson, Robert C
+Ketterman, Albert J
+Research Support, Non-U.S. Gov't
+England
+The Biochemical journal
+Biochem J. 2010 Apr 28;428(1):25-32.
+PY  - 2010
+SN  - 1470-8728 (Electronic)
+0264-6021 (Linking)
+SP  - 25-32
+ST  - Structural contributions of delta class glutathione transferase active-site residues to catalysis
+T2  - Biochem J
+TI  - Structural contributions of delta class glutathione transferase active-site residues to catalysis
+UR  - http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Citation&list_uids=20196771
+VL  - 428
+ID  - 24
+ER  - 
+
+

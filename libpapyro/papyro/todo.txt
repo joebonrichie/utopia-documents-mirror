@@ -1,0 +1,17 @@
+PAPYRO::PageView
+ * Abstract out the callout window (for use elsewhere) - srp
+ * Read-only switch - srp
+ * Implementation of populateContextMenuAt() - srp
+ * Only popplerise a page once a paintEvent has occurred - srp
+ - Bouncing animation - srp
+ - Context menu demo functionality (to be redesigned in future) - srp
+
+PAPYRO::DocumentView
+ * DnD functionality of adding new documents - srp
+ * Add functionality for the "Bound" PageMode - dt
+ * Proper keyboard actions - dt
+ * Fix anchor point for zooming - dt
+ - Page navigation API - dt
+ - Add functionality for the "Continuous" PageFlow - dt
+ - Context menu for zoom and page layout - dt
+

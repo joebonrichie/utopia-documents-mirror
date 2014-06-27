@@ -1,0 +1,101 @@
+<!--
+    
+     This file is part of the Utopia Documents application.
+         Copyright (c) 2008-2014 Lost Island Labs
+     
+     Utopia Documents is free software: you can redistribute it and/or modify
+     it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+     published by the Free Software Foundation.
+     
+     Utopia Documents is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+     Public License for more details.
+     
+     In addition, as a special exception, the copyright holders give
+     permission to link the code of portions of this program with the OpenSSL
+     library under certain conditions as described in each individual source
+     file, and distribute linked combinations including the two.
+     
+     You must obey the GNU General Public License in all respects for all of
+     the code used other than OpenSSL. If you modify file(s) with this
+     exception, you may extend this exception to your version of the file(s),
+     but you are not obligated to do so. If you do not wish to do so, delete
+     this exception statement from your version.
+     
+     You should have received a copy of the GNU General Public License
+     along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+    
+-->
+
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/citeproc/locales">
+        <file alias="af-ZA.json">citeproc/locales/af-ZA.json</file>
+        <file alias="ar-AR.json">citeproc/locales/ar-AR.json</file>
+        <file alias="bg-BG.json">citeproc/locales/bg-BG.json</file>
+        <file alias="ca-AD.json">citeproc/locales/ca-AD.json</file>
+        <file alias="cs-CZ.json">citeproc/locales/cs-CZ.json</file>
+        <file alias="da-DK.json">citeproc/locales/da-DK.json</file>
+        <file alias="de-AT.json">citeproc/locales/de-AT.json</file>
+        <file alias="de-CH.json">citeproc/locales/de-CH.json</file>
+        <file alias="de-DE.json">citeproc/locales/de-DE.json</file>
+        <file alias="el-GR.json">citeproc/locales/el-GR.json</file>
+        <file alias="en-GB.json">citeproc/locales/en-GB.json</file>
+        <file alias="en-US.json">citeproc/locales/en-US.json</file>
+        <file alias="es-CL.json">citeproc/locales/es-CL.json</file>
+        <file alias="es-ES.json">citeproc/locales/es-ES.json</file>
+        <file alias="et-EE.json">citeproc/locales/et-EE.json</file>
+        <file alias="eu.json">citeproc/locales/eu.json</file>
+        <file alias="fa-IR.json">citeproc/locales/fa-IR.json</file>
+        <file alias="fi-FI.json">citeproc/locales/fi-FI.json</file>
+        <file alias="fr-CA.json">citeproc/locales/fr-CA.json</file>
+        <file alias="fr-FR.json">citeproc/locales/fr-FR.json</file>
+        <file alias="he-IL.json">citeproc/locales/he-IL.json</file>
+        <file alias="hr-HR.json">citeproc/locales/hr-HR.json</file>
+        <file alias="hu-HU.json">citeproc/locales/hu-HU.json</file>
+        <file alias="is-IS.json">citeproc/locales/is-IS.json</file>
+        <file alias="it-IT.json">citeproc/locales/it-IT.json</file>
+        <file alias="ja-JP.json">citeproc/locales/ja-JP.json</file>
+        <file alias="km-KH.json">citeproc/locales/km-KH.json</file>
+        <file alias="ko-KR.json">citeproc/locales/ko-KR.json</file>
+        <file alias="lt-LT.json">citeproc/locales/lt-LT.json</file>
+        <file alias="lv-LV.json">citeproc/locales/lv-LV.json</file>
+        <file alias="mn-MN.json">citeproc/locales/mn-MN.json</file>
+        <file alias="nb-NO.json">citeproc/locales/nb-NO.json</file>
+        <file alias="nl-NL.json">citeproc/locales/nl-NL.json</file>
+        <file alias="nn-NO.json">citeproc/locales/nn-NO.json</file>
+        <file alias="pl-PL.json">citeproc/locales/pl-PL.json</file>
+        <file alias="pt-BR.json">citeproc/locales/pt-BR.json</file>
+        <file alias="pt-PT.json">citeproc/locales/pt-PT.json</file>
+        <file alias="ro-RO.json">citeproc/locales/ro-RO.json</file>
+        <file alias="ru-RU.json">citeproc/locales/ru-RU.json</file>
+        <file alias="sk-SK.json">citeproc/locales/sk-SK.json</file>
+        <file alias="sl-SI.json">citeproc/locales/sl-SI.json</file>
+        <file alias="sr-RS.json">citeproc/locales/sr-RS.json</file>
+        <file alias="sv-SE.json">citeproc/locales/sv-SE.json</file>
+        <file alias="th-TH.json">citeproc/locales/th-TH.json</file>
+        <file alias="tr-TR.json">citeproc/locales/tr-TR.json</file>
+        <file alias="uk-UA.json">citeproc/locales/uk-UA.json</file>
+        <file alias="vi-VN.json">citeproc/locales/vi-VN.json</file>
+        <file alias="zh-CN.json">citeproc/locales/zh-CN.json</file>
+        <file alias="zh-TW.json">citeproc/locales/zh-TW.json</file>
+    </qresource>
+    <qresource prefix="/citeproc/styles">
+        <file alias="ama.json">citeproc/styles/ama.json</file>
+        <file alias="apa.json">citeproc/styles/apa.json</file>
+        <file alias="apsa.json">citeproc/styles/apsa.json</file>
+        <file alias="asa.json">citeproc/styles/asa.json</file>
+        <file alias="chicago-author-date.json">citeproc/styles/chicago-author-date.json</file>
+        <file alias="chicago-fullnote-bibliography.json">citeproc/styles/chicago-fullnote-bibliography.json</file>
+        <file alias="chicago-note-bibliography.json">citeproc/styles/chicago-note-bibliography.json</file>
+        <file alias="chicago-note.json">citeproc/styles/chicago-note.json</file>
+        <file alias="harvard1.json">citeproc/styles/harvard1.json</file>
+        <file alias="ieee.json">citeproc/styles/ieee.json</file>
+        <file alias="mhra.json">citeproc/styles/mhra.json</file>
+        <file alias="mhra_note_without_bibliography.json">citeproc/styles/mhra_note_without_bibliography.json</file>
+        <file alias="mla.json">citeproc/styles/mla.json</file>
+        <file alias="nature.json">citeproc/styles/nature.json</file>
+        <file alias="nlm.json">citeproc/styles/nlm.json</file>
+    </qresource>
+</RCC>

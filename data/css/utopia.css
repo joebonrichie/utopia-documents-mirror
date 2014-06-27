@@ -1,0 +1,422 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2014 Lost Island Labs
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+Utopia--BubbleWidgetOld,
+Utopia--BubbleWidget,
+Utopia--BubbleDialog
+{
+    qproperty-bubbleBackground: #f6f6ff;
+    qproperty-bubbleTitleBarBackground: #e0e0e8;
+    background: #f6f6ff;
+    color: black;
+}
+
+Utopia--BubbleWidgetOld QLabel,
+Utopia--BubbleWidget QLabel,
+Utopia--BubbleDialog QLabel
+{
+  color: #333;
+}
+
+Utopia--Conversation QTextEdit,
+Utopia--BubbleWidgetOld QTextEdit,
+Utopia--BubbleWidget QTextEdit,
+Utopia--BubbleDialog QTextEdit
+{
+  background-color: rgb(35, 35, 35);
+  color: white;
+  border: none;
+}
+
+Utopia--BubbleWidgetOld #bubble_title,
+Utopia--BubbleWidget #title,
+Utopia--BubbleDialog #title
+{
+  color: black;
+  min-height: 20;
+}
+
+Utopia--ImageCroppingDialog Utopia--ThumbnailChooser
+{
+    qproperty-controlColor: black;
+}
+
+Utopia--ImageCroppingDialog #thumbnail_preview
+{
+    border: 1px solid black;
+}
+
+Utopia--Comment QLabel
+{
+  background-color: rgb(120, 120, 120);
+  color: rgb(255, 255, 255);
+  font-size: 10pt;
+}
+
+Utopia--Comment QLabel#name
+{
+  color: rgb(200, 200, 200);
+  font-weight: bold;
+  font-size: 9pt;
+}
+
+Utopia--Comment QLabel#date
+{
+  color: rgb(200, 200, 200);
+  font-weight: bold;
+  font-size: 9pt;
+}
+
+Utopia--Comment Kend--UserLabel
+{
+  background-color: transparent;
+}
+
+Utopia--Comment #reply
+{
+  border-image: url(':/css/reply-button/reply.png');
+}
+
+Utopia--Comment #reply::pressed
+{
+  border-image: url(':/css/reply-button/reply-pressed.png');
+}
+
+Utopia--Comment #reply::disabled
+{
+  border-image: url(':/css/reply-button/reply.png');
+}
+
+Utopia--Comment #report
+{
+  border-image: url(':/css/report-button/report.png');
+  border: 0px solid black;
+  border-radius: 3px;
+  padding: 0 3px;
+  color: white;
+  background-color: none;
+}
+
+Utopia--Comment #report:hover
+{
+  border-image: url(':/css/report-button/report-hover.png');
+  border: 0px solid black;
+  border-radius: 3px;
+  padding: 0 3px;
+  color: white;
+  background-color: none;
+}
+
+Utopia--CommentEditor QTextEdit
+{
+  color: rgb(255, 255, 255);
+  font-size: 12pt;
+}
+
+Utopia--Conversation,
+Utopia--Conversation #conversationArea
+{
+  background-color: rgb(60, 60, 60);
+}
+
+Utopia--FieldEditor
+{
+  color: #eee;
+  font-size: 10px;
+}
+
+Utopia--BubbleDialogOld QLabel,
+Utopia--BubbleDialog QLabel
+{
+}
+
+Utopia--BubbleDialogOld QLabel#messagePositive,
+Utopia--BubbleDialog QLabel#messagePositive
+{
+  font: 10px;
+  color: rgb(200, 200, 200);
+}
+
+Utopia--SpeechBubble
+{
+  background-color: rgb(120, 120, 120);
+}
+
+Utopia--ThoughtBubble
+{
+  background-color: rgb(80, 80, 80);
+}
+
+Utopia--Tearout QLabel
+{
+  color: #000;
+  font: 10px;
+  font-family: serif;
+}
+
+Utopia--TextEdit
+{
+  color: black;
+  background-color: white;
+}
+
+QStatusBar
+{
+  background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                              stop: 0 rgb(120,120,120),
+                              stop: 1 rgb(100,100,100));
+  border-top: 1 solid rgb(155,155,155);
+  padding: 0 0 1 0;
+  min-height: 32;
+}
+
+QStatusBar::item
+{
+  border: none;
+  background: none;
+}
+
+QStatusBar QAbstractButton
+{
+  border: none;
+  background: none;
+  qproperty-iconSize: 24px;
+  padding: 0;
+  margin: 0;
+}
+
+QStatusBar QLabel
+{
+  font-size: 10px;
+  padding-left: 10;
+  color: #333;
+}
+
+/* PM - Need this here at some point, after HUDWidget is made properly */
+/*
+FieldEditor#empty
+{
+  color: #999;
+  background-color: none;
+}
+
+FieldEditor#inuse
+{
+  color: #fff;
+  background-color: none;
+}
+*/
+
+Utopia--MessageLabel#positive
+{
+  font: 10px;
+  color: rgb(200, 200, 200);
+  background-color: none;
+}
+
+Utopia--MessageLabel#negative
+{
+  font: 10px;
+  color: red;
+  background-color: none;
+}
+
+Utopia--MessageLabel#warning
+{
+  font: 10px;
+  color: red;
+  background-color: none;
+}
+
+Utopia--MessageLabel#message
+{
+  font: 10px;
+  color: rgb(200, 200, 200);
+  background-color: none;
+}
+
+Utopia--Spinner
+{
+  background-color: transparent;
+}
+
+Utopia--BubbleMenu QToolButton
+{
+  border: 0px solid black;
+  border-radius: 3px;
+  padding: 0 3px;
+  color: white;
+  background-color: none;
+}
+
+
+Utopia--BubbleMenu QToolButton:hover
+{
+  border: 1px solid #5050ff;
+  border-radius: 3px;
+  padding: 0 3px;
+  color: white;
+  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #0000dd, stop: 1.0 #5050dd);
+}
+
+
+Utopia--BubbleMenu QToolButton:pressed
+{
+  border: 1px solid #000030;
+  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #0000aa, stop: 1.0 #000030);
+}
+
+Utopia--BubbleMenu QToolButton:disabled
+{
+  color: #505050;
+}
+
+Utopia--BubbleMenu QFrame
+{
+  color: black;
+}
+/*
+Utopia--Tearout
+{
+  border-width: 10 10 10 10;
+  background: white;
+  border-image: url(':/images/torn-paper.png') 10 10 10 10 stretch stretch;
+}
+*/
+/* From HUDWidget */
+
+Utopia--LoginDialog QPushButton,
+Utopia--Conversation QPushButton
+{
+  border: 1px solid black;
+  border-radius: 3px;
+  padding: 0 8px;
+  color: white;
+  height: 15px;
+  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #464646, stop: 0.3 #2c2c2c, stop: 0.7 #1E1E1E, stop: 1.0 #141414);
+}
+
+Utopia--LoginDialog QToolButton:pressed,
+Utopia--Conversation QToolButton:pressed,
+Utopia--Conversation QPushButton:pressed
+{
+  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #141414, stop: 0.3 #1E1E1E, stop: 0.7 #2c2c2c, stop: 1.0 #464646);
+}
+
+Utopia--Conversation QPushButton
+{
+    font-size: 10pt;
+}
+
+Utopia--Conversation QStatusBar QPushButton
+{
+    margin-left: 10px;
+}
+
+Utopia--Conversation QStatusBar QPushButton:disabled
+{
+  color: #505050;
+}
+
+Utopia--Conversation QCheckBox:disabled
+{
+  color: #505050;
+}
+
+
+
+
+Kend--ServiceControl QLabel#nameLabel
+{
+  font-weight: bold;
+}
+
+QLabel#errorLabel
+{
+  font-style: italic;
+  font-size: 10pt;
+  color: #ff0000;
+}
+
+QLabel#verticalGroupLabel
+{
+    background: #4444ff;
+    color: #ffffff;
+    border-radius: 3px;
+    font-size: 14pt;
+}
+
+Kend--ServiceControl QLabel#accountLabel
+{
+  font-style: italic;
+  font-size: 10pt;
+  color: #666666;
+}
+
+Utopia--SlaveSplitter[handleWidth="1"]::handle {
+  background-color: black;
+}
+
+
+
+
+Kend--AccountsPreferencesPane QToolButton#addServiceButton,
+Kend--AccountsPreferencesPane QToolButton#removeServiceButton {
+  margin: 0px;
+  max-width: 16px;
+  max-height: 16px;
+}
+
+Kend--NewAccountDialog QLabel#errorLabel {
+  color: red;
+  font-size: 80%;
+}
+
+Kend--AccountInfoPanel * {
+  font-size: 12px;
+}
+
+QLabel#disclaimer {
+  font-style: italic;
+  font-size: 11px;
+}
+
+Kend--AccountInfoPanel QLabel[class=link] {
+  font-size: 11px;
+  font-style: italic;
+  color: #444488;
+}
+
+QFrame#avatarFrame {
+  background: rgba(0, 0, 0, 15%);
+  border: solid 1px #666;
+}

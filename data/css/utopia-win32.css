@@ -1,0 +1,74 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2014 Lost Island Labs
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+
+QToolBar
+{
+  background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                              stop: 0 rgb(170,170,170),
+                              stop: 1 rgb(150,150,150));
+  border-top: 1 solid rgb(195,195,195);
+  border-bottom: 1 solid rgb(45, 45, 45);
+}
+
+Utopia--BubbleWidgetOld QStatusBar QPushButton,
+Utopia--BubbleWidget QStatusBar QPushButton
+{
+  border: 1px solid black;
+  border-radius: 3px;
+  padding: -10px 8px -10px 0;
+  margin 0 0 10px 0;
+  color: white;
+  height: 24px;
+  vertical-align: top;
+  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #464646, stop: 0.3 #2c2c2c, stop: 0.7 #1E1E1E, stop: 1.0 #141414);
+}
+
+Utopia--BubbleWidgetOld QStatusBar QPushButton:pressed,
+Utopia--BubbleWidget QStatusBar QPushButton:pressed
+{
+  border: 1px solid black;
+  border-radius: 3px;
+  padding: -10px 8px -10px 0;
+  margin 0 0 10px 0;
+  color: white;
+  height: 24px;
+  vertical-align: top;
+  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #141414, stop: 0.3 #1E1E1E, stop: 0.7 #2c2c2c, stop: 1.0 #464646);
+}
+
+Utopia--BubbleWidgetOld QStatusBar QCheckBox,
+Utopia--BubbleWidget QStatusBar QCheckBox
+{
+  padding: -10px 8px -10px 0;
+  margin 0 0 10px 0;
+  vertical-align: top;
+}
+

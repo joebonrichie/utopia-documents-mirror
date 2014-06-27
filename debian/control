@@ -1,0 +1,30 @@
+Source: utopia-documents
+Section: science
+Priority: optional
+Maintainer: The Utopia Project <info@utopiadocs.com>
+Build-Depends: cdbs, cmake, debhelper (>= 7), python-all-dev (>= 2.3.5-11), libboost-dev (>=1.44), libboost-thread-dev (>=1.44), libboost-python-dev (>=1.44), libboost-filesystem-dev (>=1.44), libboost-system-dev (>=1.44), libfreetype6-dev (>= 2.3), zlib1g-dev (>=1:1.0), swig (>=1.3), libssl-dev, libglew-dev, libqt4-dev, libqt4-dev (<< 4:4.7) | libqtwebkit-dev, libqglviewer-qt4-dev | libqglviewer-dev, libz-dev, libfreetype6-dev, libexpat-dev, libraptor-dev, libpcre++-dev, python-dev, python-imaging, libqjson-dev, zip, python-lxml (<< 3.0.0) | python-cssselect, python-lxml
+Standards-Version: 3.8.1
+Homepage: http://utopiadocs.com
+XS-Python-Version: >= 2.5
+
+Package: utopia-documents
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, python-imaging, python-lxml (<< 3.0.0) | python-cssselect, python-lxml, xdg-utils, python-suds
+XB-Python-Version: ${python:Versions}
+Description: PDF reader that displays interactive annotations on scientific articles.
+ Utopia Documents is a free PDF reader that connects the static
+ content of scientific articles to the dynamic world of online
+ content. It makes it easy to explore an article's content and claims,
+ and investigate other recent articles that discuss the same or
+ similar topics.
+ .
+ Get immediate access to an article's metadata and browse the
+ relationship it has with the world at large. Generate a formatted
+ citation for use in your own work, follow bibliographic links to
+ cited articles, or get a document's related data at the click of a
+ button.
+ .
+ Various extensions provide links to blogs, online data sources and to
+ social media sites so you can see what other researchers have been
+ saying about not only the article you're reading but its subject
+ matter too.

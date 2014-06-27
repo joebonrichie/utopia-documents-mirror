@@ -1,0 +1,203 @@
+/* The pie chart and scores are positioned quite carefully, better not to mess with them. */
+.altmetric .citation .scorebox {
+  float: left;
+  width: 80px;
+  height: 80px;
+}
+
+.altmetric .citation .scorebox .score {
+  cursor: pointer;
+  position: relative;
+  top: -62px;
+  left: 18px;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  width: 44px;
+  height: 44px;
+  background-color: transparent;
+  background-image: url(data:image/png;base64,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);
+  background-repeat: no-repeat;
+  background-position: 0px 0px;
+  line-height: 44px;
+  text-align: center;
+  z-index: 9999999;
+}
+
+.altmetric .citation .scorebox .largescore {
+  font-size: 14px;
+}
+
+.altmetric .citation .pie {
+  position: relative:
+  top: 0px;
+  left: 0px;
+  width: 80px;
+  height: 80px;
+}
+
+.altmetric .citation .details {
+  margin-left: 100px;
+  padding-top: 10px;
+}
+
+.altmetric .citation .citation {
+  clear: left;
+}
+
+/* this is the class used for the quotes under each article */
+.altmetric .citation .tq {
+  margin: 2px;
+  padding: 2px 6px 2px 6px;
+  background-color: #EFEFEF;
+  border: 1px solid #999999;
+  opacity: 0.7;
+  display: inline-block;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  font-size: 0.8em;
+}
+
+/* journal name */
+.altmetric .citation .journal {
+  margin-bottom: 10px;
+}
+
+/* title and link to the paper */
+.altmetric .citation .paper_link {
+  color: black;
+  text-decoration: none;
+}
+
+/* These are the coloured squares on the tooltip - right now the pie colours are hardcoded though, so don't change them unless you have to. */
+#tiptip_content .entry {
+  padding-left: 10px;
+  border-left-width: 15px;
+  border-left-style: solid;
+  line-height: 15px;
+}
+
+.tip_tweets { border-left-color: #00aacc; }
+.tip_gplus { border-left-color: #912470; }
+.tip_fbwalls { border-left-color: #313186; }
+.tip_rdt { border-left-color: #BDE0FF; }
+.tip_feeds { border-left-color: #faa400; }
+.tip_msm { border-left-color: #C90032; }
+.tip_rh { border-left-color: #a5d720; }
+.tip_f1000 { border-left-color: #a5d720; }
+.tip_qna { border-left-color: #DEDEDE; }
+.tip_forums { border-left-color: #ff3366; }
+
+/* TipTip CSS - Version 1.2 */
+
+#tiptip_holder {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 99999;
+}
+
+#tiptip_holder.tip_top {
+	padding-bottom: 5px;
+}
+
+#tiptip_holder.tip_bottom {
+	padding-top: 5px;
+}
+
+#tiptip_holder.tip_right {
+	padding-left: 5px;
+}
+
+#tiptip_holder.tip_left {
+	padding-right: 5px;
+}
+
+#tiptip_content {
+	font-size: 11px;
+	color: #fff;
+	text-shadow: 0 0 2px #000;
+	padding: 4px 8px;
+	border: 1px solid rgba(255,255,255,0.25);
+	background-color: rgb(25,25,25);
+	background-color: rgba(25,25,25,0.92);
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(transparent), to(#000));
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	box-shadow: 0 0 3px #555;
+	-webkit-box-shadow: 0 0 3px #555;
+	-moz-box-shadow: 0 0 3px #555;
+}
+
+#tiptip_arrow, #tiptip_arrow_inner {
+	position: absolute;
+	border-color: transparent;
+	border-style: solid;
+	border-width: 6px;
+	height: 0;
+	width: 0;
+}
+
+#tiptip_holder.tip_top #tiptip_arrow {
+	border-top-color: #fff;
+	border-top-color: rgba(255,255,255,0.35);
+}
+
+#tiptip_holder.tip_bottom #tiptip_arrow {
+	border-bottom-color: #fff;
+	border-bottom-color: rgba(255,255,255,0.35);
+}
+
+#tiptip_holder.tip_right #tiptip_arrow {
+	border-right-color: #fff;
+	border-right-color: rgba(255,255,255,0.35);
+}
+
+#tiptip_holder.tip_left #tiptip_arrow {
+	border-left-color: #fff;
+	border-left-color: rgba(255,255,255,0.35);
+}
+
+#tiptip_holder.tip_top #tiptip_arrow_inner {
+	margin-top: -7px;
+	margin-left: -6px;
+	border-top-color: rgb(25,25,25);
+	border-top-color: rgba(25,25,25,0.92);
+}
+
+#tiptip_holder.tip_bottom #tiptip_arrow_inner {
+	margin-top: -5px;
+	margin-left: -6px;
+	border-bottom-color: rgb(25,25,25);
+	border-bottom-color: rgba(25,25,25,0.92);
+}
+
+#tiptip_holder.tip_right #tiptip_arrow_inner {
+	margin-top: -6px;
+	margin-left: -5px;
+	border-right-color: rgb(25,25,25);
+	border-right-color: rgba(25,25,25,0.92);
+}
+
+#tiptip_holder.tip_left #tiptip_arrow_inner {
+	margin-top: -6px;
+	margin-left: -7px;
+	border-left-color: rgb(25,25,25);
+	border-left-color: rgba(25,25,25,0.92);
+}
+
+/* Webkit Hacks  */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+	#tiptip_content {
+		padding: 4px 8px 5px 8px;
+		background-color: rgba(45,45,45,0.88);
+	}
+	#tiptip_holder.tip_bottom #tiptip_arrow_inner {
+		border-bottom-color: rgba(45,45,45,0.88);
+	}
+	#tiptip_holder.tip_top #tiptip_arrow_inner {
+		border-top-color: rgba(20,20,20,0.92);
+	}
+}

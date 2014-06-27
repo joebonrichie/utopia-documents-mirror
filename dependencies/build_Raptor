@@ -1,0 +1,104 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=Raptor
+DEPENDENCIES=Expat
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+        MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export MACOSX_ARCHFLAGS
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+elif [ x"${ARCH}" = x"Windows" ]; then
+    # delete configure overrides intended for msvc
+    rm -f src/win32_raptor_config.h
+    touch src/win32_raptor_config.h
+
+    patch -p1 <<'EOF'
+$ diff -Nauw raptor-1.4.16-old/configure raptor-1.4.16/configure
+--- raptor-1.4.16/configure     2007-09-30 04:15:24 +0100
++++ raptor-1.4.16-old/configure 2009-07-08 16:54:18 +0100
+@@ -25841,10 +25841,10 @@
+     fi
+     if test -d "$expat_source_dir/xmlparse"; then
+       # old expat
+-      LIBS="$LIBS $expat_obj_dir/xmlparse/xmlparse.o $expat_obj_dir/xmlparse/hashtable.o $expat_obj_dir/xmltok/xmlrole.o $expat_obj_dir/xmltok/xmltok.o"
++      LIBS="$LIBS $expat_obj_dir/xmlparse/xmlparse.lo $expat_obj_dir/xmlparse/hashtable.lo $expat_obj_dir/xmltok/xmlrole.lo $expat_obj_dir/xmltok/xmltok.lo"
+     else
+       # new expat
+-      LIBS="$LIBS $expat_obj_dir/lib/xmlparse.o $expat_obj_dir/lib/xmlrole.o $expat_obj_dir/lib/xmltok.o"
++      LIBS="$LIBS $expat_obj_dir/lib/xmlparse.lo $expat_obj_dir/lib/xmlrole.lo $expat_obj_dir/lib/xmltok.lo"
+     fi
+   else
+     LIBS="$LIBS $expat_libs"
+EOF
+fi
+
+LDFLAGS=-lm \
+    ./configure \
+    --disable-dependency-tracking \
+    --enable-static=yes --enable-shared=no \
+    --prefix="${PREFIX}/build" \
+    --libdir="$PREFIX/lib" --includedir="$PREFIX/include" \
+    --with-www=none \
+    --with-xml-parser=expat \
+    --without-libxml \
+    --with-expat-source="${PREFIX}/build/${Expat_DIR}"
+
+make -j3 install
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

@@ -1,0 +1,165 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=QJson
+DEPENDENCIES=Qt
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_VER_REF="${PACKAGE}_VER"
+PACKAGE_VER="${!PACKAGE_VER_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    MACOSX_ARCHFLAGS_FOR_QMAKE=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+      MACOSX_ARCHFLAGS+="-arch $archflag "
+      if [ x"${archflag}" = x"i386" ]; then
+        MACOSX_ARCHFLAGS_FOR_QMAKE+=" x86"
+      else
+        MACOSX_ARCHFLAGS_FOR_QMAKE+=" $archflag"
+      fi
+    done;
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+
+    # Force a dylib installation on OS X
+    patch -p1 <<EOF
+$ diff -Nauw FindQJSON.cmake.original FindQJSON.cmake
+--- qjson/cmake/modules/FindQJSON.cmake	2009-12-04 00:02:16.000000000 +0000
++++ qjson/cmake/modules/FindQJSON.cmake.original	2012-07-10 19:27:21.000000000 +0100
+@@ -13,13 +13,6 @@
+
+ else (QJSON_INCLUDE_DIR AND QJSON_LIBRARIES)
+
+-  if (NOT WIN32)
+-    # use pkg-config to get the values of QJSON_INCLUDE_DIRS
+-    # and QJSON_LIBRARY_DIRS to add as hints to the find commands.
+-    include (FindPkgConfig)
+-    pkg_check_modules (QJSON REQUIRED QJson>=0.5)
+-  endif (NOT WIN32)
+-
+   find_library (QJSON_LIBRARIES
+     NAMES
+     qjson
+EOF
+elif [ x"${ARCH}" = x"Windows" ]; then
+    PATH=${PREFIX}/Qt/bin:$PATH
+fi
+
+patch -p1 <<EOF
+$ diff -Nauw src/CMakeLists.txt.original src/CMakeLists.txt
+--- qjson/src/CMakeLists.txt	2009-12-04 00:02:16.000000000 +0000
++++ qjson/src/CMakeLists.txt.original	2013-02-08 16:09:19.000000000 +0000
+@@ -35,2 +35,3 @@
+                       DEFINE_SYMBOL QJSON_MAKEDLL
++                      OUTPUT_NAME_DEBUG qjsond
+                       )
+EOF
+
+patch -p1 <<"EOF"
+--- qjson/cmake/modules/FindQJSON.cmake	2009-12-04 00:02:16 +0000
++++ qjson/cmake/modules/FindQJSON.cmake.original	2013-02-08 17:40:28 +0000
+@@ -20,7 +20,16 @@
+     pkg_check_modules (QJSON REQUIRED QJson>=0.5)
+   endif (NOT WIN32)
+
+-  find_library (QJSON_LIBRARIES
++  find_library (QJSON_LIBRARY_DEBUG
++    NAMES
++    qjsond
++    PATHS
++    ${QJSON_LIBRARY_DIRS}
++    ${LIB_INSTALL_DIR}
++    ${KDE4_LIB_DIR}
++  )
++
++  find_library (QJSON_LIBRARY
+     NAMES
+     qjson
+     PATHS
+@@ -40,7 +49,9 @@
+     ${KDE4_INCLUDE_DIR}
+   )
+
++  set(QJSON_LIBRARIES optimized ${QJSON_LIBRARY} debug ${QJSON_LIBRARY_DEBUG})
++
+   include(FindPackageHandleStandardArgs)
+-  find_package_handle_standard_args(QJSON DEFAULT_MSG QJSON_LIBRARIES QJSON_INCLUDE_DIR)
++  find_package_handle_standard_args(QJSON DEFAULT_MSG QJSON_LIBRARY QJSON_INCLUDE_DIR)
+
+ endif (QJSON_INCLUDE_DIR AND QJSON_LIBRARIES)
+EOF
+
+PATH=${PREFIX}/bin:$PATH
+
+if [ x"${ARCH}" = x"Windows" ]; then
+    GENERATOR="MSYS Makefiles"
+else
+    GENERATOR="Unix Makefiles"
+fi
+
+(
+  rm -Rf build-debug && mkdir build-debug && cd build-debug &&
+  cmake -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="$PREFIX" .. -G "${GENERATOR}" &&
+  make && make install
+)
+(
+  rm -Rf build-release && mkdir build-release && cd build-release &&
+  cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX="$PREFIX" .. -G "${GENERATOR}" &&
+  make && make install
+)
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    install_name_tool -id "$PREFIX/lib/libqjson.${PACKAGE_VER}.dylib" "$PREFIX/lib/libqjson.${PACKAGE_VER}.dylib"
+fi
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

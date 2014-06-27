@@ -1,0 +1,65 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=BJam
+DEPENDENCIES=
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+  exit 0
+fi
+
+# DEPENDENCIES #############################################################
+
+build_deps $DEPENDENCIES
+
+
+if [ x"${ARCH}" = x"Windows" ]; then
+
+    # FETCH SOURCE #############################################################
+
+    mkdir -p build
+    cd build
+
+    PACKAGE_URL_REF="${PACKAGE}_URL"
+    PACKAGE_URL="${!PACKAGE_URL_REF}"
+    PACKAGE_DIR_REF="${PACKAGE}_DIR"
+    PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+    PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+    PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+    PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+    if [ ! -e "${PACKAGE_FILENAME}" ]; then
+        echo "Fetching ${PACKAGE_URL} ..."
+        curl -L -O "${PACKAGE_URL}"
+    fi
+
+    echo "Extracting ${PACKAGE_FILENAME} ..."
+    ${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+    echo "Building ${PACKAGE} ..."
+    cd ${PACKAGE_DIR}
+
+    # BUILD STEPS ##############################################################
+
+    mkdir -p ${PREFIX}/build/bin
+    cp bjam.exe ${PREFIX}/build/bin
+
+else
+  echo ${PACKAGE} not needed on this platform
+fi
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

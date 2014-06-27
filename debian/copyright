@@ -1,0 +1,358 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: utopia-documents
+Source: <http://utopiadocs.com>
+Upstream-Contact: info@utopiadocs.com
+Copyright: Copyright 2008-2014 Lost Island Labs
+
+Files: *
+Copyright: Copyright 2008-2014 Lost Island Labs
+License: GPL-3.0 with OpenSSL exception
+
+Files: libutf8/utf8/utf8cpp/*
+Copyright: Copyright 2006 Nemanja Trifunovic
+License: Boost
+
+Files: libutf8/utf8/utf8proc/*
+Copyright: Copyright 2009 Public Software Group e. V., Berlin, Germany
+           Copyright 1991-2007 Unicode, Inc.
+License: Expat and Unicode
+
+Files: libspine/* libcrackle/*
+Copyright: Copyright 2008-2014 Lost Island Labs
+License: AGPL-3.0
+
+Files: libcrackle/crackle/CrackleTextOutputDev.*libcrackle/crackle/PDFFontCollection.*
+Copyright: Copyright 1996-2011 Glyph & Cog, LLC.
+           Copyright 2008-2014 Lost Island Labs
+License: GPL-3.0
+
+Files: libcrackle/crackle/libxpdf
+Copyright: Copyright 1996-2011 Glyph & Cog, LLC.
+License: GPL-2.0 or GPL-3.0
+
+Files: libpapyro/papyro/pages/altmetric/*
+Copyright: Copyright 2007 IOLA
+           Copyright 2009 Ole Laursen
+           Copyright 2009 Brian Medendorp, btburnett3, Anthony Aragues and Xavi Ivars
+License: Expat
+
+Files: libpapyro/papyro/pages/jqplot/*
+Copyright: Copyright 2009-2011 Chris Leonello
+           Copyright 2009-2010 Faruk Ates
+           Copyright 2010 Scott Prahl
+License: Expat or GPL-2.0
+
+Files: libpapyro/papyro/pages/jquery-ui/*
+Copyright: Copyright 2009-2011 (see http://jqueryui.com/about)
+License: Expat or GPL-2.0
+
+Files: libpapyro/papyro/pages/jquery.min.js
+Copyright: Copyright 2005, 2014 jQuery Foundation, Inc. and other contributors
+License: Expat
+
+Files: libpapyro/papyro/pages/jquery.ajaxq.js
+Copyright: Copyright 2008 Oleg Podolsky (oleg.podolsky@gmail.com)
+License: Expat
+
+Files: libpapyro/papyro/pages/utils/jquery.rotate.min.js
+Copyright: Copyright 2009 Wilq32, wilq32@gmail.com, Wroclaw, Poland
+License: Expat
+
+Files: libpapyro/papyro/pages/utils/jquery.tiptip.min.js
+Copyright: Copyright 2010 Drew Wilson
+License: Expat or GPL-2.0
+
+Files: libpapyro/papyro/pages/utils/spinners.min.js
+Copyright: Copyright 2010 2010-2011 Nick Stakenburg - http://www.nickstakenburg.com
+License: Expat
+
+Files: libpapyro/papyro/pages/utils/hyphenate.js
+Copyright: Copyright 2011 Mathias Nater, Zürich
+           Copyright 2011 Bram Stein
+License: LGPL-3.0
+
+Files: libpapyro/papyro/pages/utils/jquery.tmpl.min.js
+Copyright: Copyright 2011, Software Freedom Conservancy, Inc.
+License: Expat or GPL-2.0
+
+Files: */qtlocalpeer.* */qtlockedfile* */qtsingleapplication.* */qtsinglecoreapplication.*
+Copyright: Copyright 2013 Digia Plc and/or its subsidiary(-ies).
+License: BSD-3-clause
+
+Files: libgraffiti/graffiti/qtcolorpicker*
+Copyright: Copyright 2009 Nokia Corporation and/or its subsidiary(-ies).
+License: GPL-3.0 or LGPL-2.1-Nokia-LGPL-Exception-1.0
+
+Files: libpapyro/papyro/citeproc/*
+Copyright: 2009-2013 Frank G. Bennett, Jr.
+License: AGPL-3.0
+
+Files: libathenaeum/athenaeum/cJSON.* ibutopia2_auth/utopia2/auth/cJSON.*
+Copyright: Copyright 2009 Dave Gamble
+License: Expat
+
+Files: libutopia2/plugins/python/coda_network/*
+Copyright: Copyright Garry Bodsworth
+License: PSFL-2.0
+
+Files: libutopia2/plugins/python/coda_network/ntlm/*
+Copyright: Copyright 2001 Dmitry A. Rozmanov
+License: LGPL-3.0+
+
+Files: */CMakeLists.txt
+Copyright: Copyright 2008-2014 Lost Island Labs
+License: GPL-3.0
+
+Files: libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/*
+Copyright: Copyright 2014 Bio-Prodict B.V., The Netherlands
+License: GPL-3.0
+
+License: LGPL-3.0+
+ This library is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ On Debian systems the complete text of the LGPL, version 3, can be
+ found in the file '/usr/share/common-licenses/LGPL-3'.
+
+License: PSFL-2.0
+ 1. This LICENSE AGREEMENT is between the Python Software Foundation
+ ("PSF"), and the Individual or Organization ("Licensee") accessing
+ and otherwise using this software ("Python") in source or binary form
+ and its associated documentation.
+ .
+ 2. Subject to the terms and conditions of this License Agreement, PSF
+ hereby grants Licensee a nonexclusive, royalty-free, world-wide
+ license to reproduce, analyze, test, perform and/or display publicly,
+ prepare derivative works, distribute, and otherwise use Python alone
+ or in any derivative version, provided, however, that PSF's License
+ Agreement and PSF's notice of copyright, i.e., "Copyright (c) 2001,
+ 2002, 2003, 2004, 2005, 2006, 2007 Python Software Foundation; All
+ Rights Reserved" are retained in Python alone or in any derivative
+ version prepared by Licensee.
+ .
+ 3. In the event Licensee prepares a derivative work that is based on
+ or incorporates Python or any part thereof, and wants to make the
+ derivative work available to others as provided herein, then Licensee
+ hereby agrees to include in any such work a brief summary of the
+ changes made to Python.
+ .
+ 4. PSF is making Python available to Licensee on an "AS IS" basis.
+ PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY
+ WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY
+ REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY
+ PARTICULAR PURPOSE OR THAT THE USE OF PYTHON WILL NOT INFRINGE ANY
+ THIRD PARTY RIGHTS.
+ .
+ 5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
+ FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A
+ RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON, OR ANY
+ DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+ .
+ 6. This License Agreement will automatically terminate upon a
+ material breach of its terms and conditions.
+ .
+ 7. Nothing in this License Agreement shall be deemed to create any
+ relationship of agency, partnership, or joint venture between PSF and
+ Licensee.  This License Agreement does not grant permission to use
+ PSF trademarks or trade name in a trademark sense to endorse or
+ promote products or services of Licensee, or any third party.
+ .
+ 8. By copying, installing or otherwise using Python, Licensee agrees
+ to be bound by the terms and conditions of this License Agreement.
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
+ 3. Neither the name of Digia Plc and its Subsidiary(-ies) nor the
+    names of its contributors may be used to endorse or promote
+    products derived from this software without specific prior written
+    permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+
+License: Boost
+ Permission is hereby granted, free of charge, to any person or
+ organization obtaining a copy of the software and accompanying
+ documentation covered by this license (the "Software") to use,
+ reproduce, display, distribute, execute, and transmit the Software,
+ and to prepare derivative works of the Software, and to permit
+ third-parties to whom the Software is furnished to do so, all subject
+ to the following:
+ .
+ The copyright notices in the Software and this entire statement,
+ including the above license grant, this restriction and the following
+ disclaimer, must be included in all copies of the Software, in whole
+ or in part, and all derivative works of the Software, unless such
+ copies or derivative works are solely in the form of
+ machine-executable object code generated by a source language
+ processor.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+ NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
+ DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER
+ LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
+ .
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+License: Unicode
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of the Unicode data files and any associated documentation
+ (the "Data Files") or Unicode software and any associated
+ documentation (the "Software") to deal in the Data Files or Software
+ without restriction, including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, and/or sell copies of the
+ Data Files or Software, and to permit persons to whom the Data Files
+ or Software are furnished to do so, provided that (a) the above
+ copyright notice(s) and this permission notice appear with all copies
+ of the Data Files or Software, (b) both the above copyright notice(s)
+ and this permission notice appear in associated documentation, and
+ (c) there is clear notice in each modified Data File or in the
+ Software as well as in the documentation associated with the Data
+ File(s) or Software that the data or software has been modified.
+ .
+ THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF
+ ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE
+ COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY
+ CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY
+ DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ OF THE DATA FILES OR SOFTWARE.
+ .
+ Except as contained in this notice, the name of a copyright holder
+ shall not be used in advertising or otherwise to promote the sale,
+ use or other dealings in these Data Files or Software without prior
+ written authorization of the copyright holder.
+
+License: GPL-2.0
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 2 as
+ published by the Free Software Foundation.
+ .
+ This program is distributed in the hope that it will be useful,
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU but
+ WITHOUT ANY WARRANTY; without even the implied warranty of General
+ Public License for more details.
+ .
+ On Debian systems, the full text of the GNU General Public License
+ version 2 can be found in the file '/usr/share/common-licenses/GPL-2'.
+
+License: GPL-3.0
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ published by the Free Software Foundation.
+ .
+ This program is distributed in the hope that it will be useful,
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU but
+ WITHOUT ANY WARRANTY; without even the implied warranty of General
+ Public License for more details.
+ .
+ On Debian systems, the full text of the GNU General Public License
+ version 3 can be found in the file '/usr/share/common-licenses/GPL-3'.
+
+License: GPL-3.0 with OpenSSL exception
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ published by the Free Software Foundation.
+ .
+ This program is distributed in the hope that it will be useful,
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU but
+ WITHOUT ANY WARRANTY; without even the implied warranty of General
+ Public License for more details.
+ .
+ In addition, as a special exception, the copyright holders give
+ permission to link the code of portions of this program with the
+ OpenSSL library under certain conditions as described in each
+ individual source file, and distribute linked combinations including
+ the two.
+ .
+ You must obey the GNU General Public License in all respects for all
+ of the code used other than OpenSSL. If you modify file(s) with this
+ exception, you may extend this exception to your version of the
+ file(s), but you are not obligated to do so. If you do not wish to do
+ so, delete this exception statement from your version. If you delete
+ this exception statement from all source files in the program, then
+ also delete it here.
+ .
+ On Debian systems, the full text of the GNU General Public License
+ version 3 can be found in the file '/usr/share/common-licenses/GPL-3'.
+
+License: AGPL-3.0
+ This library is free software: you can redistribute it and/or modify
+ it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE VERSION 3
+ as published by the Free Software Foundation.
+ .
+ The library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Affero General Public License for more details.
+ .
+ You should have received a copy of the GNU Affero General Public
+ License along with the library. If not, see
+ <http://www.gnu.org/licenses/>
+
+License: LGPL-2.1-Nokia-LGPL-Exception-1.0
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License version 2.1 as
+ published by the Free Software Foundation.
+ .
+ On Debian systems, the full text of the GNU Lesser General Public License
+ version 2.1 can be found in the file '/usr/share/common-licenses/LGPL-2.1'.
+ .
+ As a special exception to the GNU Lesser General Public License
+ version 2.1, the object code form of a "work that uses the Library"
+ may incorporate material from a header file that is part of the
+ Library. You may distribute such object code under terms of your
+ choice, provided that the incorporated material (i) does not exceed
+ more than 5% of the total size of the Library; and (ii) is limited to
+ numerical parameters, data structure layouts, accessors, macros,
+ inline functions and templates.
