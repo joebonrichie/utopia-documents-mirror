@@ -1,0 +1,69 @@
+Version 2.4.2-1
+  * Fixed crash in link handling code. (Reported by Yaroslav Halchenko)
+  * Improve handling on invalid PDF documents
+  * Improved debian packaging.
+  * Stop debug messages flooding terminal.
+
+Version 2.4.1
+  * Fixes crash caused by accessing string after it was freed.
+  * Improved pdf rendering/font handling.
+
+Version 2.4.0
+  * Various minor bug fixes.
+  * Performance improvements.
+  * Support for newer Ubuntu releases.
+
+Version 2.3.0
+  * Added tabs to main window.
+  * Improvements to in-text citation matching.
+  * Many improvements to plugins.
+
+Version 2.2.2
+  * Fix for GeneCards links.
+  * Phrase lookups now strip punctuation from end of word.
+  * Improved "update available" message on Linux.
+
+Version 2.2.2
+  * Printing now available.
+  * GeneCards now integrated into Utopia’s search functionality.
+  * OpenPHACTS now integrated into Utopia’s search functionality.
+  * Fixed a table display bug that truncated various header values.
+  * Supports utopia:// protocol to support web links that open in utopia-documents without it being the default pdf handler.
+
+Version 2.2.1
+  * Added support for ASPB.
+  * Improved metadata.
+  * Fixed "About" dialog.
+  * Fixed some problems with opening from URLs.
+
+Version 2.2.0
+  * Qt QSharedPointer workaround. Should fix kubuntu bug report.
+  * Fixed table display bug.
+  * Improved display of references.
+  * User interface improvements.
+  * New plugins.
+
+Version 2.1.0
+  * First Linux release of Utopia 2.
+  * New sidebar and annotation rendering.
+  * Improved document metadata resolution.
+  * Improved title scraping for multi-line titles.
+  * PDFs can now be loaded directly from a URL on the clipboard.
+  * Improved account management in the preferences dialog box.
+  * Now includes links to supplementary material from several sources.
+  * Where available includes CrossMark information on updates, corrections and retractions of the document you’re reading.
+  * PLOS article level statistics have been included for relevant articles.
+
+Version 1.2.1
+  * Fixed utf32 subExtent method (fixes GPCRDB plugin).
+
+Version 1.2.0
+  * Fixed missing python-lxml dependency
+
+Version 1.2.0
+  * Support for the GNU/Linux Operating System.
+  * Full support for proxy auto-configuration scripts.
+  * Support for proxy authentication (Basic, Digest, NTLM).
+  * RSC catalogue integration.
+  * Stability improvements.
+  * Security improvements.

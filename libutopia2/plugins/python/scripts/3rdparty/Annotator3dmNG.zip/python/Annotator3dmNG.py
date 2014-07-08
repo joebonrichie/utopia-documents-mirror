@@ -51,7 +51,7 @@ userHome = os.path.expanduser('~')
 fileHome = userHome + '/Library/Utopia/'
 if os.name == 'nt':
 	fileHome = userHome + '/Utopia/'
-jsFiles = ['js/libs/jquery.tablesorter.min.js']
+jsFiles = ['js/libs/jquery.tablesorter.js']
 cssFiles = ['css/common.css', 'css/protein.css']
 
 accordionOpenCode = '''

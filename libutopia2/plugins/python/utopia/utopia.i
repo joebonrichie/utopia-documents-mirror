@@ -173,11 +173,6 @@ agent_string = "Utopia/%d.%d.%d" % version_info[:3]
 %pythoncode
 %{
 # Ensure valid version
-assert version_info == (_moduleVersionMajor,
-                        _moduleVersionMinor,
-                        _moduleVersionPatch,
-                        _moduleRevisionHash),\
-    'Module version does not match installed library version.'
 
 def proxyUrllib2():
     import urllib2, ntlm_auth

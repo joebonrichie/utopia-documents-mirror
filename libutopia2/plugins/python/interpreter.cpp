@@ -85,10 +85,10 @@ PythonInterpreter::PythonInterpreter()
 #ifdef REMAP_BUNDLED_PYTHON
 #ifdef _WIN32
         putenv("PYTHONHOME=utopia/python");
-        SetEnvironmentVariable("PYTHONHOME", joinPath(Utopia::resource_path(), "python").toUtf8().constData());
+        SetEnvironmentVariable("PYTHONHOME", joinPath(Utopia::private_library_path(), "python").toUtf8().constData());
 #else
-    ::setenv("PYTHONHOME", joinPath(Utopia::resource_path(), "python").toUtf8().constData(), 1);
-    ::setenv("PYTHONPATH", joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(), 1);
+    ::setenv("PYTHONHOME", joinPath(Utopia::private_library_path(), "python").toUtf8().constData(), 1);
+    ::setenv("PYTHONPATH", joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(), 1);
 #endif
 #else
     //::dlopen("libpython" PYTHON_VERSION ".so.1.0", RTLD_LAZY | RTLD_GLOBAL);
@@ -107,30 +107,31 @@ PythonInterpreter::PythonInterpreter()
 #ifdef REMAP_BUNDLED_PYTHON
 #ifdef _WIN32
     PyObject* newSysPath = Py_BuildValue("[sssssss]",
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
                                          joinPath(Utopia::plugin_path(), "python").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "dlls").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "plat-win").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "lib-tk").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
+                                         joinPath(Utopia::private_library_path(), "python", "dlls").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "plat-win").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "lib-tk").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
 #else
+
     PyObject* newSysPath = Py_BuildValue("[ssssssss]",
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
                                          joinPath(Utopia::plugin_path(), "python").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "encodings").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "lib-dynload").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "plat-darwin").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "plat-mac").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "encodings").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "lib-dynload").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "plat-darwin").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "plat-mac").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
 #endif
     PySequence_DelSlice(path, 0, PySequence_Size(path));
 #else
     PyObject* newSysPath = Py_BuildValue("[sss]",
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
                                          joinPath(Utopia::plugin_path(), "python").toUtf8().constData(),
-                                         joinPath(Utopia::resource_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
+                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
 #endif
 
     PySequence_SetSlice(path, 0, 0, newSysPath);

@@ -1,20 +1,44 @@
 #!/usr/bin/make -f
 
-#DEB_PYTHON_SYSTEM=pycentral
+%:
+	dh $@ --with=python2 --buildsystem=cmake \
+		--builddirectory=utopia-build --parallel
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/cmake.mk
-#include /usr/share/cdbs/1/class/python-distutils.mk
-#include /usr/share/cdbs/1/rules/simple-patchsys.mk
+build/dependencies/CMakeCache.txt:
+	mkdir -p utopia-build/dependencies && cd utopia-build/dependencies && \
+		cmake -C"../../dependencies/CMakeConfig/configurations/Linux.txt" \
+		-C"../../dependencies/CMakeConfig/configurations/common.txt" \
+		../../dependencies
 
-# Add here any variable or target overrides you need.
+.PHONY: override_dh_auto_configure
+override_dh_auto_configure:	build/dependencies/CMakeCache.txt
+	cd utopia-build && \
+		cmake -D"CMAKE_VERBOSE_MAKEFILE:BOOL=ON" \
+		-C"../CMakeConfig/configurations/Linux.txt" \
+		-C"../CMakeConfig/configurations/common.txt" \
+		-D"CMAKE_BUILD_TYPE:STRING=Release" \
+		-D"UTOPIA_DEPENDENCIES_DIR:STRING=./utopia-build/dependencies" \
+		..
 
-#DEB_PYTHON_INSTALL_ARGS_ALL += --single-version-externally-managed
+.PHONY: override_dh_strip
+override_dh_strip:
+	dh_strip --dbg-package=utopia-documents-dbg
 
-DEB_CMAKE_EXTRA_FLAGS = -C "$(CURDIR)/$(DEB_SRCDIR)/CMakeConfig/configurations/Linux.txt" -C "$(CURDIR)/$(DEB_SRCDIR)/CMakeConfig/configurations/common.txt"
+.PHONY: override_dh_auto_install
+override_dh_auto_install:
+	dh_auto_install --destdir=debian/utopia-documents
 
-$(DEB_BUILDDIR)/dependencies/CMakeCache.txt:
-	cd $(DEB_BUILDDIR) && mkdir dependencies && cd dependencies && $(CMAKE) -C "$(CURDIR)/$(DEB_SRCDIR)/dependencies/CMakeConfig/configurations/Linux.txt" -C "$(CURDIR)/$(DEB_SRCDIR)/dependencies/CMakeConfig/configurations/common.txt" $(CURDIR)/$(DEB_SRCDIR)/dependencies
+.PHONY: override_dh_installdocs
+override_dh_installdocs:
+	dh_installdocs --link-doc=utopia-documents
 
-$(DEB_BUILDDIR)/CMakeCache.txt:	$(DEB_BUILDDIR)/dependencies/CMakeCache.txt
-	cd $(DEB_BUILDDIR) && $(CMAKE) $(DEB_CMAKE_NORMAL_ARGS) -D "CMAKE_BUILD_TYPE:STRING=Release" -D "UTOPIA_DEPENDENCIES_DIR:STRING=$(DEB_BUILDDIR)/dependencies/" $(DEB_CMAKE_EXTRA_FLAGS) $(CURDIR)/$(DEB_SRCDIR)
+# No public shared libs
+.PHONY: override_dh_makeshlibs
+override_dh_makeshlibs:
+	dh_makeshlibs -Xlib/utopia-documents
+
+.PHONY: override_dh_python2
+override_dh_python2:
+	dh_python2 --compile-all \
+		/usr/lib/utopia-documents/plugins/python \
+		/usr/lib/utopia-documents/python

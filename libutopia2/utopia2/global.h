@@ -82,6 +82,7 @@ namespace Utopia
     LIBUTOPIA_EXPORT QString executable_path();
     LIBUTOPIA_EXPORT QString plugin_path();
     LIBUTOPIA_EXPORT QString config_path();
+    LIBUTOPIA_EXPORT QString private_library_path();
     LIBUTOPIA_EXPORT QString resource_path();
 
     typedef enum {

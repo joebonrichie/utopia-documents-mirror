@@ -251,14 +251,19 @@ namespace Utopia
 
     QString plugin_path()
     {
+#if defined(Q_OS_LINUX)
+        QDir path(private_library_path());
+#else
         QDir path(executable_path());
+#endif
+
         if (
 #if defined(Q_OS_WIN32)
             path.cdUp() && path.cd("plugins")
 #elif defined(Q_OS_MACX)
             path.cdUp() && path.cd("PlugIns")
 #elif defined(Q_OS_LINUX)
-            path.cdUp() && path.cd("lib") && path.cd("utopia-plugins")
+            path.cd("plugins")
 #else
 #  error Unsupported platform!
 #endif
@@ -267,6 +272,17 @@ namespace Utopia
         } else {
             return QString();
         }
+    }
+
+    QString private_library_path()
+    {
+#if defined(Q_OS_LINUX)
+        QDir path(executable_path());
+        path.cdUp() && path.cd("lib") && path.cd("utopia-documents");
+        return QDir::cleanPath(path.canonicalPath());
+#else
+            return resource_path();
+#endif
     }
 
     QString resource_path()
@@ -278,7 +294,7 @@ namespace Utopia
 #elif defined(Q_OS_MACX)
             path.cdUp() && path.cd("Resources")
 #elif defined(Q_OS_LINUX)
-            path.cdUp() && path.cd("share") && path.cd("utopia")
+            path.cdUp() && path.cd("share") && path.cd("utopia-documents")
 #else
 #  error Unsupported platform!
 #endif

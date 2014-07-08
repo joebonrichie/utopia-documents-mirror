@@ -67,7 +67,10 @@ def eutils(utility, **defaultparams):
         params = defaultparams.copy()
         params.update(userparams)
         for k, v in params.items():
-            params[k] = unicode(v).encode('utf8')
+            if v is None:
+                del params[k]
+            else:
+                params[k] = unicode(v).encode('utf8')
         url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/{0}.fcgi?{1}'
         url = url.format(utility, urllib.urlencode(params))
         response = None

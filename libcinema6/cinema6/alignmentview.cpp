@@ -289,6 +289,16 @@ namespace CINEMA6
             d->interactionModes->addAction(action);
             addAction(action);
             QObject::connect(action, SIGNAL(triggered()), this, SLOT(activateAnnotateMode()));
+            
+            action = new QAction("Zoom In", this);
+        	d->interactionModes->addAction(action);
+        	addAction(action);
+        	QObject::connect(action, SIGNAL(triggered()), this, SLOT(zoomIn()));
+        	
+        	action = new QAction("Zoom Out", this);
+        	d->interactionModes->addAction(action);
+        	addAction(action);
+        	QObject::connect(action, SIGNAL(triggered()), this, SLOT(zoomOut()));
         }
     }
 
@@ -1939,6 +1949,7 @@ namespace CINEMA6
                 }
             }
         }
+        qDebug() << "Zoom factor: " << zoom();
     }
 
     void AlignmentView::zoomOut(int factor)
@@ -1961,6 +1972,8 @@ namespace CINEMA6
                 }
             }
         }
+        qDebug() << "Zoom factor: " << zoom();
+
     }
 
 }

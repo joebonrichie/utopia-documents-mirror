@@ -309,7 +309,9 @@ void Crackle::PDFDocument::readBuffer(shared_array<char> data_, size_t length_)
     Spine::Sha256 hash;
     hash.update(reinterpret_cast< unsigned char * > (data_.get()), length_);
     _filehash=Spine::Fingerprint::binaryFingerprintIri(hash.calculateHash());
-    _updateAnnotations();
+    if(this->isOK()) {
+        _updateAnnotations();
+    }
 }
 
 /****************************************************************************/
@@ -577,7 +579,6 @@ void Crackle::PDFDocument::_extractLinks()
                     // Action GoToR ???
                 }
 
-                delete dest;
             }
 
             if (action->getKind()==actionURI ) {

@@ -138,6 +138,7 @@ if(WIN32)
 elseif(APPLE)
   file(GLOB APPS "@BIN_INSTALL_DIR@/Documents")
   #file(GLOB APPS "@BIN_INSTALL_DIR@/Library")
+  #file(GLOB APPS "@BIN_INSTALL_DIR@/Sequences")
 endif()
 
 # Compile list of dynamically loaded plugins

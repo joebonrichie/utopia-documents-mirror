@@ -48,6 +48,8 @@
 #include <QSettings>
 #include <QSignalMapper>
 
+#include <iostream>
+
 #include <QtDebug>
 
 #define UPDATEWIDGET_DATETIME_FORMAT "ddd d MMM yy, hh:mm"
@@ -127,36 +129,36 @@ namespace Utopia
 
     bool lessThan(const QString & lhs_string, const QString & rhs_string)
     {
-        QStringList lhs_list(lhs_string.split("."));
-        QStringList rhs_list(rhs_string.split("."));
-
-        int idx = 0;
-        while (true)
-        {
-            QString lhs(idx < lhs_list.size() ? lhs_list.at(idx) : QString());
-            QString rhs(idx < rhs_list.size() ? rhs_list.at(idx) : QString());
-
-            if (!lhs.isEmpty() && !rhs.isEmpty())
-            {
-                if (lhs < rhs) return true;
-                else if (lhs > rhs) return false;
-            }
-            else if (lhs.isEmpty() && !rhs.isEmpty())
-            {
-                return true;
-            }
-            else if (!lhs.isEmpty() && rhs.isEmpty())
-            {
-                return false;
-            }
-            else if (lhs.isEmpty() && rhs.isEmpty())
-            {
-                break;
-            }
-            ++idx;
+        if (lhs_string.isEmpty() && !rhs_string.isEmpty()) {
+            return true;
+        } else if (rhs_string.isEmpty()) {
+            return false;
         }
 
-        return false;
+        QString lhs_major = lhs_string.section(".", 0, 0);
+        QString rhs_major = rhs_string.section(".", 0, 0);
+        QString lhs_minor = lhs_string.section(".", 1, -1);
+        QString rhs_minor = rhs_string.section(".", 1, -1);
+
+        QRegExp numberRegExp("(\\d+)(.*)");
+        int lhs_major_number = numberRegExp.exactMatch(lhs_major) ? numberRegExp.cap(1).toInt() : 0;
+        QString lhs_major_letter = numberRegExp.exactMatch(lhs_major) ? numberRegExp.cap(2) : "";
+        int rhs_major_number = numberRegExp.exactMatch(rhs_major) ? numberRegExp.cap(1).toInt() : 0;
+        QString rhs_major_letter = numberRegExp.exactMatch(rhs_major) ? numberRegExp.cap(2) : "";
+
+        if (lhs_major_number < rhs_major_number) {
+            return true;
+        } else if (lhs_major_number > rhs_major_number) {
+            return false;
+        } else {
+            if (lhs_major_letter < rhs_major_letter) {
+                return true;
+            } else if (lhs_major_letter > rhs_major_letter) {
+                return false;
+            } else {
+                return lessThan(lhs_minor, rhs_minor);
+            }
+        }
     }
 
     UpdateWidget::UpdateStatus UpdateWidget::check()

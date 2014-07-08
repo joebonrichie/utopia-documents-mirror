@@ -97,6 +97,53 @@ private:
 };
 
 
+void print_usage(const QString & cmd) {
+    QStringList lines;
+    lines << QString("usage: %1 [OPTIONS] [FILE | URL ...]").arg(cmd);
+    foreach (const QString & line, lines) {
+        std::cout << line.toUtf8().constData() << std::endl;
+    }
+}
+
+void print_help(const QString & cmd) {
+    print_usage(cmd);
+    QStringList lines;
+    lines << QString()
+          << QString("If Utopia Documents is already running, %1 will arrange for it").arg(cmd)
+          << "to load an article in a new tab; otherwise it will start a new instance."
+          << QString()
+          << "Options:"
+          << "    -h, --help          Print this message and exit."
+          << "    -v, --version       Print version information and exit."
+          << QString()
+          << "Remaining arguments are treated as filenames or URLs of PDF articles to open."
+          << QString()
+
+#ifdef Q_OS_LINUX
+          << "For more information, see the utopia-documents man page."
+#endif
+          << "Report bugs to <info@utopiadocs.com>";
+    foreach (const QString & line, lines) {
+        std::cout << line.toUtf8().constData() << std::endl;
+    }
+}
+
+void suggest_help(const QString & cmd) {
+    QStringList lines;
+    lines << QString("Try `%1 --help' for more information.").arg(cmd);
+    foreach (const QString & line, lines) {
+        std::cout << line.toUtf8().constData() << std::endl;
+    }
+}
+
+void print_version() {
+    QStringList lines;
+    lines << QString("Utopia Documents %1").arg(Utopia::versionString(true));
+    foreach (const QString & line, lines) {
+        std::cout << line.toUtf8().constData() << std::endl;
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -104,11 +151,6 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_LINUX
     QApplication::setGraphicsSystem("raster");
 #endif
-    //QApplication::setGraphicsSystem("raster");
-    for (int i = 0; i < argc; ++i)
-    {
-        qDebug() << "*** ARG" << argv[i];
-    }
 
 #ifdef Q_OS_WIN32
     QApplication::setDesktopSettingsAware(false);
@@ -122,6 +164,23 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    QStringList qargs;
+    for (int i = 0; i < argc; ++i) {
+        qargs << argv[i];
+    }
+
+    int opt_help = qargs.removeAll("-h") + qargs.removeAll("--help");
+    int opt_version = qargs.removeAll("-v") + qargs.removeAll("--version");
+    if (opt_help + opt_version > 0) {
+        QString cmd(QFileInfo(qargs.first()).fileName());
+        if (opt_help > 0) {
+            print_help(cmd);
+        } else {
+            print_version();
+        }
+        exit(0);
+    }
+
     UtopiaApplication app(argc, argv);
 #ifdef Q_OS_LINUX
     QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope, Utopia::resource_path());
@@ -132,8 +191,8 @@ int main(int argc, char *argv[])
     QStringList documents;
     QTextStream commandStream(&command);
     commandStream << QString("open");
-	QStringList args(QCoreApplication::arguments());
-	args.pop_front();
+        QStringList args(QCoreApplication::arguments());
+        args.pop_front();
     foreach (QString arg, args) {
         if (!arg.isEmpty() && arg[0] != '-') {
             commandStream << "|" << QString(arg);
@@ -156,7 +215,7 @@ int main(int argc, char *argv[])
     QGLFormat::setDefaultFormat(glf);
 
     app.setAttribute(Qt::AA_DontShowIconsInMenus);
-    app.setApplicationName("Utopia Library");
+    app.setApplicationName("Utopia Documents");
 
     // plugin paths must be changed after Application, before first GUI ops
     QDir qtDirPath(QCoreApplication::applicationDirPath());
@@ -177,6 +236,8 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(":/icons/ud-logo.png"));
 #elif defined(Q_OS_LINUX)
     qtDirPath.cdUp();
+    qtDirPath.cd("lib");
+    qtDirPath.cd("utopia-documents");
     qtDirPath.cd("lib");
     QCoreApplication::addLibraryPath (qtDirPath.canonicalPath());
 #endif

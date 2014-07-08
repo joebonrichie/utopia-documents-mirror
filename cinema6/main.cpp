@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     qtDirPath.cdUp();
     qtDirPath.cd("PlugIns");
     QCoreApplication::setLibraryPaths(QStringList(qtDirPath.canonicalPath()));
+
 #elif defined(Q_OS_WIN32)
     qtDirPath.cdUp();
     qtDirPath.cd("plugins");
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
 #if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION == 3
                 QFile styleFile((Utopia::resource_path() / "css" / (base + modifier + ".css").toAscii().constData()).string().c_str());
 #else
-                QFile styleFile((Utopia::resource_path() / "css" / (base + modifier + ".css").toAscii().constData()).file_string().c_str());
+                QFile styleFile(Utopia::resource_path() + "css" +  base + modifier + ".css");
 #endif
                 if (styleFile.exists())
                 {
@@ -171,6 +172,7 @@ int main(int argc, char *argv[])
     if (ctx.errorCode() != Utopia::Parser::None)
     {
         Utopia::FileFixerDialog dialog(ctx, filename, format);
+
         dialog.show();
         if (dialog.exec() == QDialog::Accepted)
         {
@@ -197,7 +199,7 @@ int main(int argc, char *argv[])
     {
         Utopia::Node::relation::iterator seq = ctx.model()->relations(Utopia::UtopiaSystem.hasPart).begin();
         Utopia::Node::relation::iterator end = ctx.model()->relations(Utopia::UtopiaSystem.hasPart).end();
-
+        
         if (seq != end)
         {
             // Widget
@@ -217,6 +219,7 @@ int main(int argc, char *argv[])
                 {
                     qDebug() << "adding sequence" << (*seq2)->attributes.get(p_title).toString();
                     av->appendComponent(CINEMA6::AlignmentView::Center, new CINEMA6::SequenceComponent(new CINEMA6::Sequence(*seq2)));
+                
                 }
             }
 

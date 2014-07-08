@@ -31,7 +31,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource>
-        <file>pages/jquery.min.js</file>
+        <file>pages/jquery-1.7.1.js</file>
 
         <file>pages/jquery-ui/css/smoothness/images/ui-bg_flat_0_aaaaaa_40x100.png</file>
         <file>pages/jquery-ui/css/smoothness/images/ui-bg_flat_75_ffffff_40x100.png</file>
@@ -47,7 +47,7 @@
         <file>pages/jquery-ui/css/smoothness/images/ui-icons_888888_256x240.png</file>
         <file>pages/jquery-ui/css/smoothness/images/ui-icons_cd0a0a_256x240.png</file>
         <file>pages/jquery-ui/css/smoothness/jquery-ui.css</file>
-        <file>pages/jquery-ui/jquery-ui.min.js</file>
+        <file>pages/jquery-ui/jquery-ui-1.8.19.js</file>
 
         <file>pages/jqplot/jquery.jqplot.css</file>
         <file>pages/jqplot/jquery.jqplot.js</file>
@@ -84,11 +84,11 @@
         <file>pages/altmetric/jquery.altmetric.js</file>
         <file>pages/altmetric/altmetric.css</file>
 
-        <file>pages/utils/jquery.tiptip.min.js</file>
-        <file>pages/utils/jquery.tmpl.min.js</file>
-        <file>pages/utils/jquery.rotate.min.js</file>
+        <file>pages/utils/jquery.tipTip.js</file>
+        <file>pages/utils/jquery.tmpl.js</file>
+        <file>pages/utils/jQueryRotate.js</file>
         <file>pages/utils/hyphenate.js</file>
-        <file>pages/utils/spinners.min.js</file>
+        <file>pages/utils/spinners.js</file>
 
         <file>pages/results.js</file>
         <file>pages/results.css</file>
