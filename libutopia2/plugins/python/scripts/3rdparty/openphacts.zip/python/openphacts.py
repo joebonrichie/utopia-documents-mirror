@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -38,17 +39,17 @@ import urllib2
 from lxml import etree
 
 class OpenPhactsAnnotator(utopia.document.Annotator, utopia.document.Visualiser):
-	
+
 	searchTag = '07a84994-e464-4bbf-812a-a4b96fa3d197'
 	searchUrl = 'https://beta.openphacts.org/1.3/search/byTag?'
-	
+
 	infoUrl = 'http://beta.openphacts.org/1.3/compound?'
 	cwUriTemplate = 'http://www.conceptwiki.org/concept/{0}'
 	cwConcept = ''
-	
+
 	appId = 'd318f02d'
 	appKey = '5101509adbed44c32b9efd874dad5688'
-    
+
 	itemQueries = {
 		'http://www.ebi.ac.uk/chembl': ('chembl', ('mw_freebase', 'type')),
 		'http://ops.rsc.org': ('chemspider', ('ro5_violations', 'psa', 'logp', 'hbd', 'hba', 'smiles', 'inchi', 'inchikey', 'rtb', 'molweight', 'molformula')),
@@ -59,41 +60,41 @@ class OpenPhactsAnnotator(utopia.document.Annotator, utopia.document.Visualiser)
 		'molformula': 'moleculeFormula',
 		'biotransformation': 'bioTransformation',
 	}
-	def lookup(self, phrase, document):
+	def on_explore_event(self, phrase, document):
 	    #make the call
 	    url = self.searchUrl + urllib.urlencode({'app_id' : self.appId, 'app_key' : self.appKey,'q': phrase.encode('utf8'), 'branch': 4, 'uuid': self.searchTag,})
 	    response = urllib2.urlopen(url, timeout=8).read()
-	    
+
 	    #print response
 	    data = json.loads(response)
 	    print data
-	    
+
 	    # Get the first result
 	    if len(data) > 0:
 	        primaryTopic = data['result']['primaryTopic']['result'][0]
 	        cwConcept = primaryTopic['_about']
-	        
+
 	        # Resolve OPS data
 	        compoundInfoUrl = self.infoUrl + urllib.urlencode({'uri': cwConcept, '_format': 'xml', 'app_id' : self.appId, 'app_key' : self.appKey})
 	        compoundResponse = urllib2.urlopen(compoundInfoUrl, timeout=8).read()
 	        dom = etree.fromstring(compoundResponse)
-	        
+
 	        print etree.tostring(dom, pretty_print=True, encoding='utf8')
-	        
+
 	        # Parse compound information
 	        topic = dom.find('primaryTopic')
-	        
+
 	        if topic is not None:
 	            items = {}
 	            values = {}
-	            
+
 	            prefLabel = topic.findtext('prefLabel')
 	            uuid = topic.attrib['href']
 	            for item in topic.xpath('exactMatch/item'):
 	                hrefs = item.xpath('inDataset/@href')
 	                if len(hrefs) == 1:
 	                    items[hrefs[0]] = item
-	                    
+
 	            for item_type, item_elem in items.iteritems():
 	                queries = self.itemQueries.get(item_type, ())
 	                prefix = queries[0]
@@ -102,7 +103,7 @@ class OpenPhactsAnnotator(utopia.document.Annotator, utopia.document.Visualiser)
 	                    value = item_elem.findtext(query)
 	                    if value is not None:
 	                        values[self.itemTransformations.get(query, query)] = value
-	                    
+
 	            if len(values) > 0:
 	                a = spineapi.Annotation()
 	                a['concept'] = 'OPENPHACTS'
@@ -114,10 +115,10 @@ class OpenPhactsAnnotator(utopia.document.Annotator, utopia.document.Visualiser)
 	                a['property:sourceIcon'] = utopia.get_plugin_data_as_url('images/openphacts.png', 'image/png')
 	                a['property:sourceDescription'] = '<p><a href="http://www.openphacts.org/">Open PHACTS</a> is building an Open Pharmacological Space (OPS), a freely available platform, integrating pharmacological data from a variety of information resources and providing tools and services to question this integrated data to support pharmacological research.</p>'
 	                return(a,)
-	                
+
 	def visualisable(self, a):
 	    return a.get('concept') == 'OPENPHACTS'
-	
+
 	def visualise(self, a):
 	    bioTransformation = a.get('property:bioTransformation')
 	    description = a.get('property:molecularDescription')
@@ -138,7 +139,7 @@ class OpenPhactsAnnotator(utopia.document.Annotator, utopia.document.Visualiser)
 	    if len(chemspider_id) > 0:
 	        imageUrl = 'http://ops.rsc.org/{0}/image'.format(chemspider_id)
 	        #print imageUrl
-	    
+
 	    html = u'<style>.formula {font-weight:bold; font-size: 1.2em;} .formula sub{font-size:xx-small; position:relative; bottom:-0.3em;}</style>'
 	    if moleculeFormula is not None:
 	        moleculeFormula = moleculeFormula.replace(' ', '')

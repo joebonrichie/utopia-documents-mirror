@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -87,7 +88,7 @@ class _DefinitionVisualiser(utopia.document.Visualiser):
 class DefinitionTooltipFactory(utopia.document.Annotator):
     """Create tooltips for known definitions"""
 
-    def filter(self, document, data = None):
+    def on_filter_event(self, document, data = None):
         for annotation in document.annotations():
             if annotation.get('concept') == 'Definition' and 'displayTooltip' not in annotation and 'property:name' in annotation and 'property:description' in annotation:
                 annotation['displayTooltip'] = '<strong>%s</strong>: %s' % (annotation['property:name'], annotation['property:description'])

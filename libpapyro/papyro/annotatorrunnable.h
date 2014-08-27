@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -51,6 +52,7 @@ namespace Papyro
 
     public:
         AnnotatorRunnable(boost::shared_ptr< Annotator > annotator, const QString & event, Spine::DocumentHandle document, const QVariantMap & kwargs = QVariantMap());
+        ~AnnotatorRunnable();
 
         bool isRunnable() const;
         const QString & event() const;

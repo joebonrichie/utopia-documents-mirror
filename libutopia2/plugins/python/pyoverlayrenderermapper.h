@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -89,7 +90,7 @@ public:
 
                 if (ret == 0) /* Exception*/ {
                     std::cerr << "Error in OverlayRendererMapper " << extensionTypeName() << std::endl;
-                    PyErr_Print();
+                    PyErr_PrintEx(0);
                 } else {
                     if (PyString_Check(ret)) {
                         id = PyString_AsString(ret);
@@ -103,10 +104,10 @@ public:
 
                     Py_DECREF(ret);
                 }
-
-                Py_DECREF(pyann);
-                Py_DECREF(pydoc);
             }
+
+            Py_XDECREF(pyann);
+            Py_XDECREF(pydoc);
 
             PyGILState_Release(gstate);
         }

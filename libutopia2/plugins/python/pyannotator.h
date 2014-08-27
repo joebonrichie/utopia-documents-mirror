@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -89,7 +90,7 @@ public:
             event_name_to_legacy_method_name["on:marshal"] = "marshal";
             event_name_to_legacy_method_name["after:marshal"] = "reduceMarshal";
             event_name_to_legacy_method_name["on:persist"] = "persist";
-            event_name_to_legacy_method_name["on:lookup"] = "lookup";
+            event_name_to_legacy_method_name["on:explore"] = "lookup";
         }
 
 
@@ -165,16 +166,8 @@ public:
                 }
                 Py_DECREF(dir);
             } else {
-                PyErr_Print();
+                PyErr_PrintEx(0);
             }
-
-#define HAS_ANNOTATOR_PY_TEST(name) \
-            (PyObject_HasAttrString(extensionObject(), #name) && PyCallable_Check(PyObject_GetAttrString(extensionObject(), #name)))
-#define HAS_ANNOTATOR_PY(name) \
-            _has_ ## name = HAS_ANNOTATOR_PY_TEST(name);
-            HAS_ANNOTATOR_PY(lookup)
-#undef HAS_ANNOTATOR_PY_TEST
-#undef HAS_ANNOTATOR_PY
 
             // Register legacy method names to event names
             QMapIterator< QString, QString > liter(event_name_to_legacy_method_name);
@@ -251,7 +244,7 @@ public:
                     setErrorString("An unknown error occurred");
                 }
                 PyErr_Restore(ptype, pvalue, ptraceback);
-                PyErr_Print();
+                PyErr_PrintEx(0);
 
                 success = false;
             } else {
@@ -261,14 +254,13 @@ public:
         }
 
         /*  Clean up */
+        Py_XDECREF(pydoc);
         Py_DECREF(method);
 
         PyGILState_Release(gstate);
 
         return success;
     }
-
-    HAS_LOOKUP_RETURNS(_has_lookup)
 
     bool canHandleEvent(const QString & event)
     {
@@ -283,7 +275,9 @@ public:
 
     QStringList handleableEvents()
     {
-        return _handleableEvents + _handleableLegacyEvents;
+        QStringList unique(_handleableEvents + _handleableLegacyEvents);
+        unique.removeDuplicates();
+        return unique;
     }
 
     bool handleEvent(const QString & event, Spine::DocumentHandle document, const QVariantMap & kwargs)
@@ -305,71 +299,75 @@ public:
     {
         std::set< Spine::AnnotationHandle > derived;
 
-        if (_has_lookup) {
-            PyGILState_STATE gstate;
-            gstate = PyGILState_Ensure();
+        PyGILState_STATE gstate;
+        gstate = PyGILState_Ensure();
 
-            /* Get python wrapper of document */
-            PyObject * pydoc = 0;
-            if (document) {
-                Document * doc = static_cast<Document *>(malloc(sizeof(Document)));
-                doc->_doc = Spine::share_SpineDocument(document, 0);
-                doc->_err = SpineError_NoError;
-                pydoc = SWIG_NewPointerObj(static_cast<void *>(doc),
-                                           SWIG_TypeQuery("_p_Document"),
-                                           SWIG_POINTER_OWN);
-            }
-
-            /* Get python wrapper of annotation */
-            PyObject * input = PyUnicode_DecodeUTF8(phrase.data(), phrase.length(), 0);
-
-            if (input) {
-                PyObject * pyargs = PyTuple_New(0);
-                PyObject * pykwargs = PyDict_New();
-                PyDict_SetItemString(pykwargs, "phrase", input);
-
-                if (pydoc) {
-                    // This will overwrite whatever kwarg has been passed in
-                    PyDict_SetItemString(pykwargs, "document", pydoc);
-                }
-
-                /* Invoke method on extension */
-                PyObject * ret = 0;
-
-                /* Invoke method on extension */
-                if (PyObject * callable = PyObject_GetAttrString(extensionObject(), "lookup")) {
-                    ret = PyObject_Call(callable, pyargs, pykwargs);
-                    Py_DECREF(callable);
-                }
-
-                Py_DECREF(pyargs);
-                Py_DECREF(pykwargs);
-
-                if (ret == 0) { /* Exception */
-                    PyErr_Print();
-                } else {
-                    // ret is now a sequence of annotation objects
-                    if (PySequence_Check(ret)) {
-                        for (Py_ssize_t i = 0; i < PySequence_Size(ret); ++i) {
-                            PyObject * pyAnnotation = PySequence_GetItem(ret, i);
-                            Annotation * ann = 0;
-                            if (SWIG_ConvertPtr(pyAnnotation,
-                                                (void**) &ann,
-                                                SWIG_TypeQuery("_p_Annotation"),
-                                                0) == 0) {
-                                derived.insert(ann->_ann->_handle);
-                            }
-                        }
-                    } else { /* Not a sequence! */
-                        PyErr_Print();
-                    }
-
-                    Py_DECREF(ret);
-                }
-            }
-
-            PyGILState_Release(gstate);
+        /* Get python wrapper of document */
+        PyObject * pydoc = 0;
+        if (document) {
+            Document * doc = static_cast<Document *>(malloc(sizeof(Document)));
+            doc->_doc = Spine::share_SpineDocument(document, 0);
+            doc->_err = SpineError_NoError;
+            pydoc = SWIG_NewPointerObj(static_cast<void *>(doc),
+                                       SWIG_TypeQuery("_p_Document"),
+                                       SWIG_POINTER_OWN);
         }
+
+        /* Get python wrapper of annotation */
+        PyObject * input = PyUnicode_DecodeUTF8(phrase.data(), phrase.length(), 0);
+
+        if (input) {
+            PyObject * pyargs = PyTuple_New(0);
+            PyObject * pykwargs = PyDict_New();
+            PyDict_SetItemString(pykwargs, "phrase", input);
+
+            if (pydoc) {
+                // This will overwrite whatever kwarg has been passed in
+                PyDict_SetItemString(pykwargs, "document", pydoc);
+            }
+
+            /* Invoke method on extension */
+            PyObject * ret = 0;
+
+            /* Invoke method on extension */
+            PyObject * callable = PyObject_GetAttrString(extensionObject(), "on_explore_event");
+            if (callable == 0) {
+                PyObject * callable = PyObject_GetAttrString(extensionObject(), "lookup");
+            }
+            if (callable) {
+                ret = PyObject_Call(callable, pyargs, pykwargs);
+                Py_DECREF(callable);
+            }
+
+            Py_DECREF(pyargs);
+            Py_DECREF(pykwargs);
+
+            if (ret == 0) { /* Exception */
+                PyErr_PrintEx(0);
+            } else {
+                // ret is now a sequence of annotation objects
+                if (PySequence_Check(ret)) {
+                    for (Py_ssize_t i = 0; i < PySequence_Size(ret); ++i) {
+                        PyObject * pyAnnotation = PySequence_GetItem(ret, i);
+                        Annotation * ann = 0;
+                        if (SWIG_ConvertPtr(pyAnnotation,
+                                            (void**) &ann,
+                                            SWIG_TypeQuery("_p_Annotation"),
+                                            0) == 0) {
+                            derived.insert(ann->_ann->_handle);
+                        }
+                    }
+                } else { /* Not a sequence! */
+                    PyErr_PrintEx(0);
+                }
+
+                Py_DECREF(ret);
+            }
+        }
+
+        Py_XDECREF(pydoc);
+
+        PyGILState_Release(gstate);
 
         return derived;
     }
@@ -483,8 +481,6 @@ protected:
     QStringList _handleableEvents;
     QStringList _handleableLegacyEvents;
     QStringList _handleableEventNames;
-
-    bool _has_lookup;
 };
 
 

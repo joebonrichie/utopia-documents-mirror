@@ -2,6 +2,7 @@
  *  
  *   This file is part of the libcrackle library.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
  *   modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -286,6 +287,7 @@ namespace Crackle
 
         boost::shared_ptr<CrackleTextOutputDev>  _textDevice;
         boost::shared_ptr<SplashOutputDev> _renderDevice;
+        boost::shared_ptr<SplashOutputDev> _printDevice;
 
         mutable boost::shared_ptr<PDFFontCollection> _fonts;
 

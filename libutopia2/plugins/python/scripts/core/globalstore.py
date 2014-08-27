@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -87,7 +88,7 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
 
 
     @utopia.document.buffer
-    def populate(self, document):
+    def on_ready_event(self, document):
         document_id, doi = self._resolve(document)
         if document_id is not None:
             kwargs = { 'document': document_id, 'context': self._context_ }
@@ -130,7 +131,7 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
 
 
 
-    def persist(self, document):
+    def on_persist_event(self, document):
         client = kend.client.Client()
 
         document_id, doi = self._resolve(document)

@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -1172,7 +1173,7 @@ namespace Papyro
                     } else {
                         pageView = pageViews.at(selectionArea.page-1);
                         boundingBoxToCopy = selectionArea.boundingBox;
-                        Spine::Image tmpImage = pageView->page()->renderArea(boundingBoxToCopy, 150.0);
+                        Spine::Image tmpImage = pageView->page()->renderArea(boundingBoxToCopy, double(150.0));
                         imageToCopy = qImageFromSpineImage(&tmpImage);
                     }
 
@@ -1190,7 +1191,7 @@ namespace Papyro
                     mimeData->setUrls(QList< QUrl >() << QUrl::fromLocalFile(tempFile->fileName()));
                     QSize imageImprintSize(pageView->transformFromPage(QSizeF(boundingBoxToCopy.width(), boundingBoxToCopy.height())));
                     QPoint imageImprintPos(pageView->transformFromPage(QPointF(boundingBoxToCopy.x1, boundingBoxToCopy.y1)));
-                    Spine::Image spineImage = pageView->page()->renderArea(boundingBoxToCopy, imageImprintSize.width(), imageImprintSize.height());
+                    Spine::Image spineImage = pageView->page()->renderArea(boundingBoxToCopy, size_t(imageImprintSize.width()), size_t(imageImprintSize.height()));
                     QPixmap capturedPixmap = QPixmap::fromImage(qImageFromSpineImage(&spineImage));
                     QPixmap pixmap(capturedPixmap.size());
                     pixmap.fill(QColor(0, 0, 0, 0));

@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -47,7 +48,7 @@ public:
         _extensionNamespace = PyModule_GetDict(PyImport_AddModule(extensionTypeName.substr(0, extensionTypeName.rfind('.')).c_str()));
         _extensionObject = PyRun_String((extensionMetaType + ".typeOf('" + extensionTypeName + "')()").c_str(), Py_eval_input, _extensionNamespace, _extensionNamespace);
         if (_extensionObject == 0) {
-            PyErr_Print();
+            PyErr_PrintEx(0);
         } else {
             // Get class' doc string
             PyObject * doc = PyObject_GetAttrString(_extensionObject, "__doc__");

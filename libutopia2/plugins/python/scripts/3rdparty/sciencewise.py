@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -45,7 +46,7 @@ class ScienceWISE(utopia.document.Annotator, utopia.document.Visualiser):
     """Annotate with ScienceWISE"""
 
     @utopia.document.buffer
-    def annotate(self, document):
+    def on_activate_event(self, document):
         text = document.text().encode('utf8')
         text_hash = hashlib.md5(text).hexdigest()
 

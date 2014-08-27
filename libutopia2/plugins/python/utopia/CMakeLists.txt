@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -44,9 +45,9 @@ set(CMAKE_SWIG_OUTDIR "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYT
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SWIG_OUTDIR}")
 
 SET(CMAKE_SWIG_FLAGS -c++)
-SET_SOURCE_FILES_PROPERTIES(utopia.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(utopiacore.i PROPERTIES CPLUSPLUS ON)
 
-SWIG_ADD_MODULE(utopiacore python utopia.i)
+SWIG_ADD_MODULE(utopiacore python utopiacore.i)
 
 if(WIN32)
     # changes dll name to pyd
@@ -109,8 +110,8 @@ if(WIN32)
         PATTERN "*.pyo" EXCLUDE)
 
 elseif(NOT USE_SYSTEM_Python)
-  set(PYTHON_LIB_ROOT "${CMAKE_SOURCE_DIR}/dependencies/lib/python${PYTHON_VERSION}")
-  set(PYTHON_BIN "${CMAKE_SOURCE_DIR}/dependencies/bin/python")
+  set(PYTHON_LIB_ROOT "${UTOPIA_DEPENDENCIES_DIR}/lib/python${PYTHON_VERSION}")
+  set(PYTHON_BIN "${UTOPIA_DEPENDENCIES_DIR}/bin/python")
   configure_file("${PYTHON_BIN}" "${CMAKE_BINARY_DIR}/${BIN_INSTALL_DIR}/python" COPYONLY)
 
   file(GLOB_RECURSE PY_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.py")

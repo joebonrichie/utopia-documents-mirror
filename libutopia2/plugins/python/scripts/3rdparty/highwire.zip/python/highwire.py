@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -90,7 +91,7 @@ class HighwireXHTML(utopia.document.Annotator):
             'abbreviations', 'label', 'url', 'type', 'html', 'displayText', 'unstructured')
 
     @utopia.document.buffer
-    def populate(self, document):
+    def on_ready_event(self, document):
 
         doi = common.utils.metadata(document, 'doi')
         if doi is not None:

@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -56,7 +57,7 @@ def id_gen(size = 6, chars = string.ascii_lowercase + string.digits, initial_cha
 class CrossMarkAnnotator(utopia.document.Annotator):
     '''Annotate the document with CrossMark information'''
 
-    def populate(self, document):
+    def on_ready_event(self, document):
         # See if there is any CrossMark information available for this document
 
         # Firstly find the document's DOI

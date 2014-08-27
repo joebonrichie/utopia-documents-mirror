@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -50,7 +51,7 @@ class ASPBDatabaseLookups(utopia.document.Annotator, utopia.document.Visualiser)
     findResultRegex = re.compile(r'^(?P<qualid>(?P<org>[^:]+):(?P<id>[^\s]+))\t(?P<gene>[^;]+);\s+(?P<description>.*)$')
 
     @utopia.document.buffer
-    def populate(self, document):
+    def on_ready_event(self, document):
         doi = common.utils.metadata(document, 'doi', '')
 
         # Find and aggregate AGI instances in the document

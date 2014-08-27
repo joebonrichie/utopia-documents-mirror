@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -30,6 +31,7 @@
 
 #include <utopia2/qt/aboutdialog.h>
 
+#include "version_p.h"
 #include <utopia2/global.h>
 
 #include <QDebug>
@@ -57,7 +59,7 @@ namespace Utopia
         label->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse);
         label->setOpenExternalLinks(true);
         label->setTextFormat(Qt::RichText);
-        label->setText(QString("Version %1<br/><br/>Copyright &copy; 2008-2013<br/>Lost Island Labs<br/><br/><a style=\"color: #008; link: '#008'; text: '#008';\" href='http://utopiadocs.com/redirect.php?to=acknowledgements'>Acknowledgements</a>").arg(Utopia::versionString()));
+        label->setText(QString("Version %1<br/><br/>Copyright &copy; 2008-" UTOPIA_CURRENT_YEAR "<br/>Lost Island Labs<br/><br/><a style=\"color: #008; link: '#008'; text: '#008';\" href='http://utopiadocs.com/redirect.php?to=acknowledgements'>Acknowledgements</a>").arg(Utopia::versionString()));
         QVBoxLayout * iconLayout = new QVBoxLayout;
         iconLayout->addSpacing(10);
         iconLayout->addWidget(icon, Qt::AlignCenter);

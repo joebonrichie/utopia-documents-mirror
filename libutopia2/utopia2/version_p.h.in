@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -55,5 +56,7 @@
 // e.g. 1.1.0
 #define UTOPIA_VERSION_STRING UTOPIA_VERSION_PATCH_STRING
 #endif
+
+#define UTOPIA_CURRENT_YEAR "@UTOPIA_CURRENT_YEAR@"
 
 #endif // VERSION_P_H

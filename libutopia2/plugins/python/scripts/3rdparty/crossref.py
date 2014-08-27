@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -69,7 +70,7 @@ class _CiteProc(utopia.document.Annotator, utopia.document.Visualiser):
             logger.warn('no doi found in citeproc')
         return text'''
 
-    def populate(self, document):
+    def on_ready_event(self, document):
         logger.debug('calling citeproc populate')
         doi = common.utils.metadata(document, 'doi')
         crossref_unixref = common.utils.metadata(document, 'raw_crossref_unixref')

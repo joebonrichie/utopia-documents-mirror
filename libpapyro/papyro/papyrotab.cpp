@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -53,6 +54,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QLabel>
@@ -438,7 +440,7 @@ namespace Papyro
                 boost::shared_ptr< Annotator > annotator(ann);
                 bool used = false;
 
-                if (annotator->hasLookup()) {
+                if (annotator->canHandleEvent("on:explore")) {
                     lookups.append(annotator);
                     used = true;
                 }
@@ -492,7 +494,9 @@ namespace Papyro
                 const Spine::Page * page = document()->newCursor(i+1)->page();
                 QSize size = QSizeF(page->boundingBox().x2 - page->boundingBox().x1,
                                     page->boundingBox().y2 - page->boundingBox().y1).toSize();
-                Spine::Image spineImage = page->render(size.width(), size.height());
+                size.scale(QSize(120, 120), Qt::KeepAspectRatio);
+                Spine::Image spineImage = page->render(size_t(size.width()),
+                                                       size_t(size.height()));
                 pager->replace(i, QPixmap::fromImage(qImageFromSpineImage(&spineImage)));
             }
         } else {
@@ -1034,11 +1038,22 @@ namespace Papyro
             case QNetworkReply::NoError: {
                 // Check headers... if PDF then open in
                 QString contentType(reply->header(QNetworkRequest::ContentTypeHeader).toString());
+                QString contentDisposition(QString::fromUtf8(reply->rawHeader("Content-Disposition")));
+                bool contentDispositionPdf = false;
+                if (!contentDisposition.isEmpty()) {
+                    foreach (QString param, contentDisposition.split(";")) {
+                        if (param.section("=", 0, 0).trimmed() == "filename" &&
+                            param.section("=", -1, -1).trimmed().endsWith(".pdf")) {
+                            contentDispositionPdf = true;
+                            break;
+                        }
+                    }
+                }
                 QUrl url(reply->request().url());
                 if (url.scheme() == "file") {
                     // Normalise to absolute path
                     tab->open(QFileInfo(url.toLocalFile()).absoluteFilePath(), params);
-                } else if (contentType.contains("application/pdf") || contentType.contains("application/octet-stream")) {
+                } else if (contentDispositionPdf || contentType.contains("application/pdf") || contentType.contains("application/octet-stream")) {
                     tab->open(reply, params);
                     // FIXME what about failure here?
                 } else {
@@ -1074,10 +1089,12 @@ namespace Papyro
         documentView->showPage(index + 1);
     }
 
-    void PapyroTabPrivate::onProgressInfoLabelLinkActivated(const QString & link)
+    void PapyroTabPrivate::onProgressLinksLabelLinkActivated(const QString & link)
     {
         if (link == "close") {
             emit closeRequested();
+        } if (link == "retry") {
+            tab->open(tab->url());
         }
     }
 
@@ -1321,19 +1338,27 @@ namespace Papyro
 
     void PapyroTabPrivate::setError(const QString & reason)
     {
-        static const QString tpl("<b style=\"color:red\"><big>Oops...</big><br>%1</b>%2<br><br><a href=\"close\" style=\"color:grey\">Close tab</a>");
-        static const QString urlTpl("<br><br><small style=\"color:grey\">%1</small>");
+        static const QString infoTpl("<b style=\"color:red\"><big>Oops...</big><br>%1</b>");
+        static const QString urlTpl("<small style=\"color:grey\">%1</small>");
+        static const QString linksTpl("<a href=\"retry\" style=\"color:grey\">Retry</a> | <a href=\"close\" style=\"color:grey\">Cancel</a>");
         if (error != reason) {
             error = reason;
-            progressInfoLabel->setText(tpl.arg(reason, url.isValid() ? urlTpl.arg(url.isLocalFile() ? "\"" + url.toLocalFile() + "\"" : url.toString()) : QString()));
+            progressInfoLabel->setText(infoTpl.arg(reason));
+            progressUrlLabel->setVisible(url.isValid());
+            progressUrlLabel->setText(urlTpl.arg(url.isLocalFile() ? "\"" + url.toLocalFile() + "\"" : url.toString()));
+            progressLinksLabel->setText(linksTpl);
             emit errorChanged(error);
         }
     }
 
     void PapyroTabPrivate::setProgressMsg(const QString & msg, const QUrl & url)
     {
-        static const QString tpl("<span>%1</span><br><br><small style=\"color:grey\">%2</small>");
-        progressInfoLabel->setText(tpl.arg(msg, url.toString()));
+        static const QString infoTpl("<span>%1</span>");
+        static const QString urlTpl("<small style=\"color:grey\">%1</small>");
+        progressInfoLabel->setText(infoTpl.arg(msg));
+        progressUrlLabel->show();
+        progressUrlLabel->setText(urlTpl.arg(url.toString()));
+        progressLinksLabel->setText(QString());
     }
 
     void PapyroTabPrivate::setState(PapyroTab::State newState)
@@ -1349,6 +1374,8 @@ namespace Papyro
 
             progressIconLabel->hide();
             progressInfoLabel->setText(QString());
+            progressUrlLabel->setText(QString());
+            progressLinksLabel->setText(QString());
 
             progressSpinner->stop();
             progressSpinner->show();
@@ -1475,15 +1502,21 @@ namespace Papyro
         progressLayout->addWidget(d->progressIconLabel = new QLabel, 0, Qt::AlignCenter);
         progressLayout->addWidget(d->progressSpinner = new Utopia::Spinner, 0, Qt::AlignCenter);
         progressLayout->addWidget(d->progressInfoLabel = new QLabel, 0, Qt::AlignCenter);
+        progressLayout->addWidget(d->progressUrlLabel = new QLabel, 0, Qt::AlignCenter);
+        progressLayout->addWidget(d->progressLinksLabel = new QLabel, 0, Qt::AlignCenter);
         progressLayout->addStretch(1);
         d->mainLayout->addWidget(progressWidget);
         d->progressIconLabel->setFixedSize(QSize(128, 128));
         d->progressIconLabel->setAlignment(Qt::AlignCenter);
         d->progressIconLabel->setPixmap(QPixmap(":/icons/broken-tab.png"));
         d->progressIconLabel->hide();
-        connect(d->progressInfoLabel, SIGNAL(linkActivated(const QString &)), d, SLOT(onProgressInfoLabelLinkActivated(const QString &)));
+        d->progressUrlLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        d->progressUrlLabel->setCursor(Qt::IBeamCursor);
+        connect(d->progressLinksLabel, SIGNAL(linkActivated(const QString &)), d, SLOT(onProgressLinksLabelLinkActivated(const QString &)));
         d->progressSpinner->setFixedSize(QSize(64, 64));
         d->progressInfoLabel->setAlignment(Qt::AlignCenter);
+        d->progressUrlLabel->setAlignment(Qt::AlignCenter);
+        d->progressLinksLabel->setAlignment(Qt::AlignCenter);
         connect(d->progressSpinner, SIGNAL(progressChanged(qreal)), this, SIGNAL(progressChanged(qreal)));
 
         // Splitter between the document and the sidebar
@@ -1931,12 +1964,19 @@ namespace Papyro
 
     void PapyroTab::copySelectedText()
     {
-        Spine::DocumentHandle document(d->document());
-        QString documentSelection = document ? qStringFromUnicode(document->textSelection().text()) : QString();
-        if (!documentSelection.isEmpty()) {
-            d->documentView->copySelectedText();
+        // Error tabs...
+        if (d->progressUrlLabel->isVisible()) {
+            QClipboard * clipboard = QApplication::clipboard();
+            clipboard->setText(d->progressUrlLabel->selectedText(), QClipboard::Clipboard);
         } else {
-            d->sidebar->copySelectedText();
+        // Non-error tabs...
+            Spine::DocumentHandle document(d->document());
+            QString documentSelection = document ? qStringFromUnicode(document->textSelection().text()) : QString();
+            if (!documentSelection.isEmpty()) {
+                d->documentView->copySelectedText();
+            } else {
+                d->sidebar->copySelectedText();
+            }
         }
     }
 

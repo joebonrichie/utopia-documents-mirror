@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -102,16 +103,16 @@ class BioLookupGenecardsAnnotator(utopia.document.Annotator):
     visualiser = GenecardsVisualiser()
 
     @utopia.document.buffer
-    def populate(self, document):
+    def on_ready_event(self, document):
         # Find distinguishing ID
         pmid = common.utils.metadata(document, 'pmid')
         if pmid:
             print "Found pmid:", pmid
-            for annotation in self.lookup(phrase=pmid, document=document):
+            for annotation in self.on_explore_event(phrase=pmid, document=document):
                 annotation['property:description'] = 'Human genomic information related to this article'
                 document.addAnnotation(annotation)
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
 
         client = kend.client.Client()

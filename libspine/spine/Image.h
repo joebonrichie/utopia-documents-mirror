@@ -2,6 +2,7 @@
  *  
  *   This file is part of the libspine library.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   The libspine library is free software: you can redistribute it and/or
  *   modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -37,6 +38,15 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 
+#if 0
+struct DELETER {
+    void operator () (char * ptr) {
+        //printf("--- IMPTR %p\n", ptr);
+        delete [] ptr;
+    }
+};
+#endif
+
 namespace Spine {
 
     class Image {
@@ -53,6 +63,7 @@ namespace Spine {
         Image()
             : _type(Null), _width(0), _height(0), _size(0)
         {
+            //printf("+++ IM %p\n", this);
         }
 
         Image(ImageType type_, int width_, int height_,
@@ -61,7 +72,10 @@ namespace Spine {
             : _type(type_), _width(width_), _height(height_),
               _box(minmax_), _size(size_)
         {
-            _data=boost::shared_ptr<char> (new char[size_], boost::checked_array_deleter<char>());
+            //printf("+++ IM %p\n", this);
+            char * data = new char[size_];
+            //printf("+++ IMPTR %p\n", data);
+            _data=boost::shared_ptr<char> (data, boost::checked_array_deleter<char>());
             std::copy(data_, data_+size_, _data.get());
         }
 
@@ -69,9 +83,12 @@ namespace Spine {
             : _type(rhs_._type), _width(rhs_._width), _height(rhs_._height),
               _box(rhs_._box), _data(rhs_._data),_size(rhs_._size)
         {
+            //printf("+++ IM %p\n", this);
         }
 
-        ~Image() {}
+        ~Image() {
+            //printf("--- IM %p\n", this);
+        }
 
         Image &operator=(const Image &rhs_)
         {

@@ -2,6 +2,7 @@
  *  
  *   This file is part of the libcrackle library.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
  *   modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -150,6 +151,7 @@ Crackle::PDFDocument::PDFDocument()
     : Spine::Document(), _crackle_errorcode(errNone), _fonts_counted(false), _datalen(0), _generated_anchors(0)
 
 {
+    //std::cerr << "+++ DOC " << this << std::endl;
     _initialise();
 }
 
@@ -158,6 +160,7 @@ Crackle::PDFDocument::PDFDocument()
 Crackle::PDFDocument::PDFDocument(const char *filename_)
     : Spine::Document(), _crackle_errorcode(errNone), _fonts_counted(false), _datalen(0), _generated_anchors(0)
 {
+    //std::cerr << "+++ DOC " << this << std::endl;
     _initialise();
     this->readFile(filename_);
 }
@@ -167,6 +170,7 @@ Crackle::PDFDocument::PDFDocument(const char *filename_)
 Crackle::PDFDocument::PDFDocument(boost::shared_array<char> buffer_, std::size_t length_)
     : Spine::Document(), _crackle_errorcode(errNone), _fonts_counted(false), _datalen(0), _generated_anchors(0)
 {
+    //std::cerr << "+++ DOC " << this << std::endl;
     _initialise();
     this->readBuffer(buffer_, length_);
 }
@@ -175,6 +179,7 @@ Crackle::PDFDocument::PDFDocument(boost::shared_array<char> buffer_, std::size_t
 
 Crackle::PDFDocument::~PDFDocument()
 {
+    //std::cerr << "--- DOC " << this << " " << _textDevice.use_count() << std::endl;
     this->close();
 }
 
@@ -192,6 +197,7 @@ void Crackle::PDFDocument::close() {
 
     _textDevice.reset();
     _renderDevice.reset();
+    _printDevice.reset();
 
     _doc.reset();
     _dict.reset();
@@ -752,9 +758,12 @@ void Crackle::PDFDocument::_open(BaseStream *stream_)
         paperColour[1] = 255;
         paperColour[2] = 255;
 
-        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour));
+        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gTrue));
         _renderDevice->startDoc(_doc->getXRef());
-    } else {
+
+        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gFalse));
+        _printDevice->startDoc(_doc->getXRef());
+} else {
         _crackle_errorcode=errOpenFile;
     }
 }
@@ -887,7 +896,8 @@ Crackle::PDFDocument::operator[](int idx_)
     boost::lock_guard<boost::mutex> g(_mutexPageMap);
     std::map<int,PDFPage *>::const_iterator i=_pageMap.find(idx_);
     if(i==_pageMap.end()) {
-        _pageMap[idx_]= new PDFPage(this, idx_+1, _textDevice, _renderDevice);
+      _pageMap[idx_]= new PDFPage(this, idx_+1, _textDevice,
+                                  _renderDevice, _printDevice);
     }
 
     return(*(_pageMap[idx_]));

@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -61,7 +62,6 @@ namespace Papyro
 
         /** Lookup framework **/
 
-        virtual bool hasLookup() { return false; }
         virtual std::set< Spine::AnnotationHandle > lookup(Spine::DocumentHandle document, const std::string & phrase)
         { return std::set< Spine::AnnotationHandle >(); }
 
@@ -78,11 +78,5 @@ namespace Papyro
 } // namespace Papyro
 
 UTOPIA_DECLARE_EXTENSION_CLASS(LIBPAPYRO, Papyro::Annotator)
-
-#define _HAS_METHOD(name) virtual bool has ## name() { return true; }
-#define HAS_LOOKUP _HAS_METHOD(Lookup)
-
-#define _HAS_METHOD_RETURNS(name, value) virtual bool has ## name() { return value; }
-#define HAS_LOOKUP_RETURNS(value) _HAS_METHOD_RETURNS(Lookup, value)
 
 #endif // PAPYRO_ANNOTATOR_H

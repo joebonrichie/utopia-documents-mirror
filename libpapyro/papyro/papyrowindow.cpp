@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -480,7 +481,7 @@ namespace Papyro
         articleResultsView->setAcceptDrops(true);
         articleResultsView->setDropIndicatorShown(false);
         articleResultsView->setDefaultDropAction(Qt::MoveAction);
-        articleResultsView->setItemDelegate(new Athenaeum::ArticleDelegate);
+        articleResultsView->setItemDelegate(new Athenaeum::ArticleDelegate(this));
         articleResultsView->setSelectionMode(QAbstractItemView::ExtendedSelection);
         articleResultsView->horizontalScrollBar()->disconnect(); // no horizontal scrolling
         articleResultsView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);

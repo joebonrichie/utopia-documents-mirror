@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -32,6 +33,10 @@
 #include <papyro/printer_p.h>
 #include <papyro/utils.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <QDebug>
 #include <QMutexLocker>
 #include <QPainter>
@@ -60,10 +65,12 @@ namespace Papyro
 
             // Which pages to print
             int step = 1;
-            int fromPage = printer->printRange() == QPrinter::PageRange ? printer->fromPage() : 1;
-            int toPage = printer->printRange() == QPrinter::PageRange ? printer->toPage() : document->numberOfPages();
-            static const int maxResolution = 300;
-            int resolution = qMin(printer->resolution(), maxResolution);
+            int fromPage = printer->printRange() == QPrinter::PageRange ?
+              printer->fromPage() : 1;
+            int toPage = printer->printRange() == QPrinter::PageRange ?
+              printer->toPage() : document->numberOfPages();
+            int resolution = qMin(printer->resolution(),
+                                  Printer::maxResolution);
 
             // The order to print them in
             if (printer->pageOrder() == QPrinter::LastPageFirst) {
@@ -74,7 +81,8 @@ namespace Papyro
             int count = 0;
             for (int page = fromPage; page <= toPage && !cancelled; page += step) {
                 mutex.unlock();
-                Spine::Image image(document->newCursor(page)->page()->render(resolution));
+                Spine::Image image(document->newCursor(page)->page()
+                                   ->render(resolution, Printer::antialias));
                 QImage pageImage(qImageFromSpineImage(&image));
                 mutex.lock();
 
@@ -97,7 +105,45 @@ namespace Papyro
 
     PrinterPrivate::PrinterPrivate(Printer * p)
         : QObject(p), p(p), mutex(QMutex::Recursive), painter(0), printer(0)
-    {}
+    {
+        // Check environment variable for flags
+#ifdef _WIN32
+        char env_c_str[1024] = { 0 };
+        int status = GetEnvironmentVariable("UTOPIA_PRINTER_FLAGS", env_c_str, sizeof(env_c_str));
+        if (status != 0) { env_c_str[0] = 0; }
+#else
+        char * env_c_str = ::getenv("UTOPIA_PRINTER_FLAGS");
+#endif
+
+        // Defaults
+        Printer::monochrome = false;
+        Printer::maxResolution = 300;
+        Printer::antialias = false;
+
+        QStringList flags(QString::fromUtf8(env_c_str).split(' ', QString::SkipEmptyParts));
+
+        foreach (QString flag, flags) {
+            // Antialiasing
+            if (flag.startsWith("antialias")) {
+                Printer::antialias = (flag.size() == 9) ||
+                                     (flag.mid(9) == "=yes");
+            }
+            // Greyscale
+            if (flag.startsWith("monochrome")) {
+                Printer::monochrome = (flag.size() == 10) ||
+                                      (flag.mid(10) == "=yes");
+            }
+        }
+
+        // Resolution
+        foreach (QString flag, flags) {
+            if (flag.startsWith("resolution=")) {
+                Printer::maxResolution = flag.mid(11).toInt();
+            }
+        }
+
+        //qDebug() << "PRINTING AA:" << Printer::antialias << "  MC:" << Printer::monochrome << "  RES:" << Printer::maxResolution;
+    }
 
     PrinterPrivate::~PrinterPrivate()
     {}
@@ -128,8 +174,9 @@ namespace Papyro
         painter->setViewport(viewport);
     }
 
-
-
+    int Printer::maxResolution;
+    bool Printer::monochrome;
+    bool Printer::antialias;
 
     Printer::Printer(QObject * parent)
         : QObject(parent), d(new PrinterPrivate(this))
@@ -156,8 +203,9 @@ namespace Papyro
             d->mutex.lock();
 
             // Create sensible default printer
-            d->printer = new QPrinter(QPrinter::PrinterResolution);
+            d->printer = new QPrinter(QPrinter::HighResolution);
             d->printer->setFullPage(true);
+            d->printer->setResolution(maxResolution);
             d->printer->setCreator("Utopia");
             if (parent && parent->isWindow()) {
                 d->printer->setDocName(parent->windowTitle());
@@ -168,29 +216,37 @@ namespace Papyro
             printDialog.setWindowTitle(tr("Print Document"));
             printDialog.setOptions(QAbstractPrintDialog::PrintPageRange);
             if (printDialog.exec() == QDialog::Accepted) {
-                // Open progress dialog
-                int from = 0;
-                int to = d->printer->printRange() == QPrinter::PageRange ? qAbs(1 + d->printer->toPage() - d->printer->fromPage()) : document->numberOfPages();
-                QProgressDialog progressDialog("Printing...", "Cancel", from, to, parent);
+                if (d->printer->isValid()) {
+                    if (monochrome) {
+                        d->printer->setColorMode(QPrinter::GrayScale);
+                    }
 
-                PrinterThread * thread = new PrinterThread(this, document, d->printer);
+                    // Open progress dialog
+                    int from = 0;
+                    int to = d->printer->printRange() == QPrinter::PageRange ? qAbs(1 + d->printer->toPage() - d->printer->fromPage()) : document->numberOfPages();
+                    QProgressDialog progressDialog("Printing...", "Cancel", from, to, parent);
 
-                connect(thread, SIGNAL(imageGenerated(QImage,bool)), d, SLOT(onImageGenerated(QImage,bool)));
-                connect(thread, SIGNAL(finished()), d, SLOT(onFinished()));
-                connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+                    PrinterThread * thread = new PrinterThread(this, document, d->printer);
 
-                connect(&progressDialog, SIGNAL(canceled()), thread, SLOT(cancel()));
-                connect(thread, SIGNAL(progressChanged(int)), &progressDialog, SLOT(setValue(int)));
-                connect(thread, SIGNAL(finished()), &progressDialog, SLOT(accept()));
+                    connect(thread, SIGNAL(imageGenerated(QImage,bool)), d, SLOT(onImageGenerated(QImage,bool)));
+                    connect(thread, SIGNAL(finished()), d, SLOT(onFinished()));
+                    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
-                d->painter = new QPainter(d->printer);
+                    connect(&progressDialog, SIGNAL(canceled()), thread, SLOT(cancel()));
+                    connect(thread, SIGNAL(progressChanged(int)), &progressDialog, SLOT(setValue(int)));
+                    connect(thread, SIGNAL(finished()), &progressDialog, SLOT(accept()));
 
-                // Print document
-                thread->start();
+                    d->painter = new QPainter(d->printer);
 
-                d->mutex.unlock();
+                    // Print document
+                    thread->start();
 
-                return progressDialog.exec();
+                    d->mutex.unlock();
+
+                    return progressDialog.exec();
+                } else {
+
+                }
             }
 
             d->mutex.unlock();

@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -167,7 +168,7 @@ void PyRemoteQuery::run()
 
                 if (ret == 0) /* Exception*/ {
                     std::cerr << "Error in remote query " << extensionTypeName() << std::endl;
-                    PyErr_Print();
+                    PyErr_PrintEx(0);
                 } else {
                     PyObject * results;
                     if (ret == Py_None) {

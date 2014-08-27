@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -49,7 +50,7 @@ class ReflectAnnotator(utopia.document.Annotator):
         self.parser = etree.XMLParser(recover = True, resolve_entities = True)
 
     @utopia.document.buffer
-    def annotate(self, document):
+    def on_activate_event(self, document):
         ns = {'r': 'Reflect'}
 
         maxTextFragmentSize = 1000000

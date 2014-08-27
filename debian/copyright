@@ -2,81 +2,81 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: utopia-documents
 Source: <http://utopiadocs.com>
 Upstream-Contact: info@utopiadocs.com
-Copyright: Copyright 2008-2014 Lost Island Labs
+Copyright: 2008-2014 Lost Island Labs
 
 Files: *
-Copyright: Copyright 2008-2014 Lost Island Labs
+Copyright: 2008-2014 Lost Island Labs
 License: GPL-3.0 with OpenSSL exception
 
 Files: libutf8/utf8/utf8cpp/*
-Copyright: Copyright 2006 Nemanja Trifunovic
+Copyright: 2006 Nemanja Trifunovic
 License: Boost
 
 Files: libutf8/utf8/utf8proc/*
-Copyright: Copyright 2009 Public Software Group e. V., Berlin, Germany
-           Copyright 1991-2007 Unicode, Inc.
+Copyright: 2009 Public Software Group e. V., Berlin, Germany
+           1991-2007 Unicode, Inc.
 License: Expat and Unicode
 
 Files: libspine/* libcrackle/*
-Copyright: Copyright 2008-2014 Lost Island Labs
+Copyright: 2008-2014 Lost Island Labs
 License: AGPL-3.0
 
-Files: libcrackle/crackle/CrackleTextOutputDev.*libcrackle/crackle/PDFFontCollection.*
-Copyright: Copyright 1996-2011 Glyph & Cog, LLC.
-           Copyright 2008-2014 Lost Island Labs
+Files: libcrackle/crackle/CrackleTextOutputDev.* libcrackle/crackle/PDFFontCollection.*
+Copyright: 1996-2011 Glyph & Cog, LLC.
+           2008-2014 Lost Island Labs
 License: GPL-3.0
 
 Files: libcrackle/crackle/libxpdf
-Copyright: Copyright 1996-2011 Glyph & Cog, LLC.
+Copyright: 1996-2011 Glyph & Cog, LLC.
 License: GPL-2.0 or GPL-3.0
 
 Files: libpapyro/papyro/pages/altmetric/*
-Copyright: Copyright 2007 IOLA
-           Copyright 2009 Ole Laursen
-           Copyright 2009 Brian Medendorp, btburnett3, Anthony Aragues and Xavi Ivars
+Copyright: 2007 IOLA
+           2009 Ole Laursen
+           2009 Brian Medendorp, btburnett3, Anthony Aragues and Xavi Ivars
 License: Expat
 
 Files: libpapyro/papyro/pages/jqplot/*
-Copyright: Copyright 2009-2011 Chris Leonello
-           Copyright 2009-2010 Faruk Ates
-           Copyright 2010 Scott Prahl
+Copyright: 2009-2011 Chris Leonello
+           2009-2010 Faruk Ates
+           2010 Scott Prahl
 License: Expat or GPL-2.0
 
 Files: libpapyro/papyro/pages/jquery-ui/*
-Copyright: Copyright 2009-2011 (see http://jqueryui.com/about)
+Copyright: 2009-2011 (see http://jqueryui.com/about)
 License: Expat or GPL-2.0
 
 Files: libpapyro/papyro/pages/jquery-1.7.1.js
-Copyright: Copyright 2005, 2014 jQuery Foundation, Inc. and other contributors
+Copyright: 2005, 2014 jQuery Foundation, Inc. and other contributors
 License: Expat
 
 Files: libpapyro/papyro/pages/utils/jQueryRotate.js
-Copyright: Copyright 2009 Wilq32, wilq32@gmail.com, Wroclaw, Poland
+Copyright: 2009 Wilq32, wilq32@gmail.com, Wroclaw, Poland
 License: Expat
 
 Files: libpapyro/papyro/pages/utils/jquery.tipTip.js
-Copyright: Copyright 2010 Drew Wilson
+Copyright: 2010 Drew Wilson
 License: Expat or GPL-2.0
 
 Files: libpapyro/papyro/pages/utils/spinners.js
-Copyright: Copyright 2010-2012 Nick Stakenburg - http://www.nickstakenburg.com
+Copyright: 2010-2012 Nick Stakenburg - http://www.nickstakenburg.com
 License: Expat
 
 Files: libpapyro/papyro/pages/utils/hyphenate.js
-Copyright: Copyright 2011 Mathias Nater, Zürich
-           Copyright 2011 Bram Stein
+Copyright: 2011 Mathias Nater, Zürich
+           2011 Bram Stein
 License: LGPL-3.0+
 
 Files: libpapyro/papyro/pages/utils/jquery.tmpl.js
-Copyright: Copyright 2011, Software Freedom Conservancy, Inc.
+Copyright: 2011, Software Freedom Conservancy, Inc.
 License: Expat or GPL-2.0
 
 Files: */qtlocalpeer.* */qtlockedfile* */qtsingleapplication.* */qtsinglecoreapplication.*
-Copyright: Copyright 2013 Digia Plc and/or its subsidiary(-ies).
+Copyright: 2013 Digia Plc and/or its subsidiary(-ies).
 License: BSD-3-clause
 
 Files: libgraffiti/graffiti/qtcolorpicker*
-Copyright: Copyright 2009 Nokia Corporation and/or its subsidiary(-ies).
+Copyright: 2009 Nokia Corporation and/or its subsidiary(-ies).
 License: GPL-3.0 or LGPL-2.1-Nokia-LGPL-Exception-1.0
 
 Files: libpapyro/papyro/citeproc/*
@@ -84,27 +84,27 @@ Copyright: 2009-2013 Frank G. Bennett, Jr.
 License: AGPL-3.0
 
 Files: libathenaeum/athenaeum/cJSON.* ibutopia2_auth/utopia2/auth/cJSON.*
-Copyright: Copyright 2009 Dave Gamble
+Copyright: 2009 Dave Gamble
 License: Expat
 
 Files: libutopia2/plugins/python/coda_network/*
-Copyright: Copyright Garry Bodsworth
+Copyright: Garry Bodsworth
 License: PSFL-2.0
 
 Files: libutopia2/plugins/python/coda_network/ntlm/*
-Copyright: Copyright 2001 Dmitry A. Rozmanov
+Copyright: 2001 Dmitry A. Rozmanov
 License: LGPL-3.0+
 
 Files: */CMakeLists.txt
-Copyright: Copyright 2008-2014 Lost Island Labs
+Copyright: 2008-2014 Lost Island Labs
 License: GPL-3.0
 
 Files: libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/*
-Copyright: Copyright 2014 Bio-Prodict B.V., The Netherlands
+Copyright: 2014 Bio-Prodict B.V., The Netherlands
 License: GPL-3.0
 
 Files: libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/js/libs/jquery.tablesorter.js
-Copyright: Copyright 2007 Christian Bach
+Copyright: 2007 Christian Bach
 License: Expat or GPL-3.0
 
 License: LGPL-3.0+

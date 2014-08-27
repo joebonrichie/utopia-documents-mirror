@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -67,7 +68,7 @@ class HostedNLM(utopia.document.Annotator):
 
 
     @utopia.document.buffer
-    def populate(self, document):
+    def on_ready_event(self, document):
         # See if we have any publishers' NLM hosted for this DOI
         doi = common.utils.metadata(document, 'doi')
         #print '----- DOI', doi

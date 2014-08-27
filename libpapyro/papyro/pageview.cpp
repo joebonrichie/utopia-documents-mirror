@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -412,7 +413,8 @@ namespace Papyro
         {
             QMutexLocker lock(&this->_globalMutex);
             if (this->_pageView) {
-                i = this->_pageView->page()->render(size.width(), size.height());
+              i = this->_pageView->page()->render(size_t(size.width()),
+                                                  size_t(size.height()));
             }
         }
 
@@ -1146,9 +1148,9 @@ namespace Papyro
 
     QPixmap PageView::pageImage(QSize size, QColor paper)
     {
-        QString cacheName = QString("%1-%2x%3").arg(pageNumber()).arg(size.width()).arg(size.height());
+        QString cacheName = QString("%1-%2").arg(pageNumber()).arg((unsigned long long) document().get());
 
-        if (d->dirtyImage || d->renderThread->isDirty() || cacheName != d->cacheName)
+        if (d->dirtyImage || d->renderThread->isDirty() || size != d->pageImage.size())
         {
             d->renderThread->setTarget(size, paper);
             bool running = d->renderThread->isRunning();

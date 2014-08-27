@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -76,17 +77,14 @@ def eutils(utility, **defaultparams):
         response = None
         for wait in (1, 2, 3, 4, 5):
             try:
-                #print 'Opening url...'
                 response = urllib2.urlopen(url, timeout = 5 + wait)
-                #print '...Opening complete'
                 break
-            except (urllib2.URLError, socket.timeout):
-                if wait == 0:
-                    # Error in invocation
-                    raise
-                else:
-                    # Wait and retry
+            except socket.timeout:
+                # Wait and retry if it timed out
+                if wait != 5:
                     time.sleep(wait)
+                else:
+                    raise
         return response and response.read()
     return _eutils
 

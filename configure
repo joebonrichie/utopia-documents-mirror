@@ -9,7 +9,7 @@ DEP="$ROOT/dependencies"
 PLAT=`uname -s`
 TYPE="Debug"
 GEN="Unix Makefiles"
-
+UTOPIA_EXTRA_CMAKE_OPTS=${UTOPIA_EXTRA_CMAKE_OPTS:-}
 
 if [ "${PLAT:0:5}" = "MINGW" ]; then
     PLAT="Win32"
@@ -31,6 +31,8 @@ usage () {
         --dep <dir>            - specify another dependencies dir
         --plat <platform>      - platform name [$PLAT]
         --builddir <dir>       - build directory [build/$PLAT-$TYPE]
+        --ninja                - use ninja instead of default generator
+        --json                 - generate json project output
         --debug                - configure for debug build
         --release              - configure for release build
 
@@ -60,7 +62,13 @@ do
             shift
             SUGGEST=$1
             ;;
-        -g|--debug)
+        -n|--ninja)
+            GEN="Ninja"
+            ;;
+        -j|--json)
+            UTOPIA_EXTRA_CMAKE_OPTS="-DCMAKE_EXPORT_COMPILE_COMMANDS=on ${UTOPIA_EXTRA_CMAKE_OPTS}"
+            ;;
+            -g|--debug)
             TYPE="Debug"
             ;;
         -r|--release)
@@ -130,7 +138,7 @@ fi
 
 cd "$DEST"
 
-cmake -D "UTOPIA_DEPENDENCIES_DIR:STRING=$DEP" -D "CMAKE_BUILD_TYPE:STRING=$TYPE" -C "$ROOT/CMakeConfig/configurations/$PLAT.txt" -C "$ROOT/CMakeConfig/configurations/common.txt" -G "$GEN" "$ROOT"
+cmake ${UTOPIA_EXTRA_CMAKE_OPTS} -D "UTOPIA_DEPENDENCIES_DIR:STRING=$DEP" -D "CMAKE_BUILD_TYPE:STRING=$TYPE" -C "$ROOT/CMakeConfig/configurations/$PLAT.txt" -C "$ROOT/CMakeConfig/configurations/common.txt" -G "$GEN" "$ROOT"
 
 echo "=============================================================================="
 echo
@@ -141,6 +149,10 @@ echo
 echo "To build:"
 echo
 echo "cd \"$DEST\""
-echo "make -j4"
+if [[ "$GEN" == "Ninja" ]]; then
+    echo "ninja"
+else
+    echo "make -j4"
+fi
 echo
 echo "=============================================================================="

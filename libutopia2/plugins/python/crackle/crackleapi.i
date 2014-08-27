@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -68,6 +69,13 @@ struct Document loadPDF(const char *filename_) {
     return d;
  }
 
+struct Document loadPDFFromBuffer(const char *buffer_, size_t size_) {
+    struct Document d;
+    d._err=SpineError_NoError;
+    d._doc=new_CrackleDocumentFromBuffer(buffer_, size_, &d._err);
+    return d;
+ }
+
 %}
 
 
@@ -79,5 +87,6 @@ struct Document loadPDF(const char *filename_) {
  }
 
 struct Document loadPDF(const char *filename_);
+struct Document loadPDFFromBuffer(const char *buffer_, size_t size_);
 
 %include "crackleapi_python.py"

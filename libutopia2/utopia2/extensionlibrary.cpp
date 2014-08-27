@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -40,9 +41,56 @@
 namespace Utopia
 {
 
+    namespace
+    {
+
+        class ExtensionLibraryRegistry
+        {
+        public:
+            ~ExtensionLibraryRegistry()
+            {
+                // Delete extension libraries
+                QSet< ExtensionLibrary * > doomed(extensionLibraries);
+                foreach (ExtensionLibrary * extensionLibrary, doomed) {
+                    delete extensionLibrary;
+                }
+            }
+
+            static void registerExtensionLibrary(ExtensionLibrary * extensionLibrary)
+            {
+                instance().extensionLibraries.insert(extensionLibrary);
+            }
+
+            static void unregisterExtensionLibrary(ExtensionLibrary * extensionLibrary)
+            {
+                instance().extensionLibraries.remove(extensionLibrary);
+            }
+
+        protected:
+            static ExtensionLibraryRegistry & instance()
+            {
+                static ExtensionLibraryRegistry registry;
+                return registry;
+            }
+
+            QSet< ExtensionLibrary * > extensionLibraries;
+        };
+
+    }
+
+
+
+
     ExtensionLibrary::ExtensionLibrary(Library * library, const QString & description)
         : _library(library), _description(description)
-    {}
+    {
+        ExtensionLibraryRegistry::registerExtensionLibrary(this);
+    }
+
+    ExtensionLibrary::~ExtensionLibrary()
+    {
+        ExtensionLibraryRegistry::unregisterExtensionLibrary(this);
+    }
 
     const QString & ExtensionLibrary::description() const
     {
@@ -57,26 +105,41 @@ namespace Utopia
 
     ExtensionLibrary * ExtensionLibrary::load(const QString & path_)
     {
-        return sanitise(Library::load(path_));
+        if (Library * library = Library::load(path_)) {
+            if (ExtensionLibrary * extensionLibrary = wrap(library)) {
+                return extensionLibrary;
+            } else {
+                delete library;
+            }
+        }
+        return 0;
     }
 
     QSet< ExtensionLibrary * > ExtensionLibrary::loadDirectory(const QDir & directory_, bool recursive_)
     {
-        return sanitise(Library::loadDirectory(directory_, recursive_));
+        QSet< ExtensionLibrary * > extensionLibraries;
+        QSet< Library * > libraries(Library::loadDirectory(directory_, recursive_));
+        foreach (Library * library, libraries) {
+            if (ExtensionLibrary * extensionLibrary = wrap(library)) {
+                extensionLibraries.insert(extensionLibrary);
+            } else {
+                // Not a valid Utopia extension library
+                delete library;
+            }
+        }
+        return extensionLibraries;
     }
 
-    ExtensionLibrary * ExtensionLibrary::sanitise(Library * library)
+    ExtensionLibrary * ExtensionLibrary::wrap(Library * library)
     {
-        if (library)
-        {
+        if (library) {
             // Only conforming libraries can be loaded as an ExtensionLibrary
             apiVersionFn apiVersion = (apiVersionFn) (long) library->symbol("utopia_apiVersion");
             descriptionFn description = (descriptionFn) (long) library->symbol("utopia_description");
             registerExtensionsFn registerExtensions = (registerExtensionsFn) (long) library->symbol("utopia_registerExtensions");
 
             // Silently fail if API is incorrect
-            if (registerExtensions && description && apiVersion && std::strcmp(apiVersion(), UTOPIA_EXTENSION_LIBRARY_VERSION) == 0)
-            {
+            if (registerExtensions && description && apiVersion && std::strcmp(apiVersion(), UTOPIA_EXTENSION_LIBRARY_VERSION) == 0) {
                 qDebug() << "  " << description();
                 ExtensionLibrary * extensionLibrary = new ExtensionLibrary(library, description());
                 registerExtensions();
@@ -89,17 +152,6 @@ namespace Utopia
         }
 
         return 0;
-    }
-
-    QSet< ExtensionLibrary * > ExtensionLibrary::sanitise(const QSet< Library * > & libraries)
-    {
-        QSet< ExtensionLibrary * > extensionLibraries;
-        foreach (Library * library, libraries) {
-            if (ExtensionLibrary * extensionLibrary = sanitise(library)) {
-                extensionLibraries.insert(extensionLibrary);
-            }
-        }
-        return extensionLibraries;
     }
 
 } /* namespace Utopia */

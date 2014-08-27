@@ -1,4 +1,10 @@
-Version 2.4.2-1
+Version 2.4.3
+  * Fixed the CrossRef plugin to use their latest web service.
+  * Included error reporting when metadata resolution fails.
+  * Improved error handling of failed downloads.
+  * Improved memory usage.
+
+Version 2.4.2
   * Fixed crash in link handling code. (Reported by Yaroslav Halchenko)
   * Improve handling on invalid PDF documents
   * Improved debian packaging.

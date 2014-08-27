@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -156,25 +157,7 @@ PythonInterpreter::~PythonInterpreter()
 
 #ifndef _WIN32 // FIXME horrid hack to stop this hanging on Windows
     Py_Finalize();
-
 #endif
-}
-
-PyObject * PythonInterpreter::evalUtf8(const std::string & utf8)
-{
-    PyObject * ret = 0;
-    PyObject * unicode = PyUnicode_DecodeUTF8(utf8.c_str(), utf8.size(), 0);
-    if (unicode) {
-
-        Py_XDECREF(unicode);
-    }
-    return ret;
-}
-
-void PythonInterpreter::evalUtf8AndDiscard(const std::string & utf8)
-{
-    PyObject * ret = evalUtf8(utf8);
-    Py_XDECREF(ret);
 }
 
 PythonInterpreter & PythonInterpreter::instance()

@@ -124,7 +124,7 @@ class Annotator3DM(utopia.document.Annotator):
     def validUsernameAndPassword(self, username, password):
         return password != None and username != None and len(password) > 1 and len(username) > 1
 
-    def populate(self, document):
+    def on_ready_event(self, document):
         # Place a link on the document to test the Javascript messaging functionality
 
         # self.postToBus('bioprodict', 'prepare')
@@ -252,7 +252,7 @@ class Annotator3DM(utopia.document.Annotator):
         return newData
 
     @utopia.document.buffer
-    def annotate(self, document, data = {}):
+    def on_activate_event(self, document, data = {}):
         action = data.get('action')
         domain = data.get('domain')
 

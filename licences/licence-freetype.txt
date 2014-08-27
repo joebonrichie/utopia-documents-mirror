@@ -1,4 +1,4 @@
-The FreeType Project LICENSE
+                    The FreeType Project LICENSE
                     ----------------------------
 
                             2006-Jan-27

@@ -39,6 +39,4 @@ override_dh_makeshlibs:
 
 .PHONY: override_dh_python2
 override_dh_python2:
-	dh_python2 --compile-all \
-		/usr/lib/utopia-documents/plugins/python \
-		/usr/lib/utopia-documents/python
+	dh_python2 -p utopia-documents

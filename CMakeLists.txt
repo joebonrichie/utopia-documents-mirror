@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -39,7 +40,7 @@ cmake_policy(VERSION 2.6)
 # Utopia versioning
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "4")
-set(VERSION_PATCH "2")
+set(VERSION_PATCH "3")
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	add_definitions(-DUTOPIA_BUILD_DEBUG=1)
@@ -58,6 +59,9 @@ endif()
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/CMakeConfig/Modules)
 
 include(GetGitRevisionDescription)
+include(GetYear)
+
+get_current_year(UTOPIA_CURRENT_YEAR)
 
 IF(WIN32)
   SET(PYTHON_VERSION "2.6")

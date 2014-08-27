@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -55,8 +56,11 @@ def resolve(doi):
 
     try:
         response = fetch(doi)
-    except (urllib2.URLError, socket.timeout):
-        return data
+    except urllib2.HTTPError as e:
+        if getattr(e, 'code') == 404:
+            return data
+        else:
+            raise
 
     data['raw_crossref_unixref'] = response
     dom = etree.fromstring(response)
@@ -110,12 +114,12 @@ def resolve(doi):
 
 def search(title):
     data = []
-    url = 'http://crossref.org/sigg/sigg/FindWorks?{0}'.format(urllib.urlencode({
+    url = 'http://search.crossref.org/dois?{0}'.format(urllib.urlencode({
         'version': '1',
         'access': api_key,
         'format': 'json',
         'op': 'OR',
-        'expression': title.encode('utf8'),
+        'q': title.encode('utf8'),
     }))
     response = urllib2.urlopen(url, timeout=8).read()
     data = json.loads(response)

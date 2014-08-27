@@ -2,6 +2,7 @@
  *  
  *   This file is part of the libcrackle library.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
  *   modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -37,7 +38,21 @@ using namespace Crackle;
 SpineDocument new_CrackleDocument(const char *filename, SpineError *error)
 {
     SpineDocument result=new SpineDocumentImpl;
-    result->_handle=Spine::DocumentHandle(new PDFDocument (filename));
+    result->_handle=Spine::DocumentHandle(new PDFDocument(filename));
+
+    if(!SpineDocument_valid(result, error)) {
+        *error=SpineError_IO;
+    }
+    return result;
+}
+
+SpineDocument new_CrackleDocumentFromBuffer(const char *buffer, size_t size, SpineError *error)
+{
+    SpineDocument result=new SpineDocumentImpl;
+
+    boost::shared_array<char> buf(new char[size]);
+    std::memcpy(buf.get(), buffer, size);
+    result->_handle=Spine::DocumentHandle(new PDFDocument(buf, size));
 
     if(!SpineDocument_valid(result, error)) {
         *error=SpineError_IO;

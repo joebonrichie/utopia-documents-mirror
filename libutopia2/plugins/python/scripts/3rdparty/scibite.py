@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -63,7 +64,7 @@ class Scibite(utopia.document.Annotator, utopia.document.Visualiser):
         links = ['<a href="{0}">[{1}]</a>'.format(entity['bestLink'], entity['entityName']) for entity in bite['biteEntities']]
         return '<div class="box"><strong>{0}</strong>. {1} <a href="{2}">[View]</a><br /><br />Related entities: {3}</div>'.format(title, citation, url, ' '.join(links))
 
-    def populate(self, document):
+    def on_ready_event(self, document):
         pmid = common.utils.metadata(document, 'pmid')
         if pmid is not None:
             xhtml = ''
@@ -106,7 +107,7 @@ class Scibite(utopia.document.Annotator, utopia.document.Visualiser):
                 a['property:sourceDescription'] = '<p><a href="http://scibite.com/">SciBite</a> scans 1000s of papers, patents, blogs, newsfeeds and more to bring you daily alerts on critical topics in biomedicine.</p>'
                 document.addAnnotation(a)
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
 
         params = {
             'app_id': self.app_id,

@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -39,7 +40,7 @@ from lxml import etree
 class PubMedAnnotator(utopia.document.Annotator, utopia.document.Visualiser):
     """PubMed Recent Articles Lookup"""
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         rt = ''
 
         searchresult = common.eutils.esearch(db='pubmed', retmax=5, term=phrase)

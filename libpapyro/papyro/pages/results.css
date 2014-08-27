@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -279,6 +280,10 @@ a {
     padding: 1px;
     margin: 4px 0;
     clear: both;
+}
+
+.-papyro-internal-content .box.error {
+    -webkit-border-image: url(qrc:/images/border-rounded-box-error.png) 5 stretch stretch;
 }
 
 .-papyro-internal-content .right {

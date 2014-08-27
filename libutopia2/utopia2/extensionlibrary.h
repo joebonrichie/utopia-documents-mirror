@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -52,6 +53,8 @@ namespace Utopia
     class LIBUTOPIA_API ExtensionLibrary {
 
     public:
+        ~ExtensionLibrary();
+
         // Filename
         QString filename() const;
 
@@ -65,8 +68,7 @@ namespace Utopia
         // Static Library loading functions
         static ExtensionLibrary * load(const QString & filename_);
         static QSet< ExtensionLibrary * > loadDirectory(const QDir & directory_, bool recursive_ = false);
-        static ExtensionLibrary * sanitise(Library * library);
-        static QSet< ExtensionLibrary * > sanitise(const QSet< Library * > & libraries);
+        static ExtensionLibrary * wrap(Library * library);
 
     private:
         // Construct Library object

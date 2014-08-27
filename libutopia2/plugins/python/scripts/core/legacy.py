@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -34,7 +35,7 @@ import utopia.document
 
 class DemoLogoOverlayFilter(utopia.document.Annotator):
     @utopia.document.buffer
-    def filter(self, document, data = None):
+    def on_filter_event(self, document, data = None):
         for annotation in document.annotations():
             if annotation.get('concept') != 'DemoLogoOverlay' and annotation.get('property:demo_logo') == '1':
                 annotation.removePropertyAll('property:demo_logo')

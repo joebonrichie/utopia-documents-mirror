@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -116,7 +117,7 @@ python::object unicode(const QString & str)
 }
 
 #define SAFE_EXEC(command) \
-    try { python::exec(command, global, global); } catch (python::error_already_set e) { PyErr_Print(); }
+    try { python::exec(command, global, global); } catch (python::error_already_set e) { PyErr_PrintEx(0); }
 
 
 // dlsym handles
@@ -192,7 +193,7 @@ extern "C" void utopia_registerExtensions()
         python::scope outer(citation);
         python::def("format", python::make_function(bind(format_citation, _1, python::object()), python::default_call_policies(), mpl::vector< python::object, python::object >()));
         python::def("format", python::make_function(bind(format_citation, _1, _2), python::default_call_policies(), mpl::vector< python::object, python::object, python::object >()));
-        } catch (python::error_already_set e) { PyErr_Print(); }
+        } catch (python::error_already_set e) { PyErr_PrintEx(0); }
     }
 
     // Resolve all plugins found in the above specified plugins paths.

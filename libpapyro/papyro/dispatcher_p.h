@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -90,6 +91,7 @@ namespace Papyro
 
     public:
         LookupRunnable(DispatcherPrivate * d, DispatchEngine * engine, Spine::DocumentHandle document, boost::shared_ptr< Annotator > annotator, const QStringList & terms);
+        ~LookupRunnable();
 
         void run();
 

@@ -2,6 +2,7 @@
  *  
  *   This file is part of the libcrackle library.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
  *   modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -54,15 +55,16 @@ namespace Crackle
 
     class PDFPage : public Spine::Page
     {
-        /*************************************************************************
+        /********************************************************************
          *
          * PDFPage
          *
-         * Note: conceptually a PDFPage is always constant to client code because
-         * crackle is only an access library. However the pdf is actually
-         * only processed on demand - hence the mutable data members.
+         * Note: conceptually a PDFPage is always constant to client
+         * code because crackle is only an access library. However the
+         * pdf is actually only processed on demand - hence the
+         * mutable data members.
          *
-         *************************************************************************/
+         ********************************************************************/
 
     public:
 
@@ -81,10 +83,18 @@ namespace Crackle
         int rotation() const;
 
         const ImageCollection &images() const;
-        Spine::Image render(size_t width_, size_t height_) const;
-        Spine::Image render(double resolution_) const;
-        Spine::Image renderArea(const Spine::BoundingBox & slice, size_t width_, size_t height_) const;
-        Spine::Image renderArea(const Spine::BoundingBox & slice, double resolution_) const;
+        Spine::Image render(size_t width_,
+                            size_t height_,
+                            bool antialias_=true) const;
+        Spine::Image render(double resolution_,
+                            bool antialias_=true) const;
+        Spine::Image renderArea(const Spine::BoundingBox & slice,
+                                size_t width_,
+                                size_t height_,
+                                bool antialias_=true) const;
+        Spine::Image renderArea(const Spine::BoundingBox & slice,
+                                double resolution_,
+                                bool antialias_=true) const;
 
         const PDFTextRegionCollection &regions() const;
         const PDFFontCollection &fonts() const;
@@ -96,10 +106,15 @@ namespace Crackle
 
         PDFPage (PDFDocument * doc_, unsigned int page_,
                  boost::shared_ptr<CrackleTextOutputDev> textDevice_,
-                 boost::shared_ptr<SplashOutputDev> renderDevice_);
+                 boost::shared_ptr<SplashOutputDev> renderDevice_,
+                 boost::shared_ptr<SplashOutputDev> printDevice_);
+
         PDFPage &operator=(const PDFPage& rhs_);
 
-        inline Spine::Image renderArea(const Spine::BoundingBox & slice, double resolutionX_, double resolutionY_) const;
+        inline Spine::Image renderArea(const Spine::BoundingBox & slice,
+                                       double resolutionX_,
+                                       double resolutionY_,
+                                       bool antialias_=true) const;
 
         void _extractTextAndImages() const;
 
@@ -108,6 +123,7 @@ namespace Crackle
 
         mutable boost::shared_ptr<CrackleTextOutputDev> _textDevice;
         mutable boost::shared_ptr<SplashOutputDev> _renderDevice;
+        mutable boost::shared_ptr<SplashOutputDev> _printDevice;
 
         // This struct is reference counted and shared between all copies
         // of this page. The data contained within is generated lazilly.

@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -94,7 +95,7 @@ class BioLookupChEMBLAnnotator(utopia.document.Annotator):
 
     visualiser = ChEMBLVisualiser()
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
         client = kend.client.Client()
 
@@ -175,7 +176,7 @@ class BioLookupDrugBankAnnotator(utopia.document.Annotator):
 
     visualiser = DrugBankVisualiser()
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
         client = kend.client.Client()
 
@@ -228,7 +229,7 @@ class BioLookupGlickAnnotator(utopia.document.Annotator):
 
     visualiser = GlickVisualiser()
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
         client = kend.client.Client()
 
@@ -291,7 +292,7 @@ class BioLookupPDBAnnotator(utopia.document.Annotator):
 
     visualiser = PDBVisualiser()
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
 
         client = kend.client.Client()
@@ -344,7 +345,7 @@ class BioLookupUniProtAnnotator(utopia.document.Annotator):
 
     visualiser = UniProtVisualiser()
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
 
         client = kend.client.Client()
@@ -403,7 +404,7 @@ class BioLookupDBpediaAnnotator(utopia.document.Annotator):
 
     visualiser = DBpediaVisualiser()
 
-    def lookup(self, phrase, document):
+    def on_explore_event(self, phrase, document):
         results = []
 
         client = kend.client.Client()
@@ -441,7 +442,7 @@ class BioLookupDBpediaAnnotator(utopia.document.Annotator):
 # class BioLookupGlickAnnotator(utopia.document.Annotator):
 #     """Glick lookup"""
 #
-#     def lookup(self, phrase, document):
+#     def on_explore_event(self, phrase, document):
 #         results = []
 #         client = kend.client.Client()
 #
@@ -465,7 +466,7 @@ class BioLookupDBpediaAnnotator(utopia.document.Annotator):
 # class BioLookupPDBAnnotator(utopia.document.Annotator):
 #     """BioLookup PDB queries"""
 #
-#     def lookup(self, phrase, document):
+#     def on_explore_event(self, phrase, document):
 #         results = []
 #
 #         client = kend.client.Client()
@@ -487,7 +488,7 @@ class BioLookupDBpediaAnnotator(utopia.document.Annotator):
 # class BioLookupUniProtAnnotator(utopia.document.Annotator):
 #     """BioLookup UniProt queries"""
 #
-#     def lookup(self, phrase, document):
+#     def on_explore_event(self, phrase, document):
 #         results = []
 #
 #         client = kend.client.Client()
@@ -507,7 +508,7 @@ class BioLookupDBpediaAnnotator(utopia.document.Annotator):
 # class BioLookupDBpediaAnnotator(utopia.document.Annotator):
 #     """BioLookup DBpedia queries"""
 #
-#     def lookup(self, phrase, document):
+#     def on_explore_event(self, phrase, document):
 #         results = []
 #
 #         client = kend.client.Client()

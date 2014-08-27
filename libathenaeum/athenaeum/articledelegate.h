@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -44,7 +45,7 @@ namespace Athenaeum
         Q_OBJECT
 
     public:
-        ArticleDelegate();
+        ArticleDelegate(QObject * parent);
         ~ArticleDelegate();
 
         void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const;

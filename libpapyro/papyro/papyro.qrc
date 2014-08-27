@@ -2,6 +2,7 @@
     
      This file is part of the Utopia Documents application.
          Copyright (c) 2008-2014 Lost Island Labs
+             <info@utopiadocs.com>
      
      Utopia Documents is free software: you can redistribute it and/or modify
      it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -174,6 +175,7 @@
         <file>images/back-button-bg.png</file>
 
         <file>images/border-rounded-box.png</file>
+        <file>images/border-rounded-box-error.png</file>
 
         <file>images/tab-west-active.png</file>
         <file>images/tab-west-inactive.png</file>

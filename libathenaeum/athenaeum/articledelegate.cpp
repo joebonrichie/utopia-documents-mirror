@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -69,8 +70,8 @@ namespace Athenaeum
     // ArticleDelegate ////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    ArticleDelegate::ArticleDelegate()
-        : d(new ArticleDelegatePrivate)
+    ArticleDelegate::ArticleDelegate(QObject * parent)
+        : QStyledItemDelegate(parent), d(new ArticleDelegatePrivate)
     {
         d->flaggedRow = -1;
 
@@ -164,8 +165,6 @@ namespace Athenaeum
 
             do {
                 if (removeAuthor > authors.count()) {
-                    qDebug() << "Title is " << title;
-                    qDebug() << "Author list shorter than expected" << removeAuthor << authors.count();
                     break;
                 }
 

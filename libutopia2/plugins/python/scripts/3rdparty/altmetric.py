@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -46,7 +47,7 @@ class Altmetric(utopia.document.Annotator, utopia.document.Visualiser):
     api_version = 'v1'
     key = '46a63bea7a7f245bf46fad25aced4d28'
 
-    def populate(self, document):
+    def on_ready_event(self, document):
         doi = common.utils.metadata(document, 'doi')
         if doi is not None:
             try:

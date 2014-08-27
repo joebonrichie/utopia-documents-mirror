@@ -2,6 +2,7 @@
  *  
  *   This file is part of the libcrackle library.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
  *   modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -55,21 +56,28 @@ using namespace Crackle;
 
 Crackle::PDFPage::PDFPage (PDFDocument * doc_, unsigned int page_,
                            boost::shared_ptr<CrackleTextOutputDev> textDevice_,
-                           boost::shared_ptr<SplashOutputDev> renderDevice_)
-    : _doc(doc_), _page(page_), _textDevice(textDevice_), _renderDevice(renderDevice_),
-      _sharedData(boost::shared_ptr<SharedData>(new SharedData))
+                           boost::shared_ptr<SplashOutputDev> renderDevice_,
+                           boost::shared_ptr<SplashOutputDev> printDevice_)
+  : _doc(doc_), _page(page_), _textDevice(textDevice_),
+    _renderDevice(renderDevice_),
+    _printDevice(printDevice_),
+    _sharedData(boost::shared_ptr<SharedData>(new SharedData))
 {
+    //std::cerr << "+++ PAG " << this << std::endl;
 }
 
 Crackle::PDFPage::PDFPage (const PDFPage &rhs_)
     : _doc(rhs_._doc), _page(rhs_._page), _textDevice(rhs_._textDevice),
       _renderDevice(rhs_._renderDevice),
+      _printDevice(rhs_._printDevice),
       _sharedData(rhs_._sharedData)
 {
+    //std::cerr << "+++ PAG " << this << std::endl;
 }
 
 Crackle::PDFPage::~PDFPage ()
 {
+    //std::cerr << "--- PAG " << this << " " << _textDevice.use_count() << std::endl;
 }
 
 PDFPage &Crackle::PDFPage::operator= (const PDFPage &rhs_)
@@ -81,6 +89,7 @@ PDFPage &Crackle::PDFPage::operator= (const PDFPage &rhs_)
         _page=rhs_._page;
         _textDevice=rhs_._textDevice;
         _renderDevice=rhs_._renderDevice;
+        _printDevice=rhs_._printDevice;
     }
 
     return *this;
@@ -149,7 +158,9 @@ const Crackle::ImageCollection &Crackle::PDFPage::images() const
     return *_sharedData->_images;
 }
 
-Spine::Image Crackle::PDFPage::render(size_t width_, size_t height_) const
+Spine::Image Crackle::PDFPage::render(size_t width_,
+                                      size_t height_,
+                                      bool antialias_) const
 {
     Crackle::PDFDocument::_globalMutexDocument.lock();
 
@@ -173,7 +184,7 @@ Spine::Image Crackle::PDFPage::render(size_t width_, size_t height_) const
     return this->render(resolution);
 }
 
-Spine::Image Crackle::PDFPage::render(double resolution_) const
+Spine::Image Crackle::PDFPage::render(double resolution_, bool antialias_) const
 {
     boost::lock_guard<boost::mutex> g(Crackle::PDFDocument::_globalMutexDocument);
     _doc->xpdfDoc()->displayPage(_renderDevice.get(), _page, resolution_,
@@ -189,37 +200,54 @@ Spine::Image Crackle::PDFPage::render(double resolution_) const
         data += (bitmap->getHeight() - 1) * bitmap->getRowSize();
     }
 
-    return Image(Image::RGB, bitmap->getWidth(), bitmap->getHeight(), this->boundingBox(),data,length);
+    return Image(Image::RGB, bitmap->getWidth(), bitmap->getHeight(),
+                 this->boundingBox(),data,length);
 }
 
-Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice, size_t width_, size_t height_) const
+Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice,
+                                          size_t width_,
+                                          size_t height_,
+                                          bool antialias_) const
 {
     double fit_resolution_w = (72.0 * width_) / slice.width();
     double fit_resolution_h = (72.0 * height_) / slice.height();
     double resolution = std::min(fit_resolution_w, fit_resolution_h);
 
-    return this->renderArea(slice, resolution);
+    return this->renderArea(slice, resolution, antialias_);
 }
 
-Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice, double resolution_) const
+Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice,
+                                          double resolution_,
+                                          bool antialias_) const
 {
-    return renderArea(slice, resolution_, resolution_);
+  return renderArea(slice, resolution_, resolution_, antialias_);
 }
 
-Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice, double resolutionX_, double resolutionY_) const
+Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice,
+                                          double resolutionX_,
+                                          double resolutionY_,
+                                          bool antialias_) const
 {
     boost::lock_guard<boost::mutex> g(Crackle::PDFDocument::_globalMutexDocument);
     double resolutionScaleX(72.0 / resolutionX_);
     double resolutionScaleY(72.0 / resolutionY_);
     Spine::BoundingBox scaledSlice(slice.x1 / resolutionScaleX, slice.y1 / resolutionScaleX,
                                    slice.x2 / resolutionScaleY, slice.y2 / resolutionScaleY);
-    _doc->xpdfDoc()->displayPageSlice(_renderDevice.get(), _page, resolutionX_,
+
+    boost::shared_ptr<SplashOutputDev> dev;
+    if(antialias_) {
+      dev = _renderDevice;
+    } else {
+      dev = _printDevice;
+    }
+
+    _doc->xpdfDoc()->displayPageSlice(dev.get(), _page, resolutionX_,
                                       resolutionY_, 0, gFalse, gFalse, gFalse,
                                       (int) scaledSlice.x1, (int) scaledSlice.y1,
                                       (int) (scaledSlice.x2-scaledSlice.x1),
                                       (int) (scaledSlice.y2-scaledSlice.y1));
 
-    SplashBitmap *bitmap(_renderDevice->getBitmap());
+    SplashBitmap *bitmap(dev->getBitmap());
 
     size_t length= bitmap->getWidth() * 3 * bitmap->getHeight();
     char *data=reinterpret_cast<char *>(bitmap->getDataPtr());
@@ -229,7 +257,8 @@ Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice, doub
         data += (bitmap->getHeight() - 1) * bitmap->getRowSize();
     }
 
-    return Image(Image::RGB, bitmap->getWidth(), bitmap->getHeight(), slice, data, length);
+    return Image(Image::RGB, bitmap->getWidth(), bitmap->getHeight(),
+                 slice, data, length);
 }
 
 void Crackle::PDFPage::_extractTextAndImages() const

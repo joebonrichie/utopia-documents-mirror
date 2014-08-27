@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -53,7 +54,7 @@ def sortfn(c):
 class MetadataAnnotator(utopia.document.Annotator):
     """Metadata filter"""
 
-    def populate(self, document):
+    def on_ready_event(self, document):
         # Scrape title and DOI from document
         title = common.utils.metadata(document, 'title', '')
         doi = common.utils.metadata(document, 'doi', '')
@@ -79,7 +80,7 @@ class MetadataAnnotator(utopia.document.Annotator):
             document.addAnnotation(annotation, link['listName'])
 
 
-    def reducePopulate(self, document):
+    def after_ready_event(self, document):
         print 'Formatting metadata'
 
         # Find highest matching metadata accumulation list for references

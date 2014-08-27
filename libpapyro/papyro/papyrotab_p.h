@@ -2,6 +2,7 @@
  *  
  *   This file is part of the Utopia Documents application.
  *       Copyright (c) 2008-2014 Lost Island Labs
+ *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -163,6 +164,8 @@ namespace Papyro
         QStackedLayout * mainLayout;
         QLabel * progressIconLabel;
         QLabel * progressInfoLabel;
+        QLabel * progressUrlLabel;
+        QLabel * progressLinksLabel;
         Utopia::Spinner * progressSpinner;
         QSvgRenderer watermarkRenderer;
         void setError(const QString & reason);
@@ -275,7 +278,7 @@ namespace Papyro
         void onNetworkReplyFinished();
         void onNetworkReplyDownloadProgress(qint64, qint64);
         void onPagerPageClicked(int index);
-        void onProgressInfoLabelLinkActivated(const QString & link);
+        void onProgressLinksLabelLinkActivated(const QString & link);
         void onQuickSearchBarSearchForText(QString text);
         void onQuickSearchBarPrevious();
         void onQuickSearchBarNext();

@@ -2,6 +2,7 @@
 #   
 #    This file is part of the Utopia Documents application.
 #        Copyright (c) 2008-2014 Lost Island Labs
+#            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
@@ -37,7 +38,7 @@ import collections
 
 class OutlineBuilder(utopia.document.Annotator):
     """Build outline navigator"""
-    def prepare(self, document):
+    def on_load_event(self, document):
         outline={}
 
         for a in document.annotations():
@@ -73,7 +74,7 @@ class OutlineBuilder(utopia.document.Annotator):
 class HyperlinkTooltipFactory(utopia.document.Annotator):
     """Create tooltips for known hyperlinks"""
 
-    def filter(self, document, data = None):
+    def on_filter_event(self, document, data = None):
         for annotation in document.annotations():
             if annotation.get('concept') in ['Hyperlink', 'WebPage'] and 'displayTooltip' not in annotation and 'property:webpageUrl' in annotation:
                 if annotation['property:webpageUrl'].startswith("mailto:"):
