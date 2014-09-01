@@ -40,7 +40,7 @@ cmake_policy(VERSION 2.6)
 # Utopia versioning
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "4")
-set(VERSION_PATCH "3")
+set(VERSION_PATCH "4")
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	add_definitions(-DUTOPIA_BUILD_DEBUG=1)

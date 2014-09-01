@@ -422,9 +422,9 @@ namespace Papyro
             exporters[exporter->name()] = exporter;
         }
 
-        foreach (Athenaeum::Resolver * resolver, Utopia::instantiateAllExtensions< Athenaeum::Resolver >()) {
-            resolvers[resolver->weight()] << resolver;
-        }
+        //foreach (Athenaeum::Resolver * resolver, Utopia::instantiateAllExtensions< Athenaeum::Resolver >()) {
+        //    resolvers[resolver->weight()] << resolver;
+        //}
 
         /////////////////////////////////////////////////////////////////////////////////
         // Search layer

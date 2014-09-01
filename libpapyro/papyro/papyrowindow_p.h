@@ -200,7 +200,7 @@ namespace Papyro
         QMap< int, Athenaeum::AbstractFilter * > standardFilters;
         Athenaeum::ArticleView * articleResultsView;
         QMap< QString, Athenaeum::Exporter * > exporters;
-        QMap< int, QList< Athenaeum::Resolver * > > resolvers;
+        //QMap< int, QList< Athenaeum::Resolver * > > resolvers;
         QList< Athenaeum::RemoteQueryBibliographicModel * > remoteSearches;
         QFrame * remoteSearchLabelFrame;
         QLabel * remoteSearchLabel;

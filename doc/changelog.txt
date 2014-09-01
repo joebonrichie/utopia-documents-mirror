@@ -1,3 +1,6 @@
+Version 2.4.4
+  * Fixed a memory leak in the Python interpreter bridge.
+
 Version 2.4.3
   * Fixed the CrossRef plugin to use their latest web service.
   * Included error reporting when metadata resolution fails.

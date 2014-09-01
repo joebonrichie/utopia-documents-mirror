@@ -30,29 +30,29 @@
 ###############################################################################
 
 %pythonappend Annotation::Annotation() {
-        self.beginRegion()
+    self.beginRegion()
 }
 
 
 %extend Image {
-  %pythoncode {
-    def toPILImage(self):
-        from PIL import Image
-        import StringIO
+    %pythoncode {
+        def toPILImage(self):
+            from PIL import Image
+            import StringIO
 
-        result=None
+            result=None
 
-        if self.type()==BitmapImage:
-            result= Image.fromstring('1', self.size(), self.data())
+            if self.type()==BitmapImage:
+                result= Image.fromstring('1', self.size(), self.data())
 
-        elif self.type()==RGBImage:
-            result= Image.fromstring('RGB', self.size(), self.data())
+            elif self.type()==RGBImage:
+                result= Image.fromstring('RGB', self.size(), self.data())
 
-        elif self.type()==JPEGImage:
-            result= Image.open(StringIO.StringIO(self.data()))
+            elif self.type()==JPEGImage:
+                result= Image.open(StringIO.StringIO(self.data()))
 
-        return result
-  }
+            return result
+    }
 }
 
 
