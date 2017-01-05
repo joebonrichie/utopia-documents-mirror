@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,9 +31,9 @@
 
 #include <utopia2/property.h>
 
-#define PROP2NODE(p) ((Node*) ((unsigned long) p & ((unsigned long) -1 << 3)))
+#define PROP2NODE(p) ((Node*) ((unsigned long long) p & ((unsigned long long) -1 << 3)))
 #define PROP2DIR(p) ((PropertyDirection) (p & 0x7))
-#define MAKEPROP(n, d) ((unsigned long) n | (unsigned long) d)
+#define MAKEPROP(n, d) ((unsigned long long) n | (unsigned long long) d)
 
 namespace Utopia
 {

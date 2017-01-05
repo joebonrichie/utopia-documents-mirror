@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 
 #include <utopia2/config.h>
 
+#include <QFileInfo>
 #include <QObject>
 #include <QUuid>
 
@@ -45,28 +46,18 @@ namespace Utopia
     class Plugin : public QObject
     {
         Q_OBJECT
-        Q_ENUMS(PluginBase)
 
     public:
-        enum PluginBase {
-            InstallBase = 0,
-            ProfileBase
-        };
-
-        Plugin(PluginBase base, const QString & relativePath, QObject * parent = 0);
+        Plugin(const QFileInfo & fileInfo, QObject * parent = 0);
         Plugin(const QUuid & uuid, QObject * parent = 0);
 
-        QString absolutePath() const;
-        PluginBase base() const;
-        QString basePath() const;
+        QFileInfo fileInfo() const;
         bool isEnabled() const;
         bool isRemoved() const;
-        QString relativePath() const;
+        QString path() const;
         void remove();
         void setEnabled(bool enabled);
         QUuid uuid() const;
-
-        static QString constructAbsolutePath(Plugin::PluginBase base, const QString & relativePath);
 
     signals:
         void enabledChanged(bool enabled);

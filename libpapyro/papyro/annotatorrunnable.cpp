@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -43,12 +43,12 @@ namespace Papyro
     {
     public:
         AnnotatorRunnablePrivate()
-            : mutex(QMutex::Recursive),
-              runnable(true)
+            : runnable(true),
+              mutex(QMutex::Recursive)
             {}
 
         boost::shared_ptr< Annotator > annotator;
-        QString event;
+        QString eventName;
         Spine::DocumentHandle document;
         QVariantMap kwargs;
         bool runnable;
@@ -62,13 +62,13 @@ namespace Papyro
     /// AnnotatorRunnable ///////////////////////////////////////////////////////////////
 
     AnnotatorRunnable::AnnotatorRunnable(boost::shared_ptr< Annotator > annotator,
-                                         const QString & event,
+                                         const QString & eventName,
                                          Spine::DocumentHandle document,
                                          const QVariantMap & kwargs)
         : QObject(), QRunnable(), d(new AnnotatorRunnablePrivate)
     {
         d->annotator = annotator;
-        d->event = event;
+        d->eventName = eventName;
         d->document = document;
         d->kwargs = kwargs;
 
@@ -80,9 +80,15 @@ namespace Papyro
         delete d;
     }
 
-    const QString & AnnotatorRunnable::event() const
+    void AnnotatorRunnable::cancel()
     {
-        return d->event;
+        skip();
+        d->annotator->cancel();
+    }
+
+    const QString & AnnotatorRunnable::eventName() const
+    {
+        return d->eventName;
     }
 
     bool AnnotatorRunnable::isRunnable() const
@@ -96,7 +102,7 @@ namespace Papyro
         if (isRunnable())
         {
             Q_EMIT started();
-            d->annotator->handleEvent(d->event, d->document, d->kwargs);
+            d->annotator->handleEvent(d->eventName, d->document, d->kwargs);
             Q_EMIT finished(false);
         }
         else

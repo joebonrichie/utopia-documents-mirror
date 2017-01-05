@@ -1,7 +1,7 @@
 <!--
     
      This file is part of the Utopia Documents application.
-         Copyright (c) 2008-2014 Lost Island Labs
+         Copyright (c) 2008-2016 Lost Island Labs
              <info@utopiadocs.com>
      
      Utopia Documents is free software: you can redistribute it and/or modify
@@ -39,5 +39,6 @@
     <qresource prefix="/preferences/plugins">
         <file alias="icon.png">plugins.png</file>
         <file>form.css</file>
+        <file>form.html</file>
     </qresource>
 </RCC>

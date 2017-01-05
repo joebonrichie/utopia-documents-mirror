@@ -22,7 +22,6 @@ BuildRequires:	boost-devel
 BuildRequires:	zlib-devel
 BuildRequires:	freetype
 BuildRequires:	expat-devel
-BuildRequires:	raptor-devel
 BuildRequires:	libpython-devel
 BuildRequires:	swig
 

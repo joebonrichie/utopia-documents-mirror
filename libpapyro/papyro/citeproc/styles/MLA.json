@@ -1,0 +1,907 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [ "MLA" ],
+          "name": "title",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "id",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "link",
+          "attrs": {
+            "href": "http://www.zotero.org/styles/mla"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {}
+            },
+            {
+              "children": [],
+              "name": "email",
+              "attrs": {}
+            }
+          ],
+          "name": "author",
+          "attrs": {}
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {}
+            },
+            {
+              "children": [],
+              "name": "email",
+              "attrs": {}
+            }
+          ],
+          "name": "contributor",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "category",
+          "attrs": {
+            "term": "generic-base"
+          }
+        },
+        {
+          "children": [],
+          "name": "category",
+          "attrs": {
+            "term": "author-date"
+          }
+        },
+        {
+          "children": [],
+          "name": "updated",
+          "attrs": {}
+        }
+      ],
+      "name": "info",
+      "attrs": {}
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "label",
+              "attrs": {
+                "suffix": ". ",
+                "form": "verb-short",
+                "text-case": "capitalize-first"
+              }
+            },
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {
+                "and": "symbol",
+                "delimiter": ", "
+              }
+            }
+          ],
+          "name": "names",
+          "attrs": {
+            "variable": "editor translator",
+            "delimiter": ". "
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "editor-translator"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {
+                "and": "text",
+                "delimiter": ", ",
+                "sort-separator": ", ",
+                "delimiter-precedes-last": "always",
+                "name-as-sort-order": "first"
+              }
+            },
+            {
+              "children": [],
+              "name": "label",
+              "attrs": {
+                "prefix": ", ",
+                "suffix": ".",
+                "form": "short"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "names",
+                  "attrs": {
+                    "variable": "editor"
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "names",
+                  "attrs": {
+                    "variable": "translator"
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "macro": "title"
+                  }
+                }
+              ],
+              "name": "substitute",
+              "attrs": {}
+            }
+          ],
+          "name": "names",
+          "attrs": {
+            "variable": "author"
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "author"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {
+                "and": "symbol",
+                "initialize-with": ". ",
+                "delimiter": ", ",
+                "form": "short"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "names",
+                  "attrs": {
+                    "variable": "editor"
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "names",
+                  "attrs": {
+                    "variable": "translator"
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "macro": "title-short"
+                  }
+                }
+              ],
+              "name": "substitute",
+              "attrs": {}
+            }
+          ],
+          "name": "names",
+          "attrs": {
+            "variable": "author"
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "author-short"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "date-part",
+                  "attrs": {
+                    "name": "day",
+                    "suffix": " "
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "date-part",
+                  "attrs": {
+                    "form": "short",
+                    "name": "month",
+                    "strip-periods": "false",
+                    "suffix": " "
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "date-part",
+                  "attrs": {
+                    "name": "year"
+                  }
+                }
+              ],
+              "name": "date",
+              "attrs": {
+                "variable": "accessed"
+              }
+            },
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "variable": "URL",
+                "prefix": "<",
+                "suffix": ">"
+              }
+            }
+          ],
+          "name": "group",
+          "attrs": {
+            "delimiter": " "
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "access"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "title",
+                    "font-style": "italic"
+                  }
+                }
+              ],
+              "name": "if",
+              "attrs": {
+                "type": "book"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "title",
+                    "quotes": "true"
+                  }
+                }
+              ],
+              "name": "else",
+              "attrs": {}
+            }
+          ],
+          "name": "choose",
+          "attrs": {}
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "title"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "title",
+                    "font-style": "italic",
+                    "form": "short"
+                  }
+                }
+              ],
+              "name": "if",
+              "attrs": {
+                "type": "book"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "title",
+                    "quotes": "true",
+                    "form": "short"
+                  }
+                }
+              ],
+              "name": "else",
+              "attrs": {}
+            }
+          ],
+          "name": "choose",
+          "attrs": {}
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "title-short"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "name": "number",
+                      "attrs": {
+                        "variable": "edition",
+                        "form": "ordinal"
+                      }
+                    },
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "term": "edition",
+                        "suffix": ".",
+                        "form": "short"
+                      }
+                    }
+                  ],
+                  "name": "group",
+                  "attrs": {
+                    "delimiter": " "
+                  }
+                }
+              ],
+              "name": "if",
+              "attrs": {
+                "is-numeric": "edition"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "edition"
+                  }
+                }
+              ],
+              "name": "else",
+              "attrs": {}
+            }
+          ],
+          "name": "choose",
+          "attrs": {}
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "edition"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "publisher-place"
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "publisher"
+                  }
+                }
+              ],
+              "name": "group",
+              "attrs": {
+                "delimiter": ": "
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "date-part",
+                  "attrs": {
+                    "name": "year"
+                  }
+                }
+              ],
+              "name": "date",
+              "attrs": {
+                "variable": "issued"
+              }
+            }
+          ],
+          "name": "group",
+          "attrs": {
+            "delimiter": ", "
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "publisher-year"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "name": "text",
+                              "attrs": {
+                                "macro": "author-short"
+                              }
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "name": "text",
+                                      "attrs": {
+                                        "macro": "title-short"
+                                      }
+                                    }
+                                  ],
+                                  "name": "if",
+                                  "attrs": {
+                                    "disambiguate": "true"
+                                  }
+                                }
+                              ],
+                              "name": "choose",
+                              "attrs": {}
+                            }
+                          ],
+                          "name": "group",
+                          "attrs": {
+                            "delimiter": ", "
+                          }
+                        }
+                      ],
+                      "name": "if",
+                      "attrs": {
+                        "variable": "author editor translator",
+                        "match": "any"
+                      }
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "title-short"
+                          }
+                        }
+                      ],
+                      "name": "else",
+                      "attrs": {}
+                    }
+                  ],
+                  "name": "choose",
+                  "attrs": {}
+                },
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "locator"
+                  }
+                }
+              ],
+              "name": "group",
+              "attrs": {
+                "delimiter": " "
+              }
+            }
+          ],
+          "name": "layout",
+          "attrs": {
+            "delimiter": "; ",
+            "prefix": "(",
+            "suffix": ")"
+          }
+        }
+      ],
+      "name": "citation",
+      "attrs": {
+        "et-al-min": "4",
+        "et-al-use-first": "1",
+        "disambiguate-add-names": "true",
+        "disambiguate-add-givenname": "true"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "key",
+              "attrs": {
+                "macro": "author"
+              }
+            },
+            {
+              "children": [],
+              "name": "key",
+              "attrs": {
+                "variable": "title"
+              }
+            }
+          ],
+          "name": "sort",
+          "attrs": {}
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "macro": "author",
+                "suffix": "."
+              }
+            },
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "macro": "title",
+                "prefix": " ",
+                "suffix": "."
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "macro": "edition",
+                        "prefix": " ",
+                        "suffix": "."
+                      }
+                    },
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "macro": "editor-translator",
+                        "prefix": " ",
+                        "suffix": "."
+                      }
+                    },
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "macro": "publisher-year",
+                        "prefix": " ",
+                        "suffix": "."
+                      }
+                    }
+                  ],
+                  "name": "if",
+                  "attrs": {
+                    "type": "book"
+                  }
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "container-title",
+                            "prefix": " ",
+                            "font-style": "italic",
+                            "suffix": "."
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "edition",
+                            "prefix": " ",
+                            "suffix": "."
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "editor-translator",
+                            "prefix": " ",
+                            "suffix": "."
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "publisher-year",
+                            "prefix": " ",
+                            "suffix": "."
+                          }
+                        }
+                      ],
+                      "name": "group",
+                      "attrs": {}
+                    },
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "variable": "page",
+                        "prefix": " ",
+                        "suffix": "."
+                      }
+                    }
+                  ],
+                  "name": "else-if",
+                  "attrs": {
+                    "type": "chapter"
+                  }
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "name": "text",
+                              "attrs": {
+                                "macro": "editor-translator",
+                                "suffix": "."
+                              }
+                            },
+                            {
+                              "children": [],
+                              "name": "text",
+                              "attrs": {
+                                "variable": "container-title",
+                                "font-style": "italic"
+                              }
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "name": "text",
+                                              "attrs": {
+                                                "variable": "volume"
+                                              }
+                                            },
+                                            {
+                                              "children": [],
+                                              "name": "text",
+                                              "attrs": {
+                                                "variable": "issue"
+                                              }
+                                            }
+                                          ],
+                                          "name": "group",
+                                          "attrs": {
+                                            "delimiter": "."
+                                          }
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "name": "date-part",
+                                              "attrs": {
+                                                "name": "year"
+                                              }
+                                            }
+                                          ],
+                                          "name": "date",
+                                          "attrs": {
+                                            "variable": "issued",
+                                            "prefix": "(",
+                                            "suffix": ")"
+                                          }
+                                        }
+                                      ],
+                                      "name": "group",
+                                      "attrs": {
+                                        "delimiter": " "
+                                      }
+                                    }
+                                  ],
+                                  "name": "if",
+                                  "attrs": {
+                                    "type": "article-journal"
+                                  }
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "name": "date-part",
+                                          "attrs": {
+                                            "name": "day",
+                                            "suffix": " "
+                                          }
+                                        },
+                                        {
+                                          "children": [],
+                                          "name": "date-part",
+                                          "attrs": {
+                                            "form": "short",
+                                            "name": "month",
+                                            "strip-periods": "false",
+                                            "suffix": " "
+                                          }
+                                        },
+                                        {
+                                          "children": [],
+                                          "name": "date-part",
+                                          "attrs": {
+                                            "name": "year"
+                                          }
+                                        }
+                                      ],
+                                      "name": "date",
+                                      "attrs": {
+                                        "variable": "issued"
+                                      }
+                                    }
+                                  ],
+                                  "name": "else",
+                                  "attrs": {}
+                                }
+                              ],
+                              "name": "choose",
+                              "attrs": {}
+                            }
+                          ],
+                          "name": "group",
+                          "attrs": {
+                            "delimiter": " "
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "page"
+                          }
+                        }
+                      ],
+                      "name": "group",
+                      "attrs": {
+                        "delimiter": ": ",
+                        "prefix": " ",
+                        "suffix": "."
+                      }
+                    }
+                  ],
+                  "name": "else",
+                  "attrs": {}
+                }
+              ],
+              "name": "choose",
+              "attrs": {}
+            },
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "macro": "access",
+                "prefix": " ",
+                "suffix": "."
+              }
+            }
+          ],
+          "name": "layout",
+          "attrs": {}
+        }
+      ],
+      "name": "bibliography",
+      "attrs": {
+        "et-al-min": "4",
+        "et-al-use-first": "1",
+        "line-spacing": "2",
+        "subsequent-author-substitute": "---",
+        "hanging-indent": "true"
+      }
+    }
+  ],
+  "name": "style",
+  "attrs": {
+    "xmlns": "http://purl.org/net/xbiblio/csl",
+    "class": "in-text",
+    "xml:lang": "en"
+  }
+}

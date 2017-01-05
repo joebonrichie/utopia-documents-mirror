@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,6 +37,8 @@
 namespace Papyro
 {
 
+    class PapyroTab;
+
     class TabBarPrivate;
     class TabBar : public QFrame
     {
@@ -46,14 +48,14 @@ namespace Papyro
         TabBar(QWidget * parent = 0, Qt::WindowFlags f = 0);
         ~TabBar();
 
-        int addTab(QObject * target);
+        int addTab(PapyroTab * tab);
         int count() const;
         int currentIndex() const;
         int indexAt(const QPoint & pos) const;
-        int indexOf(QObject * target) const;
+        int indexOf(PapyroTab * tab) const;
         bool isEmpty() const;
         void removeTab(int index);
-        QObject * targetAt(int index) const;
+        PapyroTab * tabAt(int index) const;
 
     public slots:
         void nextTab();
@@ -64,13 +66,15 @@ namespace Papyro
         void closeRequested(int index);
         void currentIndexChanged(int index);
         void layoutChanged();
+        void starredToggled(bool starred);
         void tabAdded(int index);
         void tabMetadataChanged(int index);
         void tabRemoved(int index);
-        void targetAdded(QObject * target);
-        void targetRemoved(QObject * target);
+        void tabAdded(PapyroTab * tab);
+        void tabRemoved(PapyroTab * tab);
 
     protected:
+        void enterEvent(QEvent * event);
         bool event(QEvent * event);
         void leaveEvent(QEvent * event);
         void mousePressEvent(QMouseEvent * event);

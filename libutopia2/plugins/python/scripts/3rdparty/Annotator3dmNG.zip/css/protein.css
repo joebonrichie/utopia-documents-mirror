@@ -1,19 +1,17 @@
-.threedm #sequence {
-    margin: 5px 0px;
-    padding-left: 4px;
+.sequence {
     width: 100%;
+    background: white;
 }
 
-.threedm #sequencePanel {
+.sequencePanel {
     font-family: courier, "Courier New";
-    font-size: 0.8em;
-    max-height: 300px;
+    max-height: 500px;
     overflow: auto;
     width: 100%;
     /*border-bottom: 1px solid #d3d3d3;*/
 }
 
-.threedm #sequencePanel table {
+.sequencePanel table {
     border: 1px solid lightgray;
     border-collapse:collapse;
     margin: 0px 0px;
@@ -21,21 +19,21 @@
     cursor: default;
 }
 
-.threedm #sequencePanel table {
+.sequencePanel table {
     width: 100%;
 }
 
-.threedm #sequencePanel tr {
+.sequencePanel tr {
     border: 1px solid lightgray;
 }
 
-.threedm #sequencePanel td{
+.sequencePanel td{
     border: 1px solid lightgray;
     padding: 1px 3px;
     vertical-align: text-top;
 }
 
-.threedm #sequencePanel td .positionNumber{
+.sequencePanel td .positionNumber{
     display: block;
     text-align: right;
     font-size: 0.8em;
@@ -43,23 +41,23 @@
     margin: 0 0 5px 0;
 }
 
-.threedm #sequencePanel td .aa[colorCores]{
+.sequencePanel td .aa[colorCores]{
     /*color: #000000;*/
     font-weight: 600;
     color: #00A0B0;
 }
 
-.threedm #sequencePanel td .aa[colorMutations]{
+.sequencePanel td .aa[colorMutations]{
     /*color: #000000;*/
     font-weight: 600;
     color: #FF6B6B;
 }
 
-.threedm #sequencePanel td .aa:hover{
+.sequencePanel td .aa:hover{
     border-bottom: 1px solid black;
 }
 
-.threedm #sequenceInfoPanel {
+.sequenceInfoPanel {
     /*float: left;*/
     /*width: 639px;*/
     /*padding: 5px 10px;*/
@@ -75,16 +73,16 @@
     padding: 5px 0px 0px 0px;
 }
 
-.threedm .selectedAa {
+.selectedAa {
     border: 1px solid green;
 }
-.threedm .residueInfo {
+.residueInfo {
     padding: 5px;
     margin: 5px;
     text-align: center;
 }
 
-.threedm .residueAttributes {
+.residueAttributes {
     border-top: 1px solid lightgray;
     padding: 5px;
     margin: 5px;
@@ -94,13 +92,13 @@
     font-size: smaller;
 }
 
-.threedm .residueOverview {
+.residueOverview {
     float:left;
     width: 8em;
     /*margin-right: 5px;*/
     /*border-right: 1px solid lightgray;*/
 }
-.threedm .attributeInfoPanel {
+.attributeInfoPanel {
     float: left;
     font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
     font-size: smaller;
@@ -108,17 +106,17 @@
     margin: 0px 0px;
 }
 
-.threedm .residueAttributeLine *[selected] {
+.residueAttributeLine *[selected] {
     font-weight: bold;
     color: #505050;
 }
 
-.threedm .uniqueMutation[selected] {
+.uniqueMutation[selected] {
     font-weight: bold;
     color: #505050;
 }
 
-.threedm .attributeInfoDetailPanel {
+.attributeInfoDetailPanel {
     float: left;
     height: 100px;
     font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
@@ -130,7 +128,7 @@
 }
 
 
-.threedm #sequenceInfoPanel .residueInfoLine .residueType{
+.sequenceInfoPanel .residueInfoLine .residueType{
     font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
     line-height: 17px;
     font-size: xx-large;
@@ -141,7 +139,7 @@
     margin-right: 4px;
 }
 
-.threedm #sequenceInfoPanel .residueInfoLine .residueNumber, .residueNumber3d{
+.sequenceInfoPanel .residueInfoLine .residueNumber, .residueNumber3d{
     font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
     line-height: 13px;
     font-size: smaller;
@@ -151,7 +149,7 @@
     color: #555555;
 }
 
-.threedm .sequenceInfoPanelContents h1 {
+.sequenceInfoPanelContents h1 {
     font-size: 10px;
     font-style: normal;
     text-transform: uppercase;
@@ -159,13 +157,13 @@
     color: #555555;
 }
 
-.threedm .sequenceInfoPanelContents ul {
+.sequenceInfoPanelContents ul {
     margin: 0px;
     padding: 0px;
     list-style-type: disc;
 	list-style-position: inside;
 }
-.threedm .sequenceInfoPanelContents li {
+.sequenceInfoPanelContents li {
     font-size: 10px;
     font-style: normal;
     font-weight: 400;
@@ -174,15 +172,15 @@
     padding: 0px;
 }
 
-.threedm .sequenceInfoPanelCollapse {
+.sequenceInfoPanelCollapse {
     float:right;
 }
 
-.threedm #colorCores, .threedm #colorMutations {
+#colorCores, #colorMutations {
     font-size: 0.9em;
     /*margin: 4px 0px;*/
 }
 
-.threedm #structuresPanel {
+#structuresPanel {
     max-height: 300px;
 }

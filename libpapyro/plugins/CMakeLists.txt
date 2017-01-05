@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -42,3 +42,4 @@ add_subdirectory( papyro )
 add_subdirectory( utopia2 )
 add_subdirectory( pdf )
 add_subdirectory( cslengineprefs )
+add_subdirectory( lazarus )

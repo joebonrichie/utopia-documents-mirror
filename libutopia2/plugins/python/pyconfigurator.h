@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -52,12 +52,6 @@ public:
 
         // Ensure the extension object instantiated correctly, then tailor this object
         if (extensionObject()) {
-            // Get UUID
-            if (PyObject * uuidret = PyObject_CallMethod(extensionObject(), (char *) "uuid", (char * ) "")) {
-                _uuid = PyString_AsString(uuidret);
-                Py_XDECREF(uuidret);
-            }
-
             // Get configuration title
             if (PyObject * titleret = PyObject_CallMethod(extensionObject(), (char *) "title", (char *) "")) {
                 _title = convert(titleret).toString();
@@ -75,7 +69,7 @@ public:
                     QString encoding(r.cap(3));
                     QString data(r.cap(4));
                     if (encoding == "base64") {
-                        _icon = QImage::fromData(QByteArray::fromBase64(data.toAscii()));
+                        _icon = QImage::fromData(QByteArray::fromBase64(data.toUtf8()));
                     }
                 }
             }
@@ -83,6 +77,45 @@ public:
 
         // Release Python's global interpreter lock
         PyGILState_Release(gstate);
+
+        // Assign default values
+        QVariantMap defaultConfig(defaults());
+        Utopia::Configuration * conf(configuration());
+        QMapIterator< QString, QVariant > iter(defaultConfig);
+        while (iter.hasNext()) {
+            iter.next();
+            if (!conf->contains(iter.key())) {
+                conf->set(iter.key(), iter.value());
+            }
+        }
+    }
+
+    QVariantMap defaults() const
+    {
+        QVariantMap defaultConfig;
+
+        if (extensionObject())
+        {
+            PyGILState_STATE gstate;
+            gstate = PyGILState_Ensure();
+
+            if (PyObject_HasAttrString(extensionObject(), "defaults")) {
+                PyObject * output = PyObject_CallMethod(extensionObject(), (char *) "defaults", (char *) "()");
+                if (output)
+                {
+                    defaultConfig = convert(output).toMap();
+                    Py_DECREF(output);
+                }
+                else
+                {
+                    PyErr_PrintEx(0);
+                }
+            }
+
+            PyGILState_Release(gstate);
+        }
+
+        return defaultConfig;
     }
 
     QString form() const
@@ -123,11 +156,10 @@ public:
 
     QUuid configurationId() const
     {
-        return _uuid;
+        return uuid().c_str();
     }
 
 protected:
-    QUuid _uuid;
     QString _title;
     QImage _icon;
 };

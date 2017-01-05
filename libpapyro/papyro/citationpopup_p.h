@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,8 +32,11 @@
 #ifndef PAPYRO_CITATIONPOPUP_P_H
 #define PAPYRO_CITATIONPOPUP_P_H
 
-#include <spine/Annotation.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#endif
 #include <utopia2/qt/spinner.h>
+#include <papyro/citation.h>
 
 #include <QMenu>
 #include <QObject>
@@ -62,16 +65,18 @@ namespace Papyro
 
         public slots:
             void addLink(QString, QString);
+            void addPdf(QString, QString);
             void onLinkClicked(const QString & url);
+            void onResolverRunnableCompleted(Athenaeum::CitationHandle citation);
 
         protected:
             bool eventFilter(QObject * obj, QEvent * event);
 
             QHBoxLayout * _layout;
+            QLabel * citationLabel;
             QLabel * pdfLabel;
             QLabel * moreLabel;
             Utopia::Spinner * spinner;
-            Utopia::Spinner * pdfSpinner;
             QStackedLayout * moreLayout;
             QStackedLayout * pdfLayout;
             QMenu menu;

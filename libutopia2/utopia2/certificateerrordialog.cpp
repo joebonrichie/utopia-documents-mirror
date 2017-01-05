@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -53,19 +53,21 @@ bool operator < (const QSslCertificate & c1, const QSslCertificate & c2) { retur
 namespace Utopia
 {
 
-    namespace
-    {
-        QLabel * newLabel(const QString & text, const QString & name)
-        {
-            QLabel * l = new QLabel(text);
-            l->setObjectName(name);
-            return l;
-        }
-
-        QLabel * newFieldLabel(const QString & text) { return newLabel(text, "field"); }
-        QLabel * newValueLabel(const QString & text) { return newLabel(text, "value"); }
-        QLabel * newErrorLabel(const QString & text) { return newLabel(text, "error"); }
-    }
+// --- Not sure what this next block was in here for, so it's commented out for now
+//
+//     namespace
+//     {
+//         QLabel * newLabel(const QString & text, const QString & name)
+//         {
+//             QLabel * l = new QLabel(text);
+//             l->setObjectName(name);
+//             return l;
+//         }
+//
+//         QLabel * newFieldLabel(const QString & text) { return newLabel(text, "field"); }
+//         QLabel * newValueLabel(const QString & text) { return newLabel(text, "value"); }
+//         QLabel * newErrorLabel(const QString & text) { return newLabel(text, "error"); }
+//     }
 
     CertificateErrorDialogPrivate::CertificateErrorDialogPrivate(const QString & host, const QList< QSslError > & sslErrors, CertificateErrorDialog * dialog)
         : QObject(dialog), dialog(dialog), host(host), policy(CertificateErrorDialog::Deny)
@@ -102,7 +104,7 @@ namespace Utopia
         mainLayout->addWidget(listWidget);
         listWidget->setVisible(sslErrorsByCertificate.size() > 1);
         foreach (QSslCertificate certificate, sslErrorsByCertificate.keys()) {
-            listWidget->addItem(certificate.subjectInfo(QSslCertificate::CommonName));
+            listWidget->addItem(certificate.subjectInfo(QSslCertificate::CommonName).join(" "));
         }
 
         infoFrame = new QWebView;
@@ -182,22 +184,22 @@ namespace Utopia
             // Find a printable name for this certificate's subject
             QString subjectName;
             for (int i = tags.size() - 1; i > 0; --i) {
-                QString info(certificate.subjectInfo(tags.at(i)));
+                QStringList info(certificate.subjectInfo(tags.at(i)));
                 if (!info.isEmpty()) {
-                    subjectName = info;
+                    subjectName = info.join(" ");
                     break;
                 }
             }
 
             // And the common name of the subject
-            QString subjectCommonName(certificate.subjectInfo(QSslCertificate::CommonName));
+            QString subjectCommonName(certificate.subjectInfo(QSslCertificate::CommonName).join(" "));
 
             // Find a printable name for this certificate's issuer
             QString issuerName;
             for (int i = tags.size() - 1; i > 0; --i) {
-                QString info(certificate.issuerInfo(tags.at(i)));
+                QStringList info(certificate.issuerInfo(tags.at(i)));
                 if (!info.isEmpty()) {
-                    issuerName = info;
+                    issuerName = info.join(" ");
                     break;
                 }
             }
@@ -211,18 +213,18 @@ namespace Utopia
             // Subject information
             QString subjectInfo;
             foreach (QSslCertificate::SubjectInfo tag, tags) {
-                QString value(certificate.subjectInfo(tag));
+                QStringList value(certificate.subjectInfo(tag));
                 if (!value.isEmpty()) {
-                    subjectInfo += QString("<div class=\"field subject-%1\">%2</div><div id=\"subject-%1\" class=\"value\">%3</div>\n").arg(tagClasses[tag], tagNames[tag], value);
+                    subjectInfo += QString("<div class=\"field subject-%1\">%2</div><div id=\"subject-%1\" class=\"value\">%3</div>\n").arg(tagClasses[tag], tagNames[tag], value.join(" "));
                 }
             }
 
             // Issuer information
             QString issuerInfo;
             foreach (QSslCertificate::SubjectInfo tag, tags) {
-                QString value(certificate.issuerInfo(tag));
+                QStringList value(certificate.issuerInfo(tag));
                 if (!value.isEmpty()) {
-                    issuerInfo += QString("<div class=\"field issuer-%1\">%2</div><div id=\"issuer-%1\" class=\"value\">%3</div>\n").arg(tagClasses[tag], tagNames[tag], value);
+                    issuerInfo += QString("<div class=\"field issuer-%1\">%2</div><div id=\"issuer-%1\" class=\"value\">%3</div>\n").arg(tagClasses[tag], tagNames[tag], value.join(" "));
                 }
             }
 

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -83,7 +83,7 @@ namespace Graffiti
             for (int column = 0 ; column < this->_model->columnCount() ; ++column)
             {
                 this->_model->setData(this->_model->index(row,column), GraphTableView::None, Qt::UserRole);
-                this->_model->setData(this->_model->index(row,column), Qt::red, Qt::UserRole + 1);
+                this->_model->setData(this->_model->index(row,column), QColor(Qt::red), Qt::UserRole + 1);
                 this->_model->setData(this->_model->index(row,column), false, Qt::UserRole + 2);
             }
         }
@@ -141,10 +141,10 @@ namespace Graffiti
 
             //qDebug() << "Data is " << data;
 
-            if (data.contains("±"))
+            if (data.contains(QChar(0x00B1)))
             {
                 //qDebug() << "Got a plusminus";
-                int index = data.indexOf("±");
+                int index = data.indexOf(QChar(0x00B1));
                 data = data.left(index);
                 //qDebug() << "Stripped to " << data;
             }
@@ -386,7 +386,6 @@ namespace Graffiti
             QDomNodeList tableWrapList = docElem.elementsByTagName("table-wrap");
 
             bool found = false;
-            int tableIndex = 0;
             QDomElement tableWrapper;
             for (int tableIndex = 0; tableIndex < tableWrapList.count(); ++tableIndex)
             {
@@ -647,7 +646,7 @@ namespace Graffiti
              !group.isNull(); group = group.nextSiblingElement()) {
             const bool isHead = group.tagName() == "thead";
             const bool isBody = group.tagName() == "tbody";
-            const bool isFoot = group.tagName() == "tfoot";
+            //const bool isFoot = group.tagName() == "tfoot";
             if (!isHead && !isBody) { continue; }
             for (QDomElement row(group.firstChildElement());
                  !row.isNull(); row = row.nextSiblingElement()) {
@@ -720,7 +719,6 @@ namespace Graffiti
             QDomNodeList tableWrapList = docElem.elementsByTagName("table");
 
             bool found = false;
-            int tableIndex = 0;
             QDomElement tableWrapper;
             for (int tableIndex = 0; tableIndex < tableWrapList.count(); ++tableIndex)
             {

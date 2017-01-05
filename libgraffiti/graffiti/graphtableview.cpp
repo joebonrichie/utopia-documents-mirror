@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,11 +31,14 @@
 
 #include <QDebug>
 #include <QMouseEvent>
-#include "qtcolorpicker.h"
 
 #include <graffiti/graphtableview.h>
 #include <graffiti/tablewidget.h>
+
+#include <QColorDialog>
 #include <QHeaderView>
+#include <QMenu>
+
 #include <QDebug>
 
 namespace Graffiti
@@ -46,8 +49,6 @@ namespace Graffiti
         this->verticalHeader()->hide();
         this->horizontalHeader()->hide();
         this->setMouseTracking(true);
-        this->_colourPicker = 0;
-        this->_typePicker = 0;
 
         connect(this, SIGNAL(clicked(const QModelIndex &)), this, SLOT(cellClicked(const QModelIndex &)));
     }
@@ -70,18 +71,7 @@ namespace Graffiti
                     ||
                     (this->model()->data(modelIndex, Qt::UserRole + 2).toBool() == true))
                 {
-                    if (this->_colourPicker == 0)
-                    {
-                        this->_colourPicker = new QtColorPicker(this);
-                        this->_colourPicker->setStandardColors();
-                        this->_colourPicker->setColorDialogEnabled(true);
-                        this->_colourPicker->hide();
-                    }
-
-                    QColor newColour = this->_colourPicker->getColorFromPopup(this->mapToGlobal(visualRegion.bottomLeft()));
-
-                    this->_colourPicker->setCurrentColor(newColour);
-                    emit colourChanged(modelIndex, newColour);
+                    emit colourChanged(modelIndex, QColorDialog::getColor(Qt::red));
                 }
             }
             else if ((event->pos().x() > (visualRegion.right() - 20)) && (event->pos().y() > (visualRegion.bottom() - 20)))
@@ -92,36 +82,34 @@ namespace Graffiti
                 }
                 else
                 {
-                    // horrible horrible hack, which uses the first char of these tooltips as the character
-                    // to plot in the selection box, i.e. ' ', 'X','Y' or 'L'
-                    if (this->_typePicker == 0)
-                    {
-                        this->_typePicker= new QtColorPicker(this, -1, false);
-                        this->_typePicker->setLabels(true);
-                        this->_typePicker->insertColor(Qt::cyan, " not plotted");
-                        this->_typePicker->insertColor(Qt::red, "X axis");
-                        this->_typePicker->insertColor(Qt::green, "Y axis");
-                        this->_typePicker->insertColor(Qt::blue, "Label");
-                        this->_typePicker->hide();
-                    }
+                    QMenu menu;
+                    QActionGroup * group = new QActionGroup(&menu);
+                    group->setExclusive(true);
+                    QAction * actionNotPlotted = group->addAction(menu.addAction("not plotted"));
+                    actionNotPlotted->setCheckable(true);
+                    QAction * actionXAxis = group->addAction(menu.addAction("X axis"));
+                    actionXAxis->setCheckable(true);
+                    QAction * actionYAxis = group->addAction(menu.addAction("Y axis"));
+                    actionYAxis->setCheckable(true);
+                    QAction * actionLabel = group->addAction(menu.addAction("Label"));
+                    actionLabel->setCheckable(true);
+                    menu.exec(mapToGlobal(visualRegion.bottomRight()));
 
-
-                    QColor newType = this->_typePicker->getColorFromPopup(this->mapToGlobal(visualRegion.bottomRight()));
-                    if (newType == Qt::red)
+                    QAction * checked = group->checkedAction();
+                    if (checked == actionXAxis)
                     {
                         emit typeChanged(modelIndex, XAxis);
                     }
-                    else if (newType == Qt::green)
+                    else if (checked == actionYAxis)
                     {
                         emit typeChanged(modelIndex, YAxis);
                     }
-                    else if (newType == Qt::blue)
+                    else if (checked == actionLabel)
                     {
                         emit typeChanged(modelIndex, Label);
                     }
-                    else if (newType == Qt::cyan)
+                    else if (checked == actionNotPlotted)
                     {
-
                         emit typeChanged(modelIndex, None);
                     }
                 }

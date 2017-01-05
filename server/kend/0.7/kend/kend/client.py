@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -60,10 +60,12 @@ class Client:
         self.loginCallback = loginCallback
         if self.loginCallback is None:
             try:
-                from utopia import auth, agent_string
+                from utopia import bridge, auth
                 self.loginCallback = auth.TokenGenerator('https://utopia.cs.manchester.ac.uk/authd')
-                self.agent = '%s %s' % (agent_string, self.agent)
+                self.agent = '%s %s' % (bridge.agent_string, self.agent)
             except:
+                import traceback
+                traceback.print_exc()
                 def null_token(old_token):
                     return None
                 self.loginCallback = null_token
@@ -171,6 +173,13 @@ class Client:
             return self._request(auth._getServiceBaseUri('documents'), method = 'POST', body_data = documentref)
         except ImportError:
             return self._request('https://utopia.cs.manchester.ac.uk/kend/0.7/documents', method = 'POST', body_data = documentref)
+
+    def document(self, uri):
+        try:
+            from utopia import auth
+            return self._request(auth._getServiceBaseUri('documents'), query_data={'document': uri})
+        except ImportError:
+            return self._request('https://utopia.cs.manchester.ac.uk/kend/0.7/documents', query_data={'document': uri})
 
     def searchDocuments(self, **kwargs):
         from utopia import auth

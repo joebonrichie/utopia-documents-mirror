@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -39,7 +39,7 @@ import kend.converter.Annotation
 import re
 import spineapi
 import utopia.document
-import common.utils
+import utopialib.utils
 
 class GenecardsVisualiser(utopia.document.Visualiser):
 
@@ -105,7 +105,7 @@ class BioLookupGenecardsAnnotator(utopia.document.Annotator):
     @utopia.document.buffer
     def on_ready_event(self, document):
         # Find distinguishing ID
-        pmid = common.utils.metadata(document, 'pmid')
+        pmid = utopialib.utils.metadata(document, 'identifiers[pubmed]')
         if pmid:
             print "Found pmid:", pmid
             for annotation in self.on_explore_event(phrase=pmid, document=document):

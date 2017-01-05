@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,8 +37,6 @@
 #include <QPalette>
 #include <QCheckBox>
 
-#include <QCDEStyle>
-
 #include <QDebug>
 
 #include <graffiti/tablewidget.h>
@@ -47,9 +45,7 @@ namespace Graffiti
 {
 
     EntryDelegate::EntryDelegate(TableWidget *tableWidget) : _tableWidget(tableWidget)
-    {
-        this->_cdeStyle = new QCDEStyle();
-    }
+    {}
 
     void EntryDelegate::paint(QPainter *painter,
                               const QStyleOptionViewItem &option,

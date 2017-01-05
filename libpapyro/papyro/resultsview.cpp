@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 #include <papyro/papyrotab.h>
 #include <papyro/resultsview_p.h>
 #include <papyro/resultsview.h>
+#include <papyro/resolverrunnable.h>
 #include <utopia2/qt/bubble.h>
 #include "version_p.h"
 
@@ -45,19 +46,6 @@
 
 namespace Papyro
 {
-
-    static QString loadQrc(const QString & qrc)
-    {
-        QFile file(qrc);
-        if (file.open(QIODevice::ReadOnly)) {
-            return QString::fromUtf8(file.readAll());
-        } else {
-            return QString();
-        }
-    }
-
-
-
 
     template< typename T >
     static T * ancestor(QObject * descendent)
@@ -102,9 +90,7 @@ namespace Papyro
 
     void ResultItemControl::contentChanged(const QString & key)
     {
-        foreach (QString content, item()->content(key)) {
-            emit insertContent(d.resultElement, content);
-        }
+        emit insertContent(d.resultElement, item()->content(key));
     }
 
     QString ResultItemControl::cssId() const
@@ -167,20 +153,20 @@ namespace Papyro
 
     QString ResultItemControl::sourceIcon() const
     {
-        return QString::fromAscii(item()->sourceIcon().toEncoded());
+        return QString::fromUtf8(item()->sourceIcon().toEncoded());
     }
 
     void ResultItemControl::stateChanged(ResultItem::State state)
     {
         // Turn off spinner once done
         if (state == ResultItem::Generated) {
-            element().evaluateJavaScript("papyro.onResultItemContentFinished(this)");
+            element().evaluateJavaScript("utopia.onResultItemContentFinished(this)");
         }
     }
 
     QWebElement ResultItemControl::thumbnailElement(const QString & thumbnailClass) const
     {
-        return element().findFirst(".-papyro-internal-thumbnail img.-papyro-internal-" + thumbnailClass);
+        return element().findFirst(".-papyro-internal-graphics img.-papyro-internal-" + thumbnailClass);
     }
 
     QString ResultItemControl::title() const
@@ -197,7 +183,7 @@ namespace Papyro
         }
 
         // Toggle
-        element().evaluateJavaScript("papyro.toggleSlide(this)");
+        element().evaluateJavaScript("utopia.toggleSlide(this)");
     }
 
     int ResultItemControl::weight() const
@@ -208,13 +194,74 @@ namespace Papyro
 
 
 
+    MetadataResolutionFuture::MetadataResolutionFuture(const QVariantMap & metadata, const QString & purpose)
+        : _ready(false)
+    {
+        Athenaeum::Resolver::Purposes purposes;
+        if (purpose == "identify") { purposes |= Athenaeum::Resolver::Identify; }
+        else if (purpose == "expand") { purposes |= Athenaeum::Resolver::Expand; }
+        else if (purpose == "dereference") { purposes |= Athenaeum::Resolver::Dereference; }
+        else { qDebug() << QString("Error: citation resolution purpose (%1) not recognised.").arg(purpose); }
+        Athenaeum::ResolverRunnable::resolve(Athenaeum::Citation::fromMap(metadata), this, SLOT(onResolverRunnableCompleted(Athenaeum::CitationHandle)), purposes);
+    }
+
+    void MetadataResolutionFuture::doom()
+    {
+        deleteLater();
+    }
+
+    bool MetadataResolutionFuture::isReady() const
+    {
+        return _ready;
+    }
+
+    void MetadataResolutionFuture::lock()
+    {
+        _mutex.lock();
+    }
+
+    void MetadataResolutionFuture::onResolverRunnableCompleted(Athenaeum::CitationHandle citation)
+    {
+        lock();
+        QVariantMap metadata = citation->toMap();
+        emit completed(metadata);
+        _metadata = metadata;
+        _ready = true;
+        unlock();
+    }
+
+    QVariantMap MetadataResolutionFuture::results() const
+    {
+        return _metadata;
+    }
+
+    void MetadataResolutionFuture::unlock()
+    {
+        _mutex.unlock();
+    }
+
+
+
+
     ResultsViewControl::ResultsViewControl(ResultsViewPrivate * resultsViewPrivate)
         : QObject(resultsViewPrivate), d(resultsViewPrivate)
     {}
 
+    void ResultsViewControl::activateCitation(const QVariantMap & citation, const QString & target)
+    {
+        QVariantList citations;
+        citations << citation;
+        activateCitations(citations, target);
+    }
+
+    void ResultsViewControl::activateCitations(const QVariantList & citations, const QString & target)
+    {
+        emit citationsActivated(citations, target);
+    }
+
     void ResultsViewControl::activateLink(const QString & href, const QString & target)
     {
-        emit linkClicked(QUrl::fromEncoded(href.toAscii()), target);
+        emit linkClicked(QUrl::fromEncoded(href.toUtf8()), target);
     }
 
     void ResultsViewControl::activateSource(QObject * obj)
@@ -244,22 +291,15 @@ namespace Papyro
                 label->setWordWrap(true);
                 label->setTextFormat(Qt::RichText);
                 label->setOpenExternalLinks(true);
-#ifndef Q_OS_WIN32
-                {
-                    QFont f(label->font());
-                    f.setPointSizeF(f.pointSizeF() * 0.85);
-                    label->setFont(f);
-                }
-#endif
                 l->addWidget(label);
                 l->setContentsMargins(0, 0, 0, 0);
                 QRect geometry(element.geometry());
                 QPoint bottomCenter = QPoint(geometry.left() + (geometry.width() / 4), geometry.bottom());
-                QPoint viewTopRight = d->sidebar->mapToGlobal(QPoint(d->sidebar->width(), 0));
+                QPoint viewTopRight = d->view->mapToGlobal(QPoint(d->view->width(), 0));
                 bubble->setCorners(Utopia::AllCorners);
                 bubble->setCalloutSide(Utopia::TopCallout);
                 bubble->setCalloutPosition(bottomCenter.x() - 106);
-                bubble->setFixedWidth(d->sidebar->width() - 120);
+                bubble->setFixedWidth(d->view->width() - 120);
                 bubble->setFixedHeight(bubble->heightForWidth(bubble->width()));
                 bubble->move(viewTopRight.x() - 10 - bubble->width(), viewTopRight.y() + bottomCenter.y() - element.evaluateJavaScript("$(window).scrollTop()").toInt());
                 bubble->show();
@@ -282,19 +322,53 @@ namespace Papyro
         return d->cslengine->format(convert_to_cslengine(metadata), style);
     }
 
+    void ResultsViewControl::onLoadComplete()
+    {
+        //qDebug() << "ResultsViewControl::onLoadComplete()";
+        d->ready = true;
+        d->wait.quit();
+    }
+
+    QObject * ResultsViewControl::resolveMetadata(const QVariantMap & metadata, const QString & purpose)
+    {
+        MetadataResolutionFuture * future = new MetadataResolutionFuture(metadata, purpose);
+        return future;
+    }
+
+    void ResultsViewControl::searchRemote(const QString & term)
+    {
+        // Set bus accordingly
+        if (!bus()) {
+            if (PapyroTab * tab = ancestor< PapyroTab >(this)) {
+                setBus(tab->bus());
+            }
+        }
+
+        if (bus()) {
+            QVariantMap data;
+            data["term"] = term;
+            data["action"] = "searchRemote";
+            postToBus("window", data);
+        }
+    }
 
 
 
-    ResultsViewPrivate::ResultsViewPrivate(ResultsView * sidebar)
-        : QObject(sidebar), sidebar(sidebar), control(new ResultsViewControl(this)), cslengine(CSLEngine::instance())
+
+    ResultsViewPrivate::ResultsViewPrivate(ResultsView * view)
+        : QObject(view), view(view), control(new ResultsViewControl(this)), cslengine(CSLEngine::instance()), ready(false)
     {
         // Result queue
         resultQueueTimer.setInterval(30);
         resultQueueTimer.setSingleShot(true);
         connect(&resultQueueTimer, SIGNAL(timeout()), this, SLOT(addResult()));
 
-        connect(this, SIGNAL(resultAdded(QObject*)), control, SIGNAL(resultAdded(QObject*)));
-        connect(control, SIGNAL(linkClicked(const QUrl &, const QString &)), this, SIGNAL(linkClicked(const QUrl &, const QString &)));
+        connect(this, SIGNAL(resultAdded(QObject*)),
+                control, SIGNAL(resultAdded(QObject*)));
+        connect(control, SIGNAL(linkClicked(const QUrl &, const QString &)),
+                this, SIGNAL(linkClicked(const QUrl &, const QString &)));
+        connect(control, SIGNAL(citationsActivated(const QVariantList &, const QString &)),
+                view, SIGNAL(citationsActivated(const QVariantList &, const QString &)));
     }
 
     void ResultsViewPrivate::addResult()
@@ -311,6 +385,13 @@ namespace Papyro
                 emit runningChanged(false);
             }
 
+            // Wait in case the page is still loading
+            if (!ready) {
+                //qDebug() << "ResultsViewPrivate::addResult() --- waiting";
+                wait.exec();
+            }
+            //qDebug() << "ResultsViewPrivate::addResult()";
+
             // Send result into the web view
             emit resultAdded(result);
         }
@@ -319,13 +400,16 @@ namespace Papyro
     void ResultsViewPrivate::setupJavaScriptWindowObject()
     {
         // Attach sidebar control
-        sidebar->page()->mainFrame()->addToJavaScriptWindowObject("control", control);
+        view->page()->mainFrame()->addToJavaScriptWindowObject("control", control);
+        view->page()->mainFrame()->evaluateJavaScript(
+            "window.onload = function() { jQuery('body').addClass('" + classes.join(" ").replace("'", "\'") + "'); }"
+        );
     }
 
 
 
 
-    ResultsView::ResultsView(QWidget * parent)
+    ResultsView::ResultsView(const QString & classes, QWidget * parent)
         : Utopia::WebView(parent), d(new ResultsViewPrivate(this))
     {
         qRegisterMetaType<QWebElement>("QWebElement");
@@ -337,13 +421,11 @@ namespace Papyro
         connect(d, SIGNAL(linkClicked(const QUrl &, const QString &)), this, SIGNAL(linkClicked(const QUrl &, const QString &)));
         connect(d, SIGNAL(runningChanged(bool)), this, SIGNAL(runningChanged(bool)));
 
-        // The HTML must be loaded this way to ensure that it is parsed and rendered as
-        // HTML5 (otherwise the canvas element will not work)
-        QFile f(":/pages/results.xml");
-        f.open(QIODevice::ReadOnly);
-        setContent(f.readAll(), "text/html");
+        d->classes = classes.split(QRegExp("\\s"), QString::SkipEmptyParts);
 
-        page()->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
+        setUrl(QUrl("qrc:/pages/results.html"));
+
+        page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
     }
 
     void ResultsView::addResult(ResultItem * result)
@@ -361,11 +443,19 @@ namespace Papyro
 
     void ResultsView::clear()
     {
-        page()->mainFrame()->evaluateJavaScript("papyro.clear();");
-        foreach (ResultItemControl * itemControl, d->results) {
-            delete itemControl;
-        }
-        d->results.clear();
+        //QWebSettings::clearMemoryCaches();
+        QStringList classes = d->classes;
+        page()->mainFrame()->evaluateJavaScript("utopia.clear();");
+        d->deleteLater();
+        d = new ResultsViewPrivate(this);
+
+        connect(page()->mainFrame(), SIGNAL(javaScriptWindowObjectCleared()), d, SLOT(setupJavaScriptWindowObject()));
+        connect(d, SIGNAL(linkClicked(const QUrl &, const QString &)), this, SIGNAL(linkClicked(const QUrl &, const QString &)));
+        connect(d, SIGNAL(runningChanged(bool)), this, SIGNAL(runningChanged(bool)));
+
+        d->classes = classes;
+
+        setUrl(QUrl("qrc:/pages/results.html"));
     }
 
     bool ResultsView::isRunning() const

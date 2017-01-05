@@ -1,0 +1,12 @@
+# Override false positives: these are original sources with long lines
+#
+# libpapyro/papyro/citeproc/citeproc.js
+# libpapyro/papyro/pages/altmetric/jquery.altmetric.js
+# libpapyro/papyro/pages/jqplot/jqplot.pyramidAxisRenderer.js
+# libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/js/common.js
+# libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/js/mutation.js
+# libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/js/residue.js
+#
+utopia-documents source: source-is-missing
+utopia-documents source: source-contains-prebuilt-javascript-object
+utopia-documents source: insane-line-length-in-source-file

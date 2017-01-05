@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@
 #include <utopia2/parser.h>
 #include <utopia2/initializer.h>
 #include <utopia2/qt/uimanager.h>
+#include <utopia2/qt/hidpi.h>
 #include <utopia2/qt/preferencesdialog.h>
 
 #include "qtsingleapplication.h"
@@ -45,6 +46,8 @@
 #include <QFileOpenEvent>
 #include <QFocusEvent>
 #include <QGLFormat>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 #include <QSettings>
 #include <QTextStream>
 
@@ -69,6 +72,12 @@ public:
     }
 
 protected:
+//     bool notify(QObject * receiver, QEvent * e)
+//     {
+//         qDebug() << ">>" << receiver << e;
+//         return QtSingleApplication::notify(receiver, e);
+//     }
+
     bool event(QEvent * event)
     {
         switch (event->type()) {
@@ -149,12 +158,8 @@ void print_version() {
 int main(int argc, char *argv[])
 {
     // Set up Qt
-#ifdef Q_OS_LINUX
-    QApplication::setGraphicsSystem("raster");
-#endif
-
 #ifdef Q_OS_WIN32
-    QApplication::setDesktopSettingsAware(false);
+    //QApplication::setDesktopSettingsAware(false);
 #endif
 
 #ifdef Q_OS_MACX
@@ -182,9 +187,35 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
+    // plugin paths must be changed after Application, before first GUI ops
+    QDir qtDirPath(QFileInfo(argv[0]).absoluteDir());
+#if defined(Q_OS_MACX)
+    qtDirPath.cdUp();
+    qtDirPath.cd("PlugIns");
+    QCoreApplication::setLibraryPaths(QStringList(qtDirPath.canonicalPath()));
+#elif defined(Q_OS_WIN)
+    qtDirPath.cdUp();
+    qtDirPath.cd("plugins");
+    QCoreApplication::addLibraryPath(qtDirPath.canonicalPath());
+#elif defined(Q_OS_LINUX)
+    qtDirPath.cdUp();
+    qtDirPath.cd("lib");
+    qtDirPath.cd("utopia-documents");
+    qtDirPath.cd("lib");
+    QCoreApplication::addLibraryPath (qtDirPath.canonicalPath());
+#endif
+
     UtopiaApplication app(argc, argv);
 #ifdef Q_OS_LINUX
     QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope, Utopia::resource_path());
+#elif defined(Q_OS_WIN)
+    app.setWindowIcon(QIcon(":/icons/ud-logo.png"));
+    QPalette p = QApplication::palette();
+    p.setColor(QPalette::Active, QPalette::Highlight, QColor(174, 214, 255));
+    p.setColor(QPalette::Inactive, QPalette::Highlight, QColor(220, 220, 220));
+    p.setColor(QPalette::Active, QPalette::HighlightedText, QColor(0, 0, 0));
+    p.setColor(QPalette::Inactive, QPalette::HighlightedText, QColor(0, 0, 0));
+    QApplication::setPalette(p);
 #endif
 
     // What documents should this application open?
@@ -192,8 +223,8 @@ int main(int argc, char *argv[])
     QStringList documents;
     QTextStream commandStream(&command);
     commandStream << QString("open");
-        QStringList args(QCoreApplication::arguments());
-        args.pop_front();
+    QStringList args(QCoreApplication::arguments());
+    args.pop_front();
     foreach (QString arg, args) {
         if (!arg.isEmpty() && arg[0] != '-') {
             commandStream << "|" << QString(arg);
@@ -216,77 +247,78 @@ int main(int argc, char *argv[])
     QGLFormat::setDefaultFormat(glf);
 
     app.setAttribute(Qt::AA_DontShowIconsInMenus);
+#if defined(Q_OS_MACX)
+    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
     app.setApplicationName("Utopia Documents");
-
-    // plugin paths must be changed after Application, before first GUI ops
-    QDir qtDirPath(QCoreApplication::applicationDirPath());
-#if defined(Q_OS_MACX)
-    qtDirPath.cdUp();
-    qtDirPath.cd("PlugIns");
-    QCoreApplication::setLibraryPaths(QStringList(qtDirPath.canonicalPath()));
-#elif defined(Q_OS_WIN32)
-    qtDirPath.cdUp();
-    qtDirPath.cd("plugins");
-    QCoreApplication::addLibraryPath(qtDirPath.canonicalPath());
-    QPalette p = QApplication::palette();
-    p.setColor(QPalette::Active, QPalette::Highlight, QColor(174, 214, 255));
-    p.setColor(QPalette::Inactive, QPalette::Highlight, QColor(220, 220, 220));
-    p.setColor(QPalette::Active, QPalette::HighlightedText, QColor(0, 0, 0));
-    p.setColor(QPalette::Inactive, QPalette::HighlightedText, QColor(0, 0, 0));
-    QApplication::setPalette(p);
-    app.setWindowIcon(QIcon(":/icons/ud-logo.png"));
-#elif defined(Q_OS_LINUX)
-    qtDirPath.cdUp();
-    qtDirPath.cd("lib");
-    qtDirPath.cd("utopia-documents");
-    qtDirPath.cd("lib");
-    QCoreApplication::addLibraryPath (qtDirPath.canonicalPath());
-#endif
-
-    // Load in the stylesheet(s)
-    {
-        QStringList bases;
-        bases << "utopia";
-        bases << QFileInfo(QCoreApplication::applicationFilePath()).baseName().toLower().section(QRegExp("[^\\w]+"), -1, -1, QString::SectionSkipEmpty);
-        QStringList modifiers;
-        modifiers << "";
-#if defined(Q_OS_MACX)
-        modifiers << "-macosx";
-#elif defined(Q_OS_WIN32)
-        modifiers << "-win32";
-#elif defined(Q_OS_LINUX)
-        modifiers << "-unix";
-#endif
-        QString css;
-        QStringListIterator base_iter(bases);
-        while (base_iter.hasNext())
-        {
-            QString base = base_iter.next();
-            QStringListIterator modifier_iter(modifiers);
-            while (modifier_iter.hasNext())
-            {
-                QString modifier = modifier_iter.next();
-                QFile styleFile(Utopia::resource_path() + "/css/" + base + modifier + ".css");
-                if (styleFile.exists())
-                {
-                    qDebug() << "Using stylesheet:" << styleFile.fileName();
-                    styleFile.open(QIODevice::ReadOnly);
-                    css += styleFile.readAll();
-                    styleFile.close();
-                }
-            }
-        }
-        if (!css.isEmpty())
-        {
-            app.setStyleSheet(css);
-        }
-    }
 
     // Initialise!
     Utopia::init();
 
-    //Utopia::PreferencesDialog dialog;
-    //dialog.show();
+    // Load in the stylesheet(s)
+    {
+        QFileInfoList cssFiles;
+        QStringList cssSearchPaths;
+        cssSearchPaths << (Utopia::resource_path() + "/css"); // Installed files
+        cssSearchPaths << ":/autoload-qt"; // QResources
+        QDir::setSearchPaths("css", cssSearchPaths);
+
+        // Finding all stylesheets
+        foreach (const QString & path, cssSearchPaths) {
+            QDir cssDir(path);
+            foreach (const QFileInfo & cssFileInfo, cssDir.entryInfoList(QStringList("*.css"), QDir::Files | QDir::Readable)) {
+                cssFiles << cssFileInfo;
+            }
+        }
+
+        // For each path, try to load the CSS
+        QString css;
+        QStringList platforms; platforms << "macosx" << "win32" << "unix";
+        foreach(const QFileInfo & cssFileInfo, cssFiles) {
+            // But ignore anything that looks like it's for a different platform
+            QString baseName(cssFileInfo.baseName());
+            if (baseName.contains("-")) {
+                QString platform = baseName.section("-", -1, -1);
+                if (platforms.contains(platform) && platform !=
+#if defined(Q_OS_MACX)
+                    "macosx"
+#elif defined(Q_OS_WIN)
+                    "win32"
+#elif defined(Q_OS_LINUX)
+                    "unix"
+#endif
+                    ) {
+                    continue;
+                }
+            }
+            QFile cssFile(cssFileInfo.canonicalFilePath());
+            if (cssFile.open(QIODevice::ReadOnly)) {
+                qDebug() << "Using stylesheet" << cssFileInfo.canonicalFilePath();
+                css += cssFile.readAll();
+                cssFile.close();
+            }
+        }
+
+        if (!css.isEmpty()) {
+			// Zoom according to hiDPI settings
+			if (Utopia::hiDPIScaling() > 1.0) {
+				QString newCss;
+				int from = 0;
+				QRegularExpressionMatch match;
+				QRegularExpression regExp("(\\d+)(px)");
+				while ((match = regExp.match(css, from)).hasMatch()) {
+					newCss += css.mid(from, match.capturedStart(0) - from);
+					int value = match.captured(1).toInt() * Utopia::hiDPIScaling();
+					newCss += QString("%1").arg(value) + match.captured(2);
+					from = match.capturedEnd(0);
+				}
+				newCss += css.mid(from);
+				css = newCss;
+			}
+
+            app.setStyleSheet(css);
+        }
+    }
 
     boost::shared_ptr< Utopia::UIManager > uiManager(Utopia::UIManager::instance());
     {

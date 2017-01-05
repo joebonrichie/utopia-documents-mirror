@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,6 +35,8 @@
 #include <utopia2/config.h>
 #include <utopia2/plugin.h>
 
+#include <QDir>
+#include <QFileInfo>
 #include <QObject>
 #include <QUuid>
 
@@ -47,33 +49,28 @@ namespace Utopia
         Q_PROPERTY(bool enabled
                    READ isEnabled
                    WRITE setEnabled)
-        Q_PROPERTY(Utopia::Plugin::PluginBase base
-                   READ getBase
-                   WRITE setBase)
-        Q_PROPERTY(QString relativePath
-                   READ getRelativePath
-                   WRITE setRelativePath)
+        Q_PROPERTY(QString filePath
+                   READ getFilePath
+                   WRITE setFilePath)
 
     public:
-        PluginPrivate(Plugin * plugin, Plugin::PluginBase base, const QString & relativePath);
+        PluginPrivate(Plugin * plugin, const QFileInfo & fileInfo);
         PluginPrivate(Plugin * plugin, const QUuid & uuid);
 
         Plugin * plugin;
 
         bool enabled;
-        Plugin::PluginBase base;
-        QString relativePath;
+        QFileInfo fileInfo;
         bool removed;
         QUuid uuid;
+#ifdef Q_OS_MAC
+        QDir appDir;
+#endif
 
-        Plugin::PluginBase getBase() const;
-        QString getRelativePath() const;
+        QString getFilePath() const;
         bool isEnabled() const;
-        void setBase(Plugin::PluginBase base);
+        void setFilePath(const QString & filePath);
         void setEnabled(bool enabled);
-        void setRelativePath(const QString & relativePath);
-
-        static QString constructAbsolutePath(Plugin::PluginBase base);
 
     }; // class Plugin
 

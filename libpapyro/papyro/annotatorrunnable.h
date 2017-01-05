@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,9 +32,10 @@
 #ifndef PAPYRO_ANNOTATORRUNNABLE_H
 #define PAPYRO_ANNOTATORRUNNABLE_H
 
-#include <papyro/annotator.h>
-
-#include <boost/shared_ptr.hpp>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <papyro/annotator.h>
+#  include <boost/shared_ptr.hpp>
+#endif
 
 #include <QObject>
 #include <QRunnable>
@@ -51,11 +52,11 @@ namespace Papyro
         Q_OBJECT
 
     public:
-        AnnotatorRunnable(boost::shared_ptr< Annotator > annotator, const QString & event, Spine::DocumentHandle document, const QVariantMap & kwargs = QVariantMap());
+        AnnotatorRunnable(boost::shared_ptr< Annotator > annotator, const QString & eventName, Spine::DocumentHandle document, const QVariantMap & kwargs = QVariantMap());
         ~AnnotatorRunnable();
 
         bool isRunnable() const;
-        const QString & event() const;
+        const QString & eventName() const;
         void run();
         void setProgress(qreal progress);
         void skip();
@@ -64,6 +65,9 @@ namespace Papyro
     signals:
         void started();
         void finished(bool skipped = false);
+
+    public slots:
+        void cancel();
 
     private:
         AnnotatorRunnablePrivate * d;

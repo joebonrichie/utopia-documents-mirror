@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libcrackle library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
@@ -40,8 +40,20 @@
 #pragma interface
 #endif
 
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+#ifndef Link
+#define Link AnnotLink
+#endif
+#ifndef GList
+#define Glist GooList
+#endif
+#include <Annot.h>
+#endif
+
 #include <stdio.h>
 #include "gtypes.h"
+#include <GString.h>
+#include <GList.h>
 #include "GfxFont.h"
 #include "OutputDev.h"
 #include "Page.h"
@@ -73,7 +85,6 @@ class CrackleTextBlock;
 class CrackleTextFlow;
 class CrackleTextWordList;
 class CrackleTextPage;
-
 
 namespace Crackle
 {
@@ -580,7 +591,7 @@ public:
 private:
 
     void clear();
-    void assignColumns(CrackleTextLineFrag *frags, int nFrags, int rot);
+    void assignColumns(CrackleTextLineFrag *frags, int nFrags, GBool rot);
     int dumpFragment(Unicode *text, int len, UnicodeMap *uMap, GString *s);
 
     Crackle::PDFFontCollection _font_collection;
@@ -686,6 +697,12 @@ public:
 
     // Start a page.
     virtual void startPage(int pageNum, GfxState *state);
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+    virtual void startPage(int pageNum, GfxState *state, XRef *xref) {
+      // for poppler
+      startPage(pageNum,state);
+    }
+#endif
 
     // End a page.
     virtual void endPage();
@@ -704,7 +721,9 @@ public:
                           double originX, double originY,
                           CharCode c, int nBytes, Unicode *u, int uLen);
     virtual void incCharCount(int nChars);
+    using OutputDev::beginActualText;
     virtual void beginActualText(GfxState *state, Unicode *u, int uLen);
+    // FIXME:  virtual void beginActualText(GfxState *state, GooString *text);
     virtual void endActualText(GfxState *state);
 
     //----- path painting
@@ -762,9 +781,19 @@ public:
         return _images;
     }
 
+
     virtual void drawImage(GfxState *state, Object *ref, Stream *str,
                            int width, int height, GfxImageColorMap *colorMap,
-                           int *maskColors, GBool inlineImg);
+                           int *maskColors, GBool inlineImg, GBool interpolate);
+
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+    virtual void drawImage(GfxState *state, Object *ref, Stream *str,
+			   int width, int height, GfxImageColorMap *colorMap,
+			   GBool interpolate, int *maskColors, GBool inlineImg) {
+      // Poppler compatibility
+      drawImage(state, ref, str, width, height, colorMap, maskColors, inlineImg, interpolate);
+    }
+#endif
 
 private:
     TextOutputFunc outputFunc;    // output function

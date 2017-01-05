@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,9 +29,9 @@
 #   
 ###############################################################################
 
-import common.arxiv
-import common.doi
-import common.utils
+import utopialib.arxiv
+import utopialib.doi
+import utopialib.utils
 import re
 import spineapi
 import urllib
@@ -42,6 +42,8 @@ import utopia.document
 # Make sure labels are sorted numerically (such that 10 > 2)
 def sortfn(c):
     v = c.get('property:label')
+    if v is None:
+        v = c.get('property:order')
     if v is not None:
         num = re.match('[0-9]*', v).group()
         if len(num) > 0:
@@ -56,9 +58,9 @@ class MetadataAnnotator(utopia.document.Annotator):
 
     def on_ready_event(self, document):
         # Scrape title and DOI from document
-        title = common.utils.metadata(document, 'title', '')
-        doi = common.utils.metadata(document, 'doi', '')
-        if len(title) > 0 or len(doi) > 0:
+        title = utopialib.utils.metadata(document, 'title')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
+        if title is not None or doi is not None:
             # Make metadata link
             link = spineapi.Annotation()
             link['session:volatile'] = '1'
@@ -73,9 +75,9 @@ class MetadataAnnotator(utopia.document.Annotator):
             annotation['session:volatile'] = '1'
             annotation['concept'] = 'DocumentMetadata'
             annotation['property:source'] = 'Content'
-            if len(title) > 0:
+            if title is not None:
                 annotation['property:title'] = title
-            if len(doi) > 0:
+            if doi is not None:
                 annotation['property:doi'] = doi
             document.addAnnotation(annotation, link['listName'])
 
@@ -86,79 +88,22 @@ class MetadataAnnotator(utopia.document.Annotator):
         # Find highest matching metadata accumulation list for references
         source = None
         for accListLink in document.getAccLists('metadata'):
-            matches = document.annotationsIf({'concept': 'DocumentReference'}, accListLink['scratch'])
+            matches = document.annotationsIf({'concept': 'Citation'}, accListLink['scratch'])
             if len(matches) > 0:
-                print 'Selected for [DocumentReference] list %s with rank %s' % (accListLink['scratch'], repr(accListLink.get('rank', 0)))
+                print 'Selected for [Citation] list %s with rank %s' % (accListLink['scratch'], repr(accListLink.get('rank', 0)))
                 source = accListLink
                 bibliography = list(matches)
                 bibliography.sort(key=sortfn)
                 rt=''
                 for annotation in bibliography:
-                    links = []
-                    type = annotation.get('property:type')
-                    doi = annotation.get('property:doi')
-                    pmid = annotation.get('property:pmid')
-                    pmcid = annotation.get('property:pmcid')
-                    title = annotation.get('property:title')
-                    url = annotation.get('property:url')
-                    sourceTitle = annotation.get('property:source', '')
-                    if 'property:displayText' in annotation:
-                        displayText = annotation['property:displayText']
-                    else:
-                        displayText = common.utils.format_citation(annotation)
-                    displayTextStripped = re.sub(r'<[^>]*>', '', displayText)
-                    if type == 'other':
-                        doi = doi or common.doi.search(displayTextStripped)
-                        if doi is not None:
-                            links.append({'url': 'http://dx.doi.org/{0}'.format(doi),
-                                          'title': 'See article on publisher\'s website...',
-                                          'name': 'Link'})
-                        else:
-                            links.append({'url': 'http://scholar.google.com/scholar?{0}'.format(urllib.urlencode({'q': displayTextStripped.encode('utf8')})),
-                                          'title': 'Search for article...',
-                                          'name': 'Find'})
-                    else:
-                        if url is not None:
-                            links.append({'url': url,
-                                          'title': url,
-                                          'name': 'Link'})
-                        elif sourceTitle.lower().startswith('arxiv:'):
-                            links.append({'url': common.arxiv.url(sourceTitle[6:]),
-                                          'title': 'See article in arXiv...',
-                                          'name': 'Link'})
-                        if pmcid is not None:
-                            links.append({'url': 'http://www.ncbi.nlm.nih.gov/pmc/articles/{0}'.format(pmcid),
-                                          'title': 'See article in PubMed Central...',
-                                          'name': 'Link'})
-                            links.append({'url': 'http://www.ncbi.nlm.nih.gov/pmc/articles/{0}/pdf/'.format(pmcid),
-                                          'title': 'Download article...',
-                                          'target': 'pdf',
-                                          'name': 'PDF'})
-                        elif doi is not None:
-                            links.append({'url': 'http://dx.doi.org/{0}'.format(doi),
-                                          'title': 'See article on publisher\'s website...',
-                                          'name': 'Link'})
-                        elif pmid is not None:
-                            links.append({'url': 'http://www.ncbi.nlm.nih.gov/pubmed/{0}'.format(pmid),
-                                          'title': 'See article in PubMed...',
-                                          'name': 'Link'})
-                        elif len(links) == 0 and title is not None:
-                            links.append({'url': 'http://scholar.google.co.uk/scholar?q={0}'.format(urllib.quote(title.encode('utf8'))),
-                                          'title': 'Search for article in Google Scholar...',
-                                          'name': 'Find'})
-                        elif len(links) == 0 and displayTextStripped:
-                            print 'http://scholar.google.com/scholar?{0}'.format(urllib.urlencode({'q': displayTextStripped.encode('utf8')}))
-                            links.append({'url': 'http://scholar.google.com/scholar?{0}'.format(urllib.urlencode({'q': displayTextStripped.encode('utf8')})),
-                                          'title': 'Search for article...',
-                                          'name': 'Find'})
-                    anchors = ''
-                    if len(links) > 0:
-                        for link in links:
-                            target = link.get('target', '')
-                            if len(target) > 0:
-                                target = ' target="{0}"'.format(target)
-                            anchors += u' <a href="{0}" title="{1}"{2}>[{3}]</a>'.format(link.get('url'), link.get('title'), target, link.get('name'))
-                    rt += u'<div class="box">{0}{1}</div>'.format(displayText, anchors)
+                    citation = utopialib.utils.citation_from_annotation(annotation)
+                    rt += utopia.citation.render(citation, links=True)
+
+                if len(bibliography) > 0:
+                    # Create Metadata link annotation
+                    link = document.newAccList('citation_list')
+                    link['property:list_name'] = 'Bibliography'
+                    document.addAnnotations(bibliography, link['scratch'])
 
                 if len(rt) > 0:
                     references=spineapi.Annotation()

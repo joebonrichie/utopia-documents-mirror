@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,24 +32,12 @@
 #ifndef UNICODE_INCL_
 #define UNICODE_INCL_
 
-/*****************************************************************************
- *
- * unicode.h
- *
- * Copyright 2012 Advanced Interfaces Group
- *
- ****************************************************************************/
-
 #include <cstdlib>
 #include <vector>
 #include <exception>
 #include <stdint.h>
 
-namespace __utf8proc {
-
 #include "utf8proc/utf8proc.h"
-
-}
 
 // import c++ iterators (already in utf8 namespace)
 #include "utf8cpp/source/utf8.h"
@@ -69,7 +57,7 @@ namespace utf8 {
                                    unicode_decomposition option=NFKC)
     {
         // default flags
-        int opt= UTF8PROC_STABLE | UTF8PROC_IGNORE | UTF8PROC_STRIPCC;
+        unsigned int opt= UTF8PROC_STABLE | UTF8PROC_IGNORE | UTF8PROC_STRIPCC;
 
         // set composition and compatibility flags
         if(option==NFD || option==NFKD) {
@@ -85,7 +73,7 @@ namespace utf8 {
         std::vector<uint8_t> src(start, end);
         uint8_t *tmp, *i;
 
-        ssize_t length(__utf8proc::utf8proc_map(&src[0], src.size(), &tmp, opt));
+        ssize_t length(utf8proc_map(&src[0], src.size(), &tmp, utf8proc_option_t(opt)));
 
         if(length < 0) {
             switch (length) {
@@ -107,6 +95,9 @@ namespace utf8 {
     }
 
     typedef uint32_t UChar32;
+
+    ssize_t utf8_advance_char(const uint8_t ** bytes);
+
 }
 
 #endif /* UNICODE_INCL_ */

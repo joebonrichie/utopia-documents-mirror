@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -47,7 +47,7 @@ namespace Papyro
     /// AnnotatorRunnablePool ///////////////////////////////////////////////////////////
 
     class AnnotatorRunnablePoolPrivate;
-    class AnnotatorRunnablePool : public QThreadPool
+    class AnnotatorRunnablePool : public QObject
     {
         Q_OBJECT
 
@@ -61,6 +61,7 @@ namespace Papyro
         void start(AnnotatorRunnable * runnable, int priority = 0);
         void sync();
         void sync(const QObject * receiver, const char * method, Qt::ConnectionType type = Qt::AutoConnection);
+        void waitForDone();
 
     Q_SIGNALS:
         void started();
@@ -76,7 +77,6 @@ namespace Papyro
 
     private:
         AnnotatorRunnablePoolPrivate * d;
-        using QThreadPool::tryStart;
     };
 
 } // namespace Papyro

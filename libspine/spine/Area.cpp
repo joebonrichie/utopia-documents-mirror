@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libspine library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libspine library is free software: you can redistribute it and/or
@@ -31,10 +31,10 @@ namespace Spine {
     {
         std::vector< Area > input(areas.begin(), areas.end());
         AreaList output;
-        int start = 0;
+        size_t start = 0;
         while (start + 1 < input.size())
         {
-            int index = start + 1;
+            size_t index = start + 1;
             while (index < input.size() && input[start].page >= 0)
             {
                 for(index = start + 1; index < input.size(); ++index)

@@ -90,7 +90,7 @@ fi
 PATH="${PREFIX}/bin":~+:$PATH
 BJAM=bjam
 TOOLSET=
-LINKING="link=static"
+LINKING="link=shared"
 if [ x"${ARCH}" = x"Windows" ]; then
     TOOLSET="toolset=gcc"
     LINKING="link=shared"

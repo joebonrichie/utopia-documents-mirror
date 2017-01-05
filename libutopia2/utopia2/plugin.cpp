@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,42 +32,41 @@
 #include <utopia2/plugin_p.h>
 #include <utopia2/plugin.h>
 
+#include <QDir>
 #include <QFile>
 
+#include <QDebug>
 
 namespace Utopia
 {
 
-    PluginPrivate::PluginPrivate(Plugin * plugin, Plugin::PluginBase base, const QString & relativePath)
-        : QObject(plugin), plugin(plugin), enabled(true), base(base), relativePath(relativePath), removed(false), uuid(QUuid::createUuid())
-    {}
+    PluginPrivate::PluginPrivate(Plugin * plugin, const QFileInfo & fileInfo)
+        : QObject(plugin), plugin(plugin), enabled(true), fileInfo(fileInfo), removed(false), uuid(QUuid::createUuid())
+    {
+#ifdef Q_OS_MAC
+        appDir = Utopia::plugin_path();
+#endif
+    }
 
     PluginPrivate::PluginPrivate(Plugin * plugin, const QUuid & uuid)
         : QObject(plugin), plugin(plugin), enabled(true), removed(false), uuid(uuid)
-    {}
-
-    QString PluginPrivate::constructAbsolutePath(Plugin::PluginBase base)
     {
-        switch (base) {
-        case Plugin::InstallBase:
-            return Utopia::plugin_path();
-            break;
-        case Plugin::ProfileBase:
-            return Utopia::profile_path(Utopia::ProfilePlugins);
-            break;
+#ifdef Q_OS_MAC
+        appDir = Utopia::plugin_path();
+#endif
+    }
+
+    // The following four methods are only to make Q_PROPERTY work
+
+    QString PluginPrivate::getFilePath() const
+    {
+        QString path = fileInfo.absoluteFilePath();
+#ifdef Q_OS_MAC
+        if (path.startsWith(appDir.absolutePath())) {
+            path = appDir.relativeFilePath(path);
         }
-
-        return QString();
-    }
-
-    Plugin::PluginBase PluginPrivate::getBase() const
-    {
-        return base;
-    }
-
-    QString PluginPrivate::getRelativePath() const
-    {
-        return relativePath;
+#endif
+        return path;
     }
 
     bool PluginPrivate::isEnabled() const
@@ -75,55 +74,35 @@ namespace Utopia
         return enabled;
     }
 
+    void PluginPrivate::setFilePath(const QString & filePath)
+    {
+        fileInfo = QFileInfo(filePath);
+#ifdef Q_OS_MAC
+        if (fileInfo.isRelative()) {
+            fileInfo = QFileInfo(appDir.filePath(fileInfo.filePath()));
+        }
+#endif
+    }
+
     void PluginPrivate::setEnabled(bool enabled)
     {
         this->enabled = enabled;
     }
 
-    void PluginPrivate::setBase(Plugin::PluginBase base)
-    {
-        this->base = base;
-    }
-
-    void PluginPrivate::setRelativePath(const QString & relativePath)
-    {
-        this->relativePath = relativePath;
-    }
 
 
 
-
-    Plugin::Plugin(Plugin::PluginBase base, const QString & relativePath, QObject * parent)
-        : QObject(parent), d(new PluginPrivate(this, base, relativePath))
+    Plugin::Plugin(const QFileInfo & fileInfo, QObject * parent)
+        : QObject(parent), d(new PluginPrivate(this, fileInfo))
     {}
 
     Plugin::Plugin(const QUuid & uuid, QObject * parent)
         : QObject(parent), d(new PluginPrivate(this, uuid))
     {}
 
-    QString Plugin::absolutePath() const
-    {
-        return basePath() + "/" + relativePath();
-    }
-
-    Plugin::PluginBase Plugin::base() const
-    {
-        return d->getBase();
-    }
-
-    QString Plugin::basePath() const
-    {
-        return PluginPrivate::constructAbsolutePath(base());
-    }
-
-    QString Plugin::constructAbsolutePath(Plugin::PluginBase base, const QString & relativePath)
-    {
-        return PluginPrivate::constructAbsolutePath(base) + "/" + relativePath;
-    }
-
     bool Plugin::isEnabled() const
     {
-        return d->isEnabled();
+        return d->enabled;
     }
 
     bool Plugin::isRemoved() const
@@ -131,15 +110,20 @@ namespace Utopia
         return d->removed;
     }
 
-    QString Plugin::relativePath() const
+    QFileInfo Plugin::fileInfo() const
     {
-        return d->getRelativePath();
+        return d->fileInfo;
+    }
+
+    QString Plugin::path() const
+    {
+        return d->fileInfo.canonicalFilePath();
     }
 
     void Plugin::remove()
     {
         if (!d->removed) {
-            d->removed = !QFile::exists(absolutePath()) || QFile::remove(absolutePath());
+            d->removed = !QFile::exists(path()) || QFile::remove(path());
             if (d->removed) {
                 emit removed();
             }

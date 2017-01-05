@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,10 +35,6 @@ set(SOURCES
     basic.cpp
 )
 
-set(HEADERS
-    basiccredentialmanager.h
-)
-
 include_directories(
   ${utopia2_INCLUDE_DIR}
   ${utopia2_qt_INCLUDE_DIR}
@@ -47,11 +43,10 @@ include_directories(
   ${utf8_INCLUDE_DIR}
   )
 
-#QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS})
+add_utopia_plugin(${PROJECT_NAME} MODULE ${SOURCES})
 
-add_utopia_plugin(${PROJECT_NAME} MODULE ${SOURCES} ${MOC_SOURCES})
-
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt utopia2_auth ${QT_LIBRARIES} ${Boost_LIBRARIES} utf8)
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt utopia2_auth ${Boost_LIBRARIES} utf8)
+qt5_use_modules(${PROJECT_NAME} Widgets)
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})
 

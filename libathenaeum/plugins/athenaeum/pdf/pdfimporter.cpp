@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@
  *****************************************************************************/
 
 #include "pdfimporter.h"
-#include <athenaeum/resolver.h>
+#include <papyro/resolver.h>
 #include <crackle/PDFDocument.h>
 
 #include <QEventLoop>

@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,9 +30,9 @@
 ###############################################################################
 
 import base64
-import common.eutils
-import common.nlm
-import common.utils
+import utopialib.eutils
+import utopialib.nlm
+import utopialib.utils
 import re
 import spineapi
 import urllib
@@ -55,20 +55,20 @@ def fuzz(input, strict = False):
 class PubMedCentral(utopia.document.Annotator):
     """PubMedCentral NLM parsing"""
 
-    keys = ('publication-title', 'publisher', 'issn', 'doi', 'pmid', 'pmcid', 'pii', 'authors', 'title',
+    keys = ('publication-title', 'publisher', 'publication-issn', 'doi', 'pmid', 'pmcid', 'pii', 'authors', 'title',
             'volume', 'issue', 'pages', 'pagefrom', 'pageto', 'abstract', 'keywords', 'year', 'month',
             'abbreviations', 'label', 'url', 'type', 'html', 'displayText')
 
     @utopia.document.buffer
     def on_ready_event(self, document):
-        info = common.nlm.parse(common.utils.metadata(document, 'raw_pmc_nlm'))
+        info = utopialib.nlm.parse(utopialib.utils.metadata(document, 'raw_pmc_nlm'))
         if info is not None and len(info) > 0:
 
             # Enrich citation information with identifiers from PMC
             parser = etree.XMLParser(ns_clean=True, recover=True, remove_blank_text=True, encoding='utf8')
             pmids = dict(((citation['pmid'], citation['id']) for citation in info['citations'] if 'pmid' in citation and 'id' in citation))
             if len(pmids) > 0:
-                pubmed_abstracts = etree.fromstring(common.eutils.efetch(id=','.join(pmids.keys()), retmode='xml', rettype='abstract'), parser)
+                pubmed_abstracts = etree.fromstring(utopialib.eutils.efetch(id=','.join(pmids.keys()), retmode='xml', rettype='abstract'), parser)
                 for idList in pubmed_abstracts.xpath('PubmedArticle/PubmedData/ArticleIdList'):
                     #print etree.tostring(idList)
                     pmid = idList.findtext('ArticleId[@IdType="pubmed"]')
@@ -86,22 +86,12 @@ class PubMedCentral(utopia.document.Annotator):
             link['property:sourceDescription'] = '<p><a href="http://www.ncbi.nlm.nih.gov/pmc/">PubMed Central</a> is the U.S. National Institutes of Health (NIH) digital archive of biomedical and life sciences journal literature.</p>'
 
             # Create Metadata annotation
-            annotation = spineapi.Annotation()
-            annotation['concept'] = 'DocumentMetadata'
-            for k in self.keys:
-                v = info.get(k)
-                if v is not None:
-                    annotation['property:{0}'.format(k)] = v
+            annotation = utopialib.utils.citation_to_annotation(info.get('self', {}), 'DocumentMetadata')
             document.addAnnotation(annotation, link['scratch'])
 
             # Create Bibliography annotations
             for citation in info.get('citations', []):
-                annotation = spineapi.Annotation()
-                annotation['concept'] = 'DocumentReference'
-                for k in self.keys:
-                    v = citation.get(k)
-                    if v is not None:
-                        annotation['property:{0}'.format(k)] = v
+                annotation = utopialib.utils.citation_to_annotation(citation)
                 document.addAnnotation(annotation, link['scratch'])
 
             # Citations
@@ -112,29 +102,16 @@ class PubMedCentral(utopia.document.Annotator):
                     #print matches
                     if len(matches) > 0:
                         try:
-                            annotation = spineapi.Annotation()
-                            annotation['concept'] = 'ForwardCitation'
-                            annotation['property:state'] = 'found'
-                            if 'title' in citation:
-                                annotation['property:title'] = citation['title']
-                            if 'id' in citation:
-                                annotation['property:bibid'] = citation['id']
+                            annotation = utopialib.utils.citation_to_annotation(citation, concept='ForwardCitation')
                             if 'doi' in citation and citation['doi'].startswith('10.1371/'):
                                 citation['pdf'] = 'http://www.ploscompbiol.org/article/fetchObjectAttachment.action?uri={0}&representation=PDF'.format('info:doi/{0}'.format(citation['doi']))
                             if 'pmcid' in citation:
                                 citation['pdf'] = 'http://www.ncbi.nlm.nih.gov/pmc/articles/{0}/pdf/'.format(citation['pmcid'])
-                            #print citation
-                            for k in self.keys + ('authors', 'pdf', 'first_author_surname'):
-                                if k in citation:
-                                    annotation['property:{0}'.format(k)] = citation[k]
-                            #print annotation.get('property:label'), annotation.get('property:pdf')
                             for match in matches:
                                 annotation.addExtent(match)
                             document.addAnnotation(annotation, link['scratch'])
-                            #print citation
                         except:
                             raise
-                            pass # FIXME
 
             # Tables
             for id, table in info.get('tables', {}).iteritems():

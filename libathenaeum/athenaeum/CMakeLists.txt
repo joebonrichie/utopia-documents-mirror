@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,64 +30,6 @@
 ###############################################################################
 
 set(SOURCES
-  abstractbibliographicmodel.cpp
-  abstractfilter.cpp
-  aggregatingproxymodel.cpp
-  articledelegate.cpp
-  articleview.cpp
-  bibliographicitem.cpp
-  bibliographicmimedata.cpp
-  bibliographicsearchbox.cpp
-  cJSON.c
-  exporter.cpp
-  filters.cpp
-  importer.cpp
-  librarydelegate.cpp
-  librarymodel.cpp
-  libraryview.cpp
-  persistentbibliographicmodel.cpp
-  remotequery.cpp
-  remotequerybibliographicmodel.cpp
-  resolver.cpp
-  resolverrunnable.cpp
-  sortfilterproxymodel.cpp
-  )
-
-set(HEADERS
-  cJSON.h
-  config.h
-  exporter.h
-  importer.h
-  resolver.h
-  )
-
-set(MOC_HEADERS
-  abstractbibliographicmodel.h
-  abstractfilter.h
-  aggregatingproxymodel.h
-  aggregatingproxymodel_p.h
-  articledelegate.h
-  articleview.h
-  articleview_p.h
-  bibliographicmimedata_p.h
-  bibliographicsearchbox.h
-  bibliographicsearchbox_p.h
-  filters.h
-  librarydelegate.h
-  librarymodel.h
-  librarymodel_p.h
-  libraryview.h
-  libraryview_p.h
-  persistentbibliographicmodel.h
-  persistentbibliographicmodel_p.h
-  remotequery.h
-  remotequerybibliographicmodel.h
-  remotequerybibliographicmodel_p.h
-  resolverrunnable.h
-  sortfilterproxymodel.h
-  )
-
-set(FORMS
   )
 
 include_directories(
@@ -98,35 +40,29 @@ include_directories(
   ${utopia2_auth_qt_INCLUDE_DIR}
   ${ICU_INCLUDE_DIR}
   ${Boost_INCLUDE_DIR}
-  ${papyro_INCLUDE_DIR}
-  ${utf8_INCLUDE_DIR}
   ${spine_INCLUDE_DIR}
+  ${utf8_INCLUDE_DIR}
   ${utf8_INCLUDE_DIR}
   )
 
-set(RESOURCES athenaeum.qrc)
-
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS})
-QT4_WRAP_UI(UI_SOURCES ${FORMS})
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
+qt5_add_resources(SOURCES athenaeum.qrc)
 
 if(WIN32)
 	add_definitions(-DBUILD_LIBATHENAEUM=1)
+	add_definitions(-DBUILD_LIBPAPYRO=1)
 endif()
 
-add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES} ${MOC_SOURCES} ${UI_SOURCES} ${RES_SOURCES})
+add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+  ${ICU_LIBRARIES}
+  spine
+  utf8
   utopia2
   utopia2_auth
   utopia2_auth_qt
   utopia2_qt
-  utf8
-  ${QT_LIBRARIES}
-  ${ICU_LIBRARIES}
-  ${QJSON_LIBRARIES}
-  utf8
-  spine
 )
+qt5_use_modules(${PROJECT_NAME} Widgets Network)
 
 install_utopia_library(${PROJECT_NAME} "${COMPONENT}")

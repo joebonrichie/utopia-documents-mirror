@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 #include <papyro/pageview.h>
 #include <papyro/utils.h>
 #include <spine/spine.h>
+#include <utopia2/qt/actionproxy.h>
 #include <utopia2/library.h>
 #include <utopia2/node.h>
 #include <utopia2/parser.h>
@@ -50,11 +51,13 @@
 #include <QClipboard>
 #include <QContextMenuEvent>
 #include <QDir>
+#include <QDrag>
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QMimeData>
 #include <QPainter>
 #include <QScrollBar>
 #include <QSignalMapper>
@@ -101,26 +104,26 @@ namespace
         return (rect1.top() <= (rect2.bottom() + grace) && rect1.bottom() >= (rect2.top() - grace));
     }
 
-    static QPointF qRound(const QPointF & p, int places = 0)
-    {
-        const int factor(qPow(10, places));
-        return QPointF(::qRound(p.x() * factor) / (qreal) factor,
-                       ::qRound(p.y() * factor) / (qreal) factor);
-    }
+//     static QPointF qRound(const QPointF & p, int places = 0)
+//     {
+//         const int factor(qPow(10, places));
+//         return QPointF(::qRound(p.x() * factor) / (qreal) factor,
+//                        ::qRound(p.y() * factor) / (qreal) factor);
+//     }
 
-    static QPolygonF qRound(const QPolygonF & p, int places = 0)
-    {
-        QPolygonF rounded;
-        QPointF previous;
-        foreach (const QPointF & point, p) {
-            QPointF roundedPoint(qRound(point, places));
-            if (previous.isNull() || roundedPoint != previous) {
-                rounded << roundedPoint;
-            }
-            previous = roundedPoint;
-        }
-        return rounded;
-    }
+//     static QPolygonF qRound(const QPolygonF & p, int places = 0)
+//     {
+//         QPolygonF rounded;
+//         QPointF previous;
+//         foreach (const QPointF & point, p) {
+//             QPointF roundedPoint(qRound(point, places));
+//             if (previous.isNull() || roundedPoint != previous) {
+//                 rounded << roundedPoint;
+//             }
+//             previous = roundedPoint;
+//         }
+//         return rounded;
+//     }
 
     static Spine::CursorHandle resolveCursor(Spine::CursorHandle cursor, const QPointF & point, qreal grace = 0.0)
     {
@@ -147,227 +150,6 @@ namespace
         }
 
         return cursor;
-    }
-
-    static QPainterPath roundyCorners(const QPolygonF & polygon, const qreal radius = 1.0)
-    {
-        QPainterPath outline;
-
-        bool newPath = true;
-        // Round the polygon
-        QPolygonF poly(qRound(polygon, 2));
-        // Quick pass to remove co-liner points
-        for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
-            // Get the three points of interest, and useful vectors
-            const int poi = poly.size() - 1; // # of points of interest
-            const int currentIndex = (previousIndex + 1) % poi;
-            const int nextIndex = (previousIndex + 2) % poi;
-            QPointF previous(poly.at(previousIndex % poi));
-            QPointF current(poly.at(currentIndex));
-            QPointF next(poly.at(nextIndex));
-            QVector2D backwards(previous - current);
-            QVector2D forwards(next - current);
-            backwards.normalize();
-            forwards.normalize();
-            qreal angle(qAcos(QVector2D::dotProduct(forwards, backwards)));
-            if (qAbs(angle - M_PI) < 0.001) {
-                poly.remove(currentIndex);
-                ++previousIndex;
-            }
-        }
-
-        // Calculate concavity
-        QVector< bool > convexity(poly.size());
-        for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
-            // Get the three points of interest, and useful vectors
-            const int poi = poly.size() - 1; // # of points of interest
-            const int currentIndex = (previousIndex + 1) % poi;
-            const int nextIndex = (previousIndex + 2) % poi;
-            QPointF previous(poly.at(previousIndex % poi));
-            QPointF current(poly.at(currentIndex));
-            QPointF next(poly.at(nextIndex));
-            QVector2D backwards(previous - current);
-            QVector2D forwards(next - current);
-
-            // Concave or convex?
-            // Uses the z coordinate of the cross product to decide concavity
-            convexity[currentIndex] = (forwards.x() * backwards.y() - forwards.y() * backwards.x()) > 0;
-        }
-
-        for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
-            // Get the three points of interest, and useful vectors
-            const int poi = poly.size() - 1; // # of points of interest
-            const int currentIndex = (previousIndex + 1) % poi;
-            const int nextIndex = (previousIndex + 2) % poi;
-            QPointF previous(poly.at(previousIndex % poi));
-            QPointF current(poly.at(currentIndex));
-            QPointF next(poly.at(nextIndex));
-            QVector2D backwards(previous - current);
-            QVector2D forwards(next - current);
-            qreal backwardsLength(backwards.length());
-            qreal forwardsLength(forwards.length());
-            backwards.normalize();
-            forwards.normalize();
-
-            // Firstly work out the angle of this corner using the dot product
-            qreal angle(qAcos(QVector2D::dotProduct(forwards, backwards)));
-
-            // Things to calculate
-            QPointF centre; // Centre of the corner arc
-            qreal arc_start_angle = 0.0;
-            qreal arc_sweep_length = M_PI - angle;
-            qreal arc_radius = radius;
-
-            // Concave or convex?
-            // Uses the z coordinate of the cross product to decide concavity
-            bool convex = (forwards.x() * backwards.y() - forwards.y() * backwards.x()) > 0;
-
-            if (true) {
-                // Next calculate the radius of this corner
-                // The rounded corner cannot meet the edges a distance of more than half the
-                // available space along a side from the corner
-                qreal d1 = backwardsLength / 2.0;
-                qreal d2 = forwardsLength / 2.0;
-                qreal tan_half_angle = qTan(angle / 2.0);
-
-                // Centre of arc
-                QVector2D a((backwards + forwards).normalized());
-                if (convex) {
-                    qreal max_l = 2 * radius / tan_half_angle;
-                    bool previousConcave(!convexity.at(previousIndex % poi));
-                    bool nextConcave(!convexity.at(nextIndex));
-                    qreal l = qMin(max_l, qMin(previousConcave ? backwardsLength : backwardsLength / 2.0,
-                                               nextConcave ? forwardsLength : forwardsLength / 2.0));
-                    qreal r = l * tan_half_angle;
-                    qreal h = r / qSin(angle / 2.0);
-                    centre = current + h * a.toPointF();
-                    arc_radius = r - radius;
-                } else {
-                    qreal h = radius / qSin(angle / 2.0);
-                    qreal r = radius; // qMin(radius, qMin(backwardsLength / 2.0, forwardsLength / 2.0));
-                    qreal x = h - r * h / radius;
-                    centre = current - x * a.toPointF();
-                    arc_radius = r;
-                }
-
-                // Arc
-                arc_start_angle = qAtan2(backwards.x(), backwards.y()) + M_PI_2;
-                if (!convex) {
-                    arc_sweep_length = -arc_sweep_length;
-                }
-            } else {
-                // Arc
-                arc_start_angle = qAtan2(backwards.x(), backwards.y()) + M_PI_2;
-                arc_sweep_length = -arc_sweep_length;
-
-                // Centre of arc
-                centre = current;
-            }
-
-            arc_start_angle = arc_start_angle * 180.0 * M_1_PI;
-            arc_sweep_length = arc_sweep_length * 180.0 * M_1_PI;
-            QRectF arcRect(centre - QPointF(arc_radius, arc_radius), QSizeF(2 * arc_radius, 2 * arc_radius));
-
-            if (newPath) {
-                outline.arcMoveTo(arcRect, arc_start_angle + arc_sweep_length);
-                newPath = false;
-            } else {
-                outline.arcTo(arcRect, arc_start_angle, arc_sweep_length);
-            }
-        }
-        outline.closeSubpath();
-
-        return outline;
-    }
-
-    static QPainterPath roundyCorners(const QVector< QRectF > & rects_, const qreal radius = 1.0, const QSizeF & padding = QSizeF(0.0, 1.0))
-    {
-        // Compile rectangles
-        QVector< QRectF > rects(rects_);
-        foreach (const QRectF & rect, rects_) {
-            rects << rect.adjusted(-(radius + padding.width()), -(radius + padding.height()), radius + padding.width(), radius + padding.height());
-        }
-
-        // Modify rects to remove similar x coordinates
-        if (rects.size() > 1) {
-            bool fixed = true;
-            while (fixed) {
-                fixed = false;
-                int indexFrom = 0;
-                qreal conformTo = rects.at(0).right();
-                for (int i = 1; i < rects.size(); ++i) {
-                    if (qAbs(rects.at(i).right() - rects.at(i-1).right()) >= (2.0 * radius)) {
-                        if (i - indexFrom > 1) {
-                            // Conform
-                            for (int j = indexFrom; j < i; ++j) {
-                                if (rects.at(j).right() != conformTo) {
-                                    rects[j].setRight(conformTo);
-                                    fixed = true;
-                                }
-                            }
-                        }
-
-                        indexFrom = i;
-                        conformTo = rects.at(i).right();
-                    } else {
-                        conformTo = qMax(conformTo, rects.at(i).right());
-                    }
-                }
-                if (indexFrom != rects.size() - 1) {
-                    // Conform
-                    for (int j = indexFrom; j < rects.size(); ++j) {
-                        if (rects.at(j).right() != conformTo) {
-                            rects[j].setRight(conformTo);
-                            fixed = true;
-                        }
-                    }
-                }
-                indexFrom = 0;
-                conformTo = rects.at(0).left();
-                for (int i = 1; i < rects.size(); ++i) {
-                    if (i == rects.size() - 1 || qAbs(rects.at(i).left() - rects.at(i-1).left()) >= (2.0 * radius)) {
-                        if (i - indexFrom > 1) {
-                            // Conform
-                            for (int j = indexFrom; j < i; ++j) {
-                                if (rects.at(j).left() != conformTo) {
-                                    rects[j].setLeft(conformTo);
-                                    fixed = true;
-                                }
-                            }
-                        }
-
-                        indexFrom = i;
-                        conformTo = rects.at(i).left();
-                    } else {
-                        conformTo = qMin(conformTo, rects.at(i).left());
-                    }
-                }
-                if (indexFrom != rects.size() - 1) {
-                    // Conform
-                    for (int j = indexFrom; j < rects.size(); ++j) {
-                        if (rects.at(j).left() != conformTo) {
-                            rects[j].setLeft(conformTo);
-                            fixed = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Merge rectangles into individual non-overlapping polygons
-        QPainterPath paths;
-        paths.setFillRule(Qt::WindingFill);
-        foreach (const QRectF & rect, rects) {
-            paths.addRect(rect);
-        }
-        QList< QPolygonF > polygons(paths.simplified().toSubpathPolygons());
-
-        // For each polygon...
-        QPainterPath outlines;
-        foreach (const QPolygonF & polygon, polygons) {
-            outlines.addPath(roundyCorners(polygon, radius));
-        }
-        return outlines;
     }
 
     QMap< int, QPainterPath > asPaths(const Spine::TextExtentHandle & extent)
@@ -605,8 +387,8 @@ namespace Papyro
         interaction.numberOfHolds = 0;
         interaction.numberOfHoldTimeouts = 0;
         interaction.holdInterval = 500;
+        interaction.updateOrigin = true;
         interaction.isExposing = false;
-        layout.resizing = 0;
         selection.color = Qt::yellow;
 
         connect(this, SIGNAL(zoomChanged()), documentView, SIGNAL(zoomChanged()));
@@ -628,7 +410,7 @@ namespace Papyro
             if (interaction.mode == DocumentView::SelectingMode) {
                 document->addToAreaSelection(area);
             } else {
-                createHighlight(&area, Spine::TextExtentHandle());
+                createHighlight(&area, Spine::TextExtentHandle(), true, true);
             }
         }
         selection.activeAreaPageView = 0;
@@ -647,8 +429,10 @@ namespace Papyro
             Spine::TextExtentHandle extent(new Spine::TextExtent(from, to));
             if (interaction.mode == DocumentView::SelectingMode) {
                 document->addToTextSelection(extent);
+                QString selectedText(qStringFromUnicode(extent->text()));
+                QApplication::clipboard()->setText(selectedText, QClipboard::Selection);
             } else {
-                createHighlight(0, extent);
+                createHighlight(0, extent, true, true);
             }
         }
         selection.activeTextFromCursor = Spine::CursorHandle();
@@ -673,7 +457,7 @@ namespace Papyro
         }
     }
 
-    void DocumentViewPrivate::createHighlight(const Spine::Area * area, Spine::TextExtentHandle extent)
+    Spine::AnnotationHandle DocumentViewPrivate::createHighlight(const Spine::Area * area, Spine::TextExtentHandle extent, bool store, bool persist)
     {
         Spine::AnnotationHandle annotation(new Spine::Annotation);
         annotation->setProperty("concept", "Highlight");
@@ -684,9 +468,16 @@ namespace Papyro
             annotation->addExtent(extent);
         } else {
             // No anchor, bail
-            return;
+            return Spine::AnnotationHandle();
         }
-        document->addAnnotation(annotation);
+
+        if (persist) {
+            document->addAnnotation(annotation, "PersistQueue");
+        } else if (store) {
+            document->addAnnotation(annotation);
+        }
+
+        return annotation;
     }
 
     void DocumentViewPrivate::createPageViews()
@@ -703,6 +494,7 @@ namespace Papyro
             QObject::connect(pageView, SIGNAL(exploreSelection()), documentView, SIGNAL(exploreSelection()));
             QObject::connect(pageView, SIGNAL(publishChanges()), documentView, SIGNAL(publishChanges()));
             QObject::connect(pageView, SIGNAL(urlRequested(const QUrl &, const QString &)), documentView, SIGNAL(urlRequested(const QUrl &, const QString &)));
+            QObject::connect(pageView, SIGNAL(pageRotated()), this, SLOT(update_layout()));
 
             // Add overlay widget
             QHBoxLayout * pageViewLayout = new QHBoxLayout(pageView);
@@ -717,7 +509,7 @@ namespace Papyro
             pageViewOverlays[pageView].widget = pageViewOverlayWidget;
         }
 
-        updatePageViewLayout();
+        update_layout(GridChange);
         documentView->update();
     }
 
@@ -764,9 +556,7 @@ namespace Papyro
             // Catch context menu events deal with them locally
             if (e->type() == QEvent::ContextMenu && pageView) {
                 // Ensure annotations under the mouse are correct
-                if (obj == pageView) {
-                    updateAnnotationsUnderMouse(pageView, pageView->transformToPage(cme->pos()));
-                }
+                updateAnnotationsUnderMouse(pageView, pageView->transformToPage(cme->pos()));
 
                 e->ignore();
                 return false;
@@ -836,11 +626,12 @@ namespace Papyro
                 QPainter painter(overlayWidget);
 
                 // Scale to current zoom
-                QSizeF pSize = overlayedPageView->pageSize();
+                QSizeF pSize = overlayedPageView->pageSize(true);
                 int page = overlayedPageView->pageNumber();
-                painter.translate(-0.5, -0.5);
+                //painter.translate(-0.5, -0.5);
                 painter.scale(overlayWidget->width() / (double) pSize.width(),
                               overlayWidget->height() / (double) pSize.height());
+                painter.setTransform(overlayedPageView->userTransform(), true);
 
                 // Antialias
                 painter.setRenderHint(QPainter::Antialiasing, true);
@@ -1040,7 +831,7 @@ namespace Papyro
         pageFlowDirection = DocumentView::TopDown;
         pageMode = DocumentView::OneUp;
         zoomMode = DocumentView::FitToWidth;
-        updateScrollBarsOld();
+        updateScrollBarPolicies();
         documentView->setBindingMode(DocumentView::Odd);
         documentView->setPageFlow(DocumentView::Separate);
         documentView->setPageFlowDirection(DocumentView::TopDown);
@@ -1154,7 +945,7 @@ namespace Papyro
                     QMimeData * mimeData = new QMimeData;
                     mimeData->setText(selectionText);
                     drag->setMimeData(mimeData);
-                    Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
+                    //Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
                     interaction.isDragging = false;
                     interaction.isPressed = false;
                     setInteractionState(IdleState);
@@ -1206,7 +997,7 @@ namespace Papyro
                     drag->setPixmap(pixmap);
                     drag->setHotSpot(event->pos - imageImprintPos);
                     drag->setMimeData(mimeData);
-                    Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
+                    //Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
                     interaction.isDragging = false;
                     interaction.isPressed = false;
                     setInteractionState(IdleState);
@@ -1449,56 +1240,58 @@ namespace Papyro
 
     void DocumentViewPrivate::onDocumentAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added)
     {
-        if (name.empty()) {
-            // To keep track of lists that need recomputing
-            QSet< QPair< OverlayRenderer *, OverlayRenderer::State > > dirty;
+        if (document) {
+            if (name.empty()) {
+                // To keep track of lists that need recomputing
+                QSet< QPair< OverlayRenderer *, OverlayRenderer::State > > dirty;
 
-            // Make sure the annotations are rendered properly
-            if (added) {
-                foreach (Spine::AnnotationHandle annotation, annotations) {
-                    OverlayRenderer * overlayRenderer = 0;
-                    foreach (OverlayRendererMapper * candidate, overlayRendererMappers) {
-                        QString rendererId = candidate->mapToId(document, annotation);
-                        if (!rendererId.isEmpty() && overlayRenderers.contains(rendererId)) {
-                            overlayRenderer = overlayRenderers[rendererId];
-                            break;
-                        }
-                    }
-                    if (overlayRenderer == 0) {
-                        overlayRenderer = &rendering.defaultOverlayRenderer;
-                    }
-
-                    rendering.bounds[annotation] = qMakePair(overlayRenderer, overlayRenderer->bounds(document, annotation));
-                    rendering.hoverPictures[annotation] = overlayRenderer->render(document, annotation, OverlayRenderer::Hover);
-                    if (rendering.pictures[overlayRenderer][OverlayRenderer::Idle].first.insert(annotation).second) {
-                        dirty << qMakePair(overlayRenderer, OverlayRenderer::Idle);
-                    }
-                }
-            } else {
-                foreach (Spine::AnnotationHandle annotation, annotations) {
-                    if (rendering.bounds.contains(annotation)) {
-                        OverlayRenderer * renderer = rendering.bounds[annotation].first;
-                        rendering.bounds.remove(annotation);
-                        QMutableMapIterator< OverlayRenderer::State, QPair< Spine::AnnotationSet, QMap< int, QPicture > > > iter(rendering.pictures[renderer]);
-                        while (iter.hasNext()) {
-                            iter.next();
-                            if (iter.value().first.erase(annotation) > 0) {
-                                dirty << qMakePair(renderer, iter.key());
+                // Make sure the annotations are rendered properly
+                if (added) {
+                    foreach (Spine::AnnotationHandle annotation, annotations) {
+                        OverlayRenderer * overlayRenderer = 0;
+                        foreach (OverlayRendererMapper * candidate, overlayRendererMappers) {
+                            QString rendererId = candidate->mapToId(document, annotation);
+                            if (!rendererId.isEmpty() && overlayRenderers.contains(rendererId)) {
+                                overlayRenderer = overlayRenderers[rendererId];
+                                break;
                             }
                         }
+                        if (overlayRenderer == 0) {
+                            overlayRenderer = &rendering.defaultOverlayRenderer;
+                        }
+
+                        rendering.bounds[annotation] = qMakePair(overlayRenderer, overlayRenderer->bounds(document, annotation));
+                        rendering.hoverPictures[annotation] = overlayRenderer->render(document, annotation, OverlayRenderer::Hover);
+                        if (rendering.pictures[overlayRenderer][OverlayRenderer::Idle].first.insert(annotation).second) {
+                            dirty << qMakePair(overlayRenderer, OverlayRenderer::Idle);
+                        }
                     }
-                    if (rendering.hoverPictures.contains(annotation)) {
-                        rendering.hoverPictures.remove(annotation);
+                } else {
+                    foreach (Spine::AnnotationHandle annotation, annotations) {
+                        if (rendering.bounds.contains(annotation)) {
+                            OverlayRenderer * renderer = rendering.bounds[annotation].first;
+                            rendering.bounds.remove(annotation);
+                            QMutableMapIterator< OverlayRenderer::State, QPair< Spine::AnnotationSet, QMap< int, QPicture > > > iter(rendering.pictures[renderer]);
+                            while (iter.hasNext()) {
+                                iter.next();
+                                if (iter.value().first.erase(annotation) > 0) {
+                                    dirty << qMakePair(renderer, iter.key());
+                                }
+                            }
+                        }
+                        if (rendering.hoverPictures.contains(annotation)) {
+                            rendering.hoverPictures.remove(annotation);
+                        }
                     }
                 }
-            }
 
-            // Recompute dirty lists
-            typedef QPair< OverlayRenderer *, OverlayRenderer::State > Pair;
-            foreach (const Pair & pair, dirty) {
-                OverlayRenderer * renderer = pair.first;
-                OverlayRenderer::State state = pair.second;
-                rendering.pictures[renderer][state].second = renderer->render(document, rendering.pictures[renderer][state].first, state);
+                // Recompute dirty lists
+                typedef QPair< OverlayRenderer *, OverlayRenderer::State > Pair;
+                foreach (const Pair & pair, dirty) {
+                    OverlayRenderer * renderer = pair.first;
+                    OverlayRenderer::State state = pair.second;
+                    rendering.pictures[renderer][state].second = renderer->render(document, rendering.pictures[renderer][state].first, state);
+                }
             }
         }
     }
@@ -1573,27 +1366,8 @@ namespace Papyro
     void DocumentViewPrivate::onHorizontalScrollBarValueChanged(int value)
     {
         //qDebug() << "onHorizontalScrollBarValueChanged" << value;
-        //qDebug() << "  - layout.resizing =" << layout.resizing;
-        updateViewport();
-
-        if (pageViews.size() > 0) {
-            if (layout.resizing <= 0) {
-                // Find the left-most visible page
-                Layout::SpacingMap::const_iterator leftMost(--layout.columnSpacing.upper_bound(value));
-                layout.horizontalOriginPageViewIndices = QPoint(-1, -1);
-                if (leftMost != layout.columnSpacing.end()) {
-                    int c = leftMost->second.index;
-                    for (int r = 0; r < layout.rowSpacing.size(); ++r) {
-                        //qDebug() << "  - r,c" << r << c;
-                        if (layout.matrix[r][c].pageView == leftMost->second.largestPageView) {
-                            layout.horizontalOriginPageViewIndices = QPoint(r, c);
-                            layout.horizontalOrigin = leftMost->second.largestPageView->pageSize().width() * (-leftMost->second.largestPageView->pos().x()) / (qreal) leftMost->second.largestPageView->width();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        layout_updatePageViewPositions();
+        layout_calculateHorizontalOrigin();
     }
 
     void DocumentViewPrivate::onLeftToRightFlow()
@@ -1623,7 +1397,7 @@ namespace Papyro
     {
         if (!document) { return; }
 
-        PageView * caller = static_cast< PageView * >(sender());
+        //PageView * caller = static_cast< PageView * >(sender());
 
         emit selectionChanged(document->textSelection());
     }
@@ -1645,30 +1419,53 @@ namespace Papyro
         documentView->setPageFlow(DocumentView::Continuous);
     }
 
-    void DocumentViewPrivate::onVerticalScrollBarValueChanged(int value)
+    void DocumentViewPrivate::layout_calculateHorizontalOrigin()
     {
-        //qDebug() << "onVerticalScrollBarValueChanged" << value;
-        //qDebug() << "  - layout.resizing =" << layout.resizing;
-        updateViewport();
-
-        if (pageViews.size() > 0) {
-            if (layout.resizing <= 0) {
-                // Find the top-most visible page
-                Layout::SpacingMap::const_iterator topMost(--layout.rowSpacing.upper_bound(value));
-                layout.verticalOriginPageViewIndices = QPoint(-1, -1);
-                if (topMost != layout.rowSpacing.end()) {
-                    int r = topMost->second.index;
-                    for (int c = 0; c < layout.columnSpacing.size(); ++c) {
-                        //qDebug() << "  - r,c" << r << c;
-                        if (layout.matrix[r][c].pageView == topMost->second.largestPageView) {
-                            layout.verticalOriginPageViewIndices = QPoint(r, c);
-                            layout.verticalOrigin = topMost->second.largestPageView->pageSize().height() * (-topMost->second.largestPageView->pos().y()) / (qreal) topMost->second.largestPageView->height();
-                            break;
-                        }
+        //qDebug() << "=== layout_calculateHorizontalOrigin" << pageViews.size();
+        if (interaction.updateOrigin && !pageViews.isEmpty()) {
+            // Find the left-most visible page
+            Layout::SpacingMap::const_iterator leftMost(--layout.columnSpacing.upper_bound(documentView->horizontalScrollBar()->sliderPosition()));
+            layout.horizontalOriginPageViewGridCoords = QPoint(-1, -1);
+            if (leftMost != layout.columnSpacing.end()) {
+                int c = leftMost->second.index;
+                for (size_t r = 0; r < layout.rowSpacing.size(); ++r) {
+                    //qDebug() << "  - r,c" << r << c;
+                    if (layout.matrix[r][c].pageView == leftMost->second.largestPageView) {
+                        layout.horizontalOriginPageViewGridCoords = QPoint(r, c);
+                        layout.horizontalOrigin = leftMost->second.largestPageView->pageSize(true).width() * (-leftMost->second.largestPageView->pos().x()) / (qreal) leftMost->second.largestPageView->width();
+                        break;
                     }
                 }
             }
         }
+    }
+
+    void DocumentViewPrivate::layout_calculateVerticalOrigin()
+    {
+        //qDebug() << "=== layout_calculateVerticalOrigin" << pageViews.size();
+        if (interaction.updateOrigin && !pageViews.isEmpty()) {
+            // Find the top-most visible page
+            Layout::SpacingMap::const_iterator topMost(--layout.rowSpacing.upper_bound(documentView->verticalScrollBar()->sliderPosition()));
+            layout.verticalOriginPageViewGridCoords = QPoint(-1, -1);
+            if (topMost != layout.rowSpacing.end()) {
+                int r = topMost->second.index;
+                for (size_t c = 0; c < layout.columnSpacing.size(); ++c) {
+                    //qDebug() << "  - r,c" << r << c;
+                    if (layout.matrix[r][c].pageView == topMost->second.largestPageView) {
+                        layout.verticalOriginPageViewGridCoords = QPoint(r, c);
+                        layout.verticalOrigin = topMost->second.largestPageView->pageSize(true).height() * (-topMost->second.largestPageView->pos().y()) / (qreal) topMost->second.largestPageView->height();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void DocumentViewPrivate::onVerticalScrollBarValueChanged(int value)
+    {
+        //qDebug() << "onVerticalScrollBarValueChanged" << value;
+        layout_updatePageViewPositions();
+        layout_calculateVerticalOrigin();
     }
 
     void DocumentViewPrivate::onWaitingForDblClickTimeout()
@@ -2059,19 +1856,31 @@ namespace Papyro
 		}
     }
 
-    void DocumentViewPrivate::updatePageViewLayout()
+    // Main layout calculation method
+    void DocumentViewPrivate::layout_calculateGrid()
     {
-        //qDebug() << "updatePageViewLayout";
+        //qDebug() << "=== layout_calculateGrid" << pageViews.size();
+        // How many pages we have in the whole document
         int pageCount = pageViews.size();
 
+        // Assuming we have any pages at all
         if (pageCount > 0) {
+            // Clear old layout information
+            layout.columnSpacing.clear();
+            layout.rowSpacing.clear();
+            layout.matrix.resize(boost::extents[0][0]);
+
+            // The index of the 'current' page
             int pageIndex = pageNumber - 1;
+
+            // Default grid size of 1x1
             int columnCount = 1;
             int rowCount = 1;
-            int offset = 0;
-            //qDebug() << "LAYOUT:pageCount" << pageCount;
 
-            // Calculate grid size
+            // Default zero offset (the index of the first visible placeholder)
+            int offset = 0;
+
+            // Calculate grid size depending on the various view options
             if (pageFlow == DocumentView::Separate || pageFlowDirection == DocumentView::TopDown) { // Vertical or Grid layouts
                 // 1-up or 2-up?
                 if (pageMode == DocumentView::TwoUp) {
@@ -2081,12 +1890,15 @@ namespace Papyro
                 if (columnCount > 1 && bindingMode == DocumentView::Odd) {
                     offset = -1;
                 }
-                // Offset to currently visible pages
+                // For single-row separate mode...
                 if (pageFlow == DocumentView::Separate) {
+                    // Offset to currently visible page
                     pageIndex = ((pageIndex - offset) / columnCount) * columnCount;
                     offset += pageIndex;
                 } else {
+                    // Calculate the number of rows needed
                     rowCount = (pageCount - offset) / columnCount;
+                    // Compensate for orphans
                     if ((pageCount - offset) % columnCount > 0) {
                         rowCount += 1;
                     }
@@ -2096,44 +1908,52 @@ namespace Papyro
                 columnCount = pageCount;
             }
 
-            // Clear old layout information
-            layout.columnSpacing.clear();
-            layout.rowSpacing.clear();
-            //qDebug() << "   rowCount" << rowCount;
-            //qDebug() << "columnCount" << columnCount;
-            //qDebug() << "size before" << layout.matrix.shape()[0] << layout.matrix.shape()[1];
+            // Resize grid data structure
             layout.matrix.resize(boost::extents[rowCount][columnCount]);
             layout.matrix = Layout::PageViewMatrix(boost::extents[rowCount][columnCount]);
-            //qDebug() << "size after" << layout.matrix.shape()[0] << layout.matrix.shape()[1];
-            layout.horizontalWhitespace = 0;
-            layout.verticalWhitespace = 0;
 
             // Begin by laying out page views logically
             // Keep track of tallest/widest pages in each row/column
             for (int r = 0; r < rowCount; ++r) {
                 for (int c = 0; c < columnCount; ++c) {
+                    // Index of this cell's page view
                     int i = (columnCount * r) + c + offset;
-                    //qDebug() << "LAYOUT:index" << r << c << "=" << i;
                     if (i >= 0 && i < pageCount) {
                         PageView * pageView = pageViews.at(i);
                         layout.matrix[r][c].pageView = pageView;
 
                         layout.columnSpacing[c].index = c;
                         if (layout.columnSpacing[c].largestPageView == 0 ||
-                            pageView->pageSize().width() > layout.columnSpacing[c].largestPageView->pageSize().width()) {
+                            pageView->pageSize(true).width() > layout.columnSpacing[c].largestPageView->pageSize(true).width()) {
                             layout.columnSpacing[c].largestPageView = pageView;
                         }
 
                         layout.rowSpacing[r].index = r;
                         if (layout.rowSpacing[r].largestPageView == 0 ||
-                            pageView->pageSize().height() > layout.rowSpacing[r].largestPageView->pageSize().height()) {
+                            pageView->pageSize(true).height() > layout.rowSpacing[r].largestPageView->pageSize(true).height()) {
                             layout.rowSpacing[r].largestPageView = pageView;
                         }
                     }
                 }
             }
+        }
 
-            // Calculate whitespace
+        //qDebug() << "<<< layout_calculateGrid" << pageViews.size();
+    }
+
+    void DocumentViewPrivate::layout_calculateWhitespace()
+    {
+        //qDebug() << "=== layout_calculateWhitespace" << pageViews.size();
+        if (!pageViews.isEmpty()) {
+            // Reset variables
+            layout.horizontalWhitespace = 0;
+            layout.verticalWhitespace = 0;
+
+            // Grid dimensions
+            int columnCount = layout.columnSpacing.size();
+            int rowCount = layout.rowSpacing.size();
+
+            // Calculate whitespace required between pages
             if (pageMode == DocumentView::OneUp) {
                 layout.horizontalWhitespace = columnCount - 1;
             } else {
@@ -2148,68 +1968,101 @@ namespace Papyro
             }
             layout.verticalWhitespace = rowCount - 1;
         }
-
-        // Hide all page views (they'll be shown again later if needed)
-        foreach (PageView * pageView, pageViews) {
-            pageView->hide();
-        }
-
-        // Now sort out resizing the views
-        ++layout.resizing;
-        updatePageViewZoom();
-        --layout.resizing;
+        //qDebug() << "<<< layout_calculateWhitespace" << pageViews.size();
     }
 
-    void DocumentViewPrivate::updatePageViewZoom()
+    // Main layout calculation method
+    void DocumentViewPrivate::update_layout(int changed)
     {
-        //qDebug() << "updatePageViewZoom";
-        if (pageViews.size() > 0) {
-            int columnCount = layout.columnSpacing.size();
-            int rowCount = layout.rowSpacing.size();
+        static bool running = false;
+        //qDebug() << "=== update_layout" << changed;
 
-            // Resize widgets according to specs
+        if (!running) {
+            running = true;
+            if (changed & GridChange) {
+                layout_calculateGrid();
+                layout_calculateWhitespace();
+                changed |= SizeChange;
+            }
+            if (changed & SizeChange) {
+                foreach (PageView * pageView, pageViews) { pageView->hide(); }
+
+                layout_updatePageViewSizes();
+                layout_calculatePageViewPositions();
+                layout_updatePageViewPositions();
+
+                updateScrollBars();
+            }
+            running = false;
+        }
+        //qDebug() << "<<< update_layout" << changed;
+    }
+
+    void DocumentViewPrivate::layout_updatePageViewSizes()
+    {
+        //qDebug() << "=== layout_updatePageViewSizes" << pageViews.size();
+        // Assuming there are pages at all
+        if (!pageViews.isEmpty()) {
+            // Get the grid's dimensions
+            //int columnCount = layout.columnSpacing.size();
+            //int rowCount = layout.rowSpacing.size();
+            //qDebug() << "   " << rowCount << columnCount;
+
+            // Resize widgets according to view options
             if (zoomMode != DocumentView::CustomZoom) {
-                // Calculate zoom to fit restraints
+                // Calculate required zoom to fit the constraints
                 qreal verticalZoom = 0.0;
                 qreal horizontalZoom = 0.0;
+
+                // Calculate the zoom factor required to fit things in vertically
                 if (zoomMode == DocumentView::FitToHeight || zoomMode == DocumentView::FitToWindow) {
-                    qreal paper = 0.0;
+                    // For each row, find its largest contributing page view,
+                    // and use it to calculate how tall the full canvas would
+                    // need to be
                     PageView * tallest = 0;
+                    qreal paper = 0.0;
                     Layout::SpacingMap::const_iterator i(layout.rowSpacing.begin());
                     Layout::SpacingMap::const_iterator e(layout.rowSpacing.end());
                     for (; i != e; ++i) {
-                        qreal height = i->second.largestPageView->pageSize().height();
-                        //qDebug() << "ZOOM:height" << height;
+                        qreal height = i->second.largestPageView->pageSize(true).height();
                         paper += height;
-                        if (tallest == 0 || tallest->pageSize().height() < height) {
+                        if (tallest == 0 || tallest->pageSize(true).height() < height) {
                             tallest = i->second.largestPageView;
                         }
-                        //qDebug() << "ZOOM:tallest" << tallest;
                     }
+
+                    // Now work out what vertical zoom would fit the rows in
+                    // as snuggly as possible
                     int screen = documentView->maximumViewportSize().height() - layout.verticalWhitespace;
-                    tallest->resizeToHeight(qFloor(screen * tallest->pageSize().height() / paper));
+                    tallest->resizeToHeight(qFloor(screen * tallest->pageSize(true).height() / paper));
                     if (zoomMode == DocumentView::FitToHeight) {
                         zoom = tallest->verticalZoom();
                     } else {
                         verticalZoom = tallest->verticalZoom();
                     }
                 }
+
+                // Calculate the zoom factor required to fit things in vertically
                 if (zoomMode == DocumentView::FitToWidth || zoomMode == DocumentView::FitToWindow) {
-                    qreal paper = 0.0;
+                    // For each column, find its largest contributing page view,
+                    // and use it to calculate how wide the full canvas would
+                    // need to be
                     PageView * widest = 0;
+                    qreal paper = 0.0;
                     Layout::SpacingMap::const_iterator i(layout.columnSpacing.begin());
                     Layout::SpacingMap::const_iterator e(layout.columnSpacing.end());
                     for (; i != e; ++i) {
-                        qreal width = i->second.largestPageView->pageSize().width();
-                        //qDebug() << "ZOOM:width" << width;
+                        qreal width = i->second.largestPageView->pageSize(true).width();
                         paper += width;
-                        if (widest == 0 || widest->pageSize().width() < width) {
+                        if (widest == 0 || widest->pageSize(true).width() < width) {
                             widest = i->second.largestPageView;
                         }
-                        //qDebug() << "ZOOM:widest" << widest;
                     }
+
+                    // Now work out what horizontal zoom would fit the columns in
+                    // as snuggly as possible
                     int screen = documentView->maximumViewportSize().width() - layout.horizontalWhitespace;
-                    int target = layout.columnSpacing.size() == 1 ? screen : qFloor(screen * widest->pageSize().width() / paper);
+                    int target = layout.columnSpacing.size() == 1 ? screen : qFloor(screen * widest->pageSize(true).width() / paper);
                     widest->resizeToWidth(target);
                     if (zoomMode == DocumentView::FitToWidth) {
                         zoom = widest->horizontalZoom();
@@ -2217,63 +2070,78 @@ namespace Papyro
                         horizontalZoom = widest->horizontalZoom();
                     }
                 }
+
+                // For the case of fitting to the window, take the smaller of the two zoom factors
                 if (zoomMode == DocumentView::FitToWindow) {
                     zoom = qMin(horizontalZoom, verticalZoom);
                 }
             }
+
             // Apply calculated zoom factor to all pages
             setZoom(zoom);
+        }
+        //qDebug() << "<<< layout_updatePageViewSizes" << pageViews.size();
+    }
 
+    void DocumentViewPrivate::layout_calculatePageViewPositions()
+    {
+        //qDebug() << "=== layout_calculatePageViewPositions" << pageViews.size();
+        // Assuming there are pages at all
+        if (!pageViews.isEmpty()) {
             // Calculate geometry of page views
             Layout::SpacingMap rowSpacing(layout.rowSpacing);
             Layout::SpacingMap columnSpacing(layout.columnSpacing);
+
             // Start with vertical positioning
             {
+                // Keep track of the vertical position
                 int y = 0;
-                bool center = rowSpacing.size() != 2;
 
+                // For each row, rewrite the rowSpacing map to relate not the
+                // row index, but rather the vertical position to the page view
                 layout.rowSpacing.clear();
                 Layout::SpacingMap::const_iterator ri(rowSpacing.begin());
                 Layout::SpacingMap::const_iterator re(rowSpacing.end());
                 for (; ri != re; ++ri) {
                     layout.rowSpacing[y] = ri->second;
                     int height = ri->second.largestPageView->height();
-                    //qDebug() << "ZOOM:row" << ri->second.index;
-                    //qDebug() << "ZOOM:height" << height;
                     Layout::SpacingMap::const_iterator ci(columnSpacing.begin());
                     Layout::SpacingMap::const_iterator ce(columnSpacing.end());
                     for (; ci != ce; ++ci) {
-                        //qDebug() << "ZOOM:column-cell" << ci->second.index;
                         if (PageView * pageView = layout.matrix[ri->second.index][ci->second.index].pageView) {
-                            // Center align
+                            // Center align vertically in this row
                             layout.matrix[ri->second.index][ci->second.index].pos.setY(y + (height - pageView->height()) / 2);
                         }
                     }
-                    y += height + 1; // +1 vertical spacing
+                    // +1 vertical spacing between rows
+                    y += height + 1;
                 }
             }
             // Then with horizontal positioning
             {
+                // Keep track of the vertical position
                 int x = 0;
+
                 bool oneup = pageMode == DocumentView::OneUp;
                 bool odd = bindingMode == DocumentView::Odd;
 
+                // For each row, rewrite the columnSpacing map to relate not the
+                // column index, but rather the horizontal position to the page view
                 layout.columnSpacing.clear();
                 Layout::SpacingMap::const_iterator ci(columnSpacing.begin());
                 Layout::SpacingMap::const_iterator ce(columnSpacing.end());
                 for (; ci != ce; ++ci) {
                     layout.columnSpacing[x] = ci->second;
                     int width = ci->second.largestPageView->width();
-                    //qDebug() << "ZOOM:column" << ci->second.index;
-                    //qDebug() << "ZOOM:width" << width;
+
                     // Spacing... (for 2nd/4th/6th... columns only, when in 2-up)
                     int space = (oneup ? 1 : ci->second.index % 2);
+
                     Layout::SpacingMap::const_iterator ri(rowSpacing.begin());
                     Layout::SpacingMap::const_iterator re(rowSpacing.end());
                     for (; ri != re; ++ri) {
                         if (PageView * pageView = layout.matrix[ri->second.index][ci->second.index].pageView) {
-                            //qDebug() << "ZOOM:row-cell" << ri->second.index;
-                            if (oneup) { // Center align
+                            if (oneup) { // Center align when in one-up mode
                                 layout.matrix[ri->second.index][ci->second.index].pos.setX(x + (width - pageView->width()) / 2);
                             } else if (pageView->pageNumber() % 2 == (odd ? 0 : 1)) { // Align to right
                                 // If this column has spacing, and we're two-up, the right-aligned
@@ -2282,7 +2150,6 @@ namespace Papyro
                             } else { // Align to left
                                 layout.matrix[ri->second.index][ci->second.index].pos.setX(x);
                             }
-                            //qDebug() << "ZOOM:pos" << layout.matrix[ri->second.index][ci->second.index].pos;
                         }
                     }
                     // + horizontal spacing
@@ -2295,14 +2162,8 @@ namespace Papyro
             Layout::SpacingMap::const_iterator lastRow(--layout.rowSpacing.end());
             layout.size = QSize(lastColumn->first + lastColumn->second.largestPageView->width(),
                                 lastRow->first + lastRow->second.largestPageView->height());
-
-            onVerticalScrollBarValueChanged(documentView->verticalScrollBar()->value());
-            onHorizontalScrollBarValueChanged(documentView->horizontalScrollBar()->value());
-            updateScrollBars();
         }
-
-        // Now apply geometry to views
-        updateViewport();
+        //qDebug() << "<<< layout_calculatePageViewPositions" << pageViews.size();
     }
 
     void DocumentViewPrivate::updateSavedSelection(const QSet< int > & changedPageViews)
@@ -2338,85 +2199,75 @@ namespace Papyro
 
     void DocumentViewPrivate::updateScrollBars()
     {
-        //qDebug() << "updateScrollBars";
-        if (documentView->isEmpty()) {
-            documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-            documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        } else {
-            switch (zoomMode)
-            {
-            case DocumentView::CustomZoom:
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-                break;
-            case DocumentView::FitToHeight:
-                actionFitToHeight->setChecked(true);
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-                break;
-            case DocumentView::FitToWidth:
-                actionFitToWidth->setChecked(true);
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                break;
-            case DocumentView::FitToWindow:
-                actionFitToWindow->setChecked(true);
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                break;
-            }
+        interaction.updateOrigin = false;
 
+        //qDebug() << "updateScrollBars()";
+        updateScrollBarPolicies();
+
+        //qDebug() << "updateScrollBars";
+        if (!documentView->isEmpty()) {
             // Keep scrollbar ranges sensible
             documentView->verticalScrollBar()->setRange(0, qMax(0, layout.size.height() - documentView->viewport()->height()));
             documentView->verticalScrollBar()->setPageStep(documentView->viewport()->height());
             documentView->horizontalScrollBar()->setRange(0, qMax(0, layout.size.width() - documentView->viewport()->width()));
             documentView->horizontalScrollBar()->setPageStep(documentView->viewport()->width());
 
-            // Bound origin indices to the new structure
-            layout.verticalOriginPageViewIndices.rx() = qBound(-1, layout.verticalOriginPageViewIndices.rx(), (int) layout.matrix.shape()[0] - 1);
-            layout.verticalOriginPageViewIndices.ry() = qBound(-1, layout.verticalOriginPageViewIndices.ry(), (int) layout.matrix.shape()[1] - 1);
-            //qDebug() << "  -" << layout.verticalOriginPageViewIndices << layout.matrix.shape()[0] << layout.matrix.shape()[1];
-            if (layout.resizing && layout.verticalOriginPageViewIndices.x() >= 0 && layout.verticalOriginPageViewIndices.y() >= 0) {
-                const Layout::Cell & verticalOriginCell = layout.matrix[layout.verticalOriginPageViewIndices.x()][layout.verticalOriginPageViewIndices.y()];
+            // Bound origin indices to the new structure, in case the grid
+            // dimensions have changed
+            layout.verticalOriginPageViewGridCoords.rx() = qBound(-1, layout.verticalOriginPageViewGridCoords.x(), (int) layout.matrix.shape()[0] - 1);
+            layout.verticalOriginPageViewGridCoords.ry() = qBound(-1, layout.verticalOriginPageViewGridCoords.y(), (int) layout.matrix.shape()[1] - 1);
+            layout.horizontalOriginPageViewGridCoords.rx() = qBound(-1, layout.horizontalOriginPageViewGridCoords.x(), (int) layout.matrix.shape()[0] - 1);
+            layout.horizontalOriginPageViewGridCoords.ry() = qBound(-1, layout.horizontalOriginPageViewGridCoords.y(), (int) layout.matrix.shape()[1] - 1);
+
+            // Set scrollbar value such that the same page coordinate is at the viewport's origin
+            if (layout.verticalOriginPageViewGridCoords.x() >= 0 && layout.verticalOriginPageViewGridCoords.y() >= 0) {
+                const Layout::Cell & verticalOriginCell = layout.matrix[layout.verticalOriginPageViewGridCoords.x()][layout.verticalOriginPageViewGridCoords.y()];
                 if (verticalOriginCell.pageView) {
-                    documentView->verticalScrollBar()->setValue(verticalOriginCell.pos.y() + verticalOriginCell.pageView->height() * layout.verticalOrigin / verticalOriginCell.pageView->pageSize().height());
+                    //qDebug() << "--- V" << documentView->verticalScrollBar()->value() << (int) (verticalOriginCell.pos.y() + verticalOriginCell.pageView->height() * layout.verticalOrigin / verticalOriginCell.pageView->pageSize(true).height());
+                    documentView->verticalScrollBar()->setValue(verticalOriginCell.pos.y() + verticalOriginCell.pageView->height() * layout.verticalOrigin / verticalOriginCell.pageView->pageSize(true).height());
                 }
             }
-            layout.horizontalOriginPageViewIndices.rx() = qBound(-1, layout.horizontalOriginPageViewIndices.rx(), (int) layout.matrix.shape()[0] - 1);
-            layout.horizontalOriginPageViewIndices.ry() = qBound(-1, layout.horizontalOriginPageViewIndices.ry(), (int) layout.matrix.shape()[1] - 1);
-            //qDebug() << "  -" << layout.horizontalOriginPageViewIndices << layout.matrix.shape()[0] << layout.matrix.shape()[1];
-            if (layout.resizing && layout.horizontalOriginPageViewIndices.x() >= 0 && layout.horizontalOriginPageViewIndices.y() >= 0) {
-                const Layout::Cell & horizontalOriginCell = layout.matrix[layout.horizontalOriginPageViewIndices.x()][layout.horizontalOriginPageViewIndices.y()];
+            // Set scrollbar value such that the same page coordinate is at the viewport's origin
+            if (layout.horizontalOriginPageViewGridCoords.x() >= 0 && layout.horizontalOriginPageViewGridCoords.y() >= 0) {
+                const Layout::Cell & horizontalOriginCell = layout.matrix[layout.horizontalOriginPageViewGridCoords.x()][layout.horizontalOriginPageViewGridCoords.y()];
                 if (horizontalOriginCell.pageView) {
-                    documentView->horizontalScrollBar()->setValue(horizontalOriginCell.pos.x() + horizontalOriginCell.pageView->width() * layout.horizontalOrigin / horizontalOriginCell.pageView->pageSize().width());
+                    //qDebug() << "--- H" << documentView->horizontalScrollBar()->value() << (int) (horizontalOriginCell.pos.x() + horizontalOriginCell.pageView->width() * layout.horizontalOrigin / horizontalOriginCell.pageView->pageSize(true).width());
+                    documentView->horizontalScrollBar()->setValue(horizontalOriginCell.pos.x() + horizontalOriginCell.pageView->width() * layout.horizontalOrigin / horizontalOriginCell.pageView->pageSize(true).width());
                 }
             }
         }
+
+        interaction.updateOrigin = true;
     }
 
-    void DocumentViewPrivate::updateScrollBarsOld()
+    void DocumentViewPrivate::updateScrollBarPolicies()
     {
         if (documentView->autoScrollBars()) {
-            switch (zoomMode) {
-            case DocumentView::CustomZoom:
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-                break;
-            case DocumentView::FitToHeight:
-                actionFitToHeight->setChecked(true);
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-                break;
-            case DocumentView::FitToWidth:
-                actionFitToWidth->setChecked(true);
-                documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-                documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                break;
-            case DocumentView::FitToWindow:
-                actionFitToWindow->setChecked(true);
+            if (documentView->isEmpty()) {
                 documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
                 documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                break;
+            } else {
+                switch (zoomMode) {
+                case DocumentView::CustomZoom:
+                    documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+                    documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+                    break;
+                case DocumentView::FitToHeight:
+                    actionFitToHeight->setChecked(true);
+                    documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                    documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+                    break;
+                case DocumentView::FitToWidth:
+                    actionFitToWidth->setChecked(true);
+                    documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+                    documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                    break;
+                case DocumentView::FitToWindow:
+                    actionFitToWindow->setChecked(true);
+                    documentView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                    documentView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                    break;
+                }
             }
         }
     }
@@ -2435,24 +2286,73 @@ namespace Papyro
         }
     }
 
-    void DocumentViewPrivate::updateViewport()
+    // Update the page outlines
+    void DocumentViewPrivate::updatePageOutlines()
     {
-        //qDebug() << "updateViewport";
         pageOutlines = QPicture();
 
-        if (pageViews.size() > 0) {
-            int columnCount = layout.columnSpacing.size();
-            int rowCount = layout.rowSpacing.size();
+        // Generate the grey lines that run between pages
+        QPainter painter(&pageOutlines);
 
-            // Apply geometry to visible page views
+        // Grid dimensions
+        int rc = layout.rowSpacing.size();
+        int cc = layout.columnSpacing.size();
+
+        // Go through each row/column and draw appropriate lines
+        Layout::SpacingMap::const_iterator ri(layout.rowSpacing.begin());
+        Layout::SpacingMap::const_iterator re(layout.rowSpacing.end());
+        for (; ri != re; ++ri) {
+            int r = ri->second.index;
+            Layout::SpacingMap::const_iterator ci(layout.columnSpacing.begin());
+            Layout::SpacingMap::const_iterator ce(layout.columnSpacing.end());
+            for (; ci != ce; ++ci) {
+                int c = ci->second.index;
+                if (PageView * pageView = layout.matrix[r][c].pageView) {
+                    if (pageView->isVisible()) {
+                        // Update page outlines
+                        QRect rect(pageView->geometry());
+                        if (c > 0 && layout.matrix[r][c-1].pageView) {
+                            painter.drawLine(QLineF(rect.topLeft(), rect.bottomLeft()).translated(-1, 0));
+                        }
+                        if (c < cc - 1 && layout.matrix[r][c+1].pageView) {
+                            painter.drawLine(QLineF(rect.topRight(), rect.bottomRight()).translated(1, 0));
+                        }
+                        if (r > 0 && layout.matrix[r-1][c].pageView) {
+                            painter.drawLine(QLineF(rect.topLeft(), rect.topRight()).translated(0, -1));
+                        }
+                        if (r < rc - 1 && layout.matrix[r+1][c].pageView) {
+                            painter.drawLine(QLineF(rect.bottomLeft(), rect.bottomRight()).translated(0, 1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Apply geometry to visible page views, hiding invisible views
+    void DocumentViewPrivate::layout_updatePageViewPositions()
+    {
+        //qDebug() << "=== layout_updatePageViewPositions" << pageViews.size();
+
+        // Only if there are pages to lay out
+        if (!pageViews.isEmpty()) {
+            // Grid dimensions
+            //int columnCount = layout.columnSpacing.size();
+            //int rowCount = layout.rowSpacing.size();
+
+            // Viewport dimensions
             QRect viewRect(QPoint(documentView->horizontalScrollBar()->value(),
                                   documentView->verticalScrollBar()->value()), documentView->viewport()->size());
+
+            // If the viewport is larger than required in either axis, shrink it
+            // and position it to fit (centre aligned)
             if (layout.size.width() < viewRect.width()) {
                 viewRect.moveLeft(- (viewRect.width() - layout.size.width()) / 2);
             }
             if (layout.size.height() < viewRect.height()) {
                 viewRect.moveTop(- (viewRect.height() - layout.size.height()) / 2);
             }
+
             //Layout::SpacingMap::const_iterator rb(--layout.rowSpacing.upper_bound(viewRect.top()));
             //Layout::SpacingMap::const_iterator re(layout.rowSpacing.upper_bound(viewRect.bottom()));
             //Layout::SpacingMap::const_iterator cb(--layout.columnSpacing.upper_bound(viewRect.left()));
@@ -2463,27 +2363,26 @@ namespace Papyro
             //    }
             //}
 
-            QPainter painter(&pageOutlines);
-
             QSet< PageView * > toHide;
             foreach (PageView * pageView, pageViews) {
                 toHide.insert(pageView);
             }
-            int rc = layout.rowSpacing.size();
-            int cc = layout.columnSpacing.size();
+            //qDebug() << "+++";
+            //int rc = layout.rowSpacing.size();
+            //int cc = layout.columnSpacing.size();
             Layout::SpacingMap::const_iterator ri(layout.rowSpacing.begin());
             Layout::SpacingMap::const_iterator re(layout.rowSpacing.end());
             for (; ri != re; ++ri) {
                 int r = ri->second.index;
+                //qDebug() << "   R" << r << "/" << rc;
                 Layout::SpacingMap::const_iterator ci(layout.columnSpacing.begin());
                 Layout::SpacingMap::const_iterator ce(layout.columnSpacing.end());
                 for (; ci != ce; ++ci) {
                     int c = ci->second.index;
+                    //qDebug() << "   C" << c << "/" << cc;
                     if (PageView * pageView = layout.matrix[r][c].pageView) {
-                        //qDebug() << "VIEWPORT:pos" << layout.matrix[r][c].pos;
                         QPoint pos = layout.matrix[r][c].pos - viewRect.topLeft();
                         QSize size = pageView->size();
-                        //qDebug() << "VIEWPORT:viewport" << viewRect << QRect(pos, size);
                         if (pos.x() <= viewRect.width() &&
                             pos.x() + size.width() >= 0 &&
                             pos.y() <= viewRect.height() &&
@@ -2491,30 +2390,20 @@ namespace Papyro
                             pageView->move(pos);
                             pageView->show();
                             toHide.remove(pageView);
-
-                            // Update page outlines
-                            QRect rect(pageView->pos(), pageView->size());
-                            if (c > 0 && layout.matrix[r][c-1].pageView) {
-                                painter.drawLine(QLine(rect.topLeft(), rect.bottomLeft()).translated(-1, 0));
-                            }
-                            if (c < cc - 1 && layout.matrix[r][c+1].pageView) {
-                                painter.drawLine(QLine(rect.topRight(), rect.bottomRight()).translated(1, 0));
-                            }
-                            if (r > 0 && layout.matrix[r-1][c].pageView) {
-                                painter.drawLine(QLine(rect.topLeft(), rect.topRight()).translated(0, -1));
-                            }
-                            if (r < rc - 1 && layout.matrix[r+1][c].pageView) {
-                                painter.drawLine(QLine(rect.bottomLeft(), rect.bottomRight()).translated(0, 1));
-                            }
                         }
                     }
                 }
             }
+            //qDebug() << "---";
 
             foreach (PageView * pageView, toHide) {
                 pageView->hide();
             }
+
+            updatePageOutlines();
         }
+
+        //qDebug() << "<<< layout_updatePageViewPositions" << pageViews.size();
     }
 
 
@@ -2600,21 +2489,23 @@ namespace Papyro
 
         QMenu menu(this);
 
-        // Include contextual page view actions
-        PageView * pageViewUnderMouse = dynamic_cast< PageView * >(childAt(event->pos()));
-        if (pageViewUnderMouse) {
-            // Add page view's menu items
-            pageViewUnderMouse->populateContextMenuAt(&menu, pageViewUnderMouse->mapFrom(this, event->pos()));
-
-            menu.addSeparator();
-        }
-
-
         // Layout options
         menu.addMenu(d->layoutMenu);
 
         // Zoom options
         menu.addMenu(d->zoomMenu);
+
+        // Give the page view a chance to modify the menu
+        foreach (PageView * pageView, d->pageViews) {
+            if (pageView->isVisible()) {
+                QPoint pageViewPos(pageView->mapFrom(this, event->pos()));
+                if (pageView->rect().contains(pageViewPos)) {
+                    pageView->populateContextMenuAt(&menu, pageViewPos);
+                    menu.addSeparator();
+                    break;
+                }
+            }
+        }
 
         // Give other components a chance to modify the menu
         emit contextMenuAboutToShow(&menu, document(), d->interaction.mouseTextCursor);
@@ -2646,7 +2537,7 @@ namespace Papyro
 
     void DocumentView::focusNextSpotlight()
     {
-        if (d->activeSpotlight >= 0 && d->activeSpotlight < d->spotlights.size())
+        if (d->activeSpotlight < d->spotlights.size())
         {
             Spine::TextExtentHandle curr = d->spotlights.at(d->activeSpotlight);
             d->activeSpotlight = (d->activeSpotlight + 1) % d->spotlights.size();
@@ -2662,7 +2553,7 @@ namespace Papyro
 
     void DocumentView::focusPreviousSpotlight()
     {
-        if (d->activeSpotlight >= 0 && d->activeSpotlight < d->spotlights.size())
+        if (d->activeSpotlight < d->spotlights.size())
         {
             Spine::TextExtentHandle curr = d->spotlights.at(d->activeSpotlight);
             d->activeSpotlight = (d->activeSpotlight + d->spotlights.size() - 1) % d->spotlights.size();
@@ -2771,9 +2662,7 @@ namespace Papyro
 
     void DocumentView::resizeEvent(QResizeEvent * event)
     {
-        ++d->layout.resizing;
-        d->updatePageViewZoom();
-        --d->layout.resizing;
+        d->update_layout(SizeChange);
     }
 
     DocumentView::OptionState DocumentView::saveState() const
@@ -2863,33 +2752,32 @@ namespace Papyro
     void DocumentView::setAutoScrollBars(bool value)
     {
         d->autoScrollBars = value;
-        d->updateScrollBarsOld();
+        d->updateScrollBarPolicies();
     }
 
     void DocumentView::setBindingMode(BindingMode mode)
     {
         BindingMode oldBindingMode = d->bindingMode;
-
         d->bindingMode = mode;
-        if (pageFlow() == Separate)
-        {
+
+        if (pageFlow() == Separate) {
             showPage(d->pageNumber);
         }
-        d->updatePageViewLayout();
+        d->update_layout(GridChange);
         update();
 
-        if (oldBindingMode != mode)
-        {
+        if (oldBindingMode != mode) {
             emit bindingModeChanged();
         }
     }
 
-    void DocumentView::setDocument(Spine::DocumentHandle document, size_t pageNumber, const QRectF & pageRect)
+    void DocumentView::setDocument(Spine::DocumentHandle document, int pageNumber, const QRectF & pageRect)
     {
         clear();
         d->document = document;
         if (document) {
             d->pageNumber = 1;
+            d->updateScrollBarPolicies();
             d->createPageViews();
             showPage(pageNumber, pageRect);
             d->layoutMenu->setEnabled(true);
@@ -2945,73 +2833,48 @@ namespace Papyro
         d->pageFlow = flow;
 
         // Ensure certain actions are disabled / labeled correctly
-        switch (flow)
-        {
-        case Separate:
-            if (pageMode() == OneUp)
-            {
-                d->actionOnePage->setChecked(true);
-            }
-            else
-            {
-                d->actionTwoPages->setChecked(true);
-            }
+        bool oneup = (pageMode() == OneUp);
+
+        switch (flow) {
+        case Separate: {
+            d->actionOnePage->setChecked(oneup);
+            d->actionTwoPages->setChecked(!oneup);
             d->updateActions();
-            d->updatePageViewLayout();
+            d->update_layout(GridChange);
             update();
             break;
-        case Continuous:
-        {
-            if (pageMode() == OneUp)
-            {
-                d->actionOnePageContinuous->setChecked(true);
-            }
-            else
-            {
-                d->actionTwoPagesContinuous->setChecked(true);
-            }
-
+        }
+        case Continuous: {
+            d->actionOnePageContinuous->setChecked(oneup);
+            d->actionTwoPagesContinuous->setChecked(!oneup);
             ZoomMode newZoomMode = zoomMode();
-            if (zoomMode() == FitToWindow)
-            {
-                if (pageFlowDirection() == TopDown)
-                {
+            if (zoomMode() == FitToWindow) {
+                if (pageFlowDirection() == TopDown) {
                     newZoomMode = FitToWidth;
-                }
-                else
-                {
+                } else {
                     newZoomMode = FitToHeight;
                 }
-            }
-            else if (zoomMode() == FitToWidth &&
-                     pageFlowDirection() == LeftToRight)
-            {
+            } else if (zoomMode() == FitToWidth &&
+                       pageFlowDirection() == LeftToRight) {
                 newZoomMode = FitToHeight;
-            }
-            else if (zoomMode() == FitToHeight &&
-                     pageFlowDirection() == TopDown)
-            {
+            } else if (zoomMode() == FitToHeight &&
+                       pageFlowDirection() == TopDown) {
                 newZoomMode = FitToWidth;
             }
 
             d->updateActions();
-            if (newZoomMode != zoomMode())
-            {
+            if (newZoomMode != zoomMode()) {
                 setZoomMode(newZoomMode);
-            }
-            else
-            {
-                d->updatePageViewLayout();
+            } else {
+                d->update_layout(GridChange);
                 update();
             }
             break;
         }
         }
 
-        showPage(d->pageNumber);
-
-        if (oldPageFlow != flow)
-        {
+        if (oldPageFlow != flow) {
+            showPage(d->pageNumber);
             emit pageFlowChanged();
         }
     }
@@ -3023,30 +2886,26 @@ namespace Papyro
         d->pageFlowDirection = direction;
 
         // Ensure certain actions are disabled / labeled correctly
-        switch (direction)
-        {
+        switch (direction) {
         case LeftToRight:
             d->actionLeftToRightFlow->setChecked(true);
-            if (zoomMode() == FitToWidth)
-            {
+            if (zoomMode() == FitToWidth) {
                 setZoomMode(FitToHeight);
             }
             break;
         case TopDown:
             d->actionTopDownFlow->setChecked(true);
-            if (zoomMode() == FitToHeight)
-            {
+            if (zoomMode() == FitToHeight) {
                 setZoomMode(FitToWidth);
             }
             break;
         }
 
         d->updateActions();
-        d->updatePageViewLayout();
+        d->update_layout(GridChange);
         update();
 
-        if (oldPageFlowDirection != direction)
-        {
+        if (oldPageFlowDirection != direction) {
             emit pageFlowDirectionChanged();
         }
     }
@@ -3057,11 +2916,10 @@ namespace Papyro
 
         d->pageMode = mode;
         d->updateActions();
-        d->updatePageViewLayout();
+        d->update_layout(GridChange);
         update();
 
-        if (oldPageMode != mode)
-        {
+        if (oldPageMode != mode) {
             emit pageModeChanged();
         }
     }
@@ -3071,28 +2929,21 @@ namespace Papyro
         if (zoom > 0) {
             // Change zoom mode if needs be
             bool zoomModeHasChanged = false;
-            if (zoomMode() != CustomZoom)
-            {
+            if (zoomMode() != CustomZoom) {
                 d->zoomMode = CustomZoom;
                 zoomModeHasChanged = true;
-                if (autoScrollBars())
-                {
-                    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-                    setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-                }
+                d->updateScrollBarPolicies();
             }
 
             int percentage = qRound(zoom * 100);
 
             // Add into menu if not exact
-            if (!d->zoomPercentages.contains(percentage))
-            {
+            if (!d->zoomPercentages.contains(percentage)) {
                 QString str = QString("%1").arg(percentage);
                 QAction * actionBespokeZoom = new QAction(str + "%", this);
                 QAction * after = 0;
                 QMap< int, QAction * >::iterator afterIter = d->zoomPercentages.upperBound(percentage);
-                if (afterIter != d->zoomPercentages.end())
-                {
+                if (afterIter != d->zoomPercentages.end()) {
                     after = *afterIter;
                 }
                 d->zoomMenu->insertAction(after, actionBespokeZoom);
@@ -3101,20 +2952,15 @@ namespace Papyro
                 actionBespokeZoom->setChecked(true);
                 QObject::connect(actionBespokeZoom, SIGNAL(toggled(bool)), d, SLOT(toggleBespokeZoom(bool)));
                 d->actionBespokeZoom = actionBespokeZoom;
-            }
-            else
-            {
+            } else {
                 d->zoomPercentages[percentage]->setChecked(true);
             }
 
-            ++d->layout.resizing;
             d->zoom = zoom;
-            d->updatePageViewZoom();
+            d->update_layout(SizeChange);
             update();
-            --d->layout.resizing;
 
-            if (zoomModeHasChanged)
-            {
+            if (zoomModeHasChanged) {
                 emit zoomModeChanged();
             }
         }
@@ -3128,12 +2974,10 @@ namespace Papyro
 
     void DocumentView::setZoomMode(ZoomMode mode)
     {
-        if (d->zoomMode != mode)
-        {
+        if (d->zoomMode != mode) {
             d->zoomMode = mode;
 
-            switch (mode)
-            {
+            switch (mode) {
             case CustomZoom:
                 break;
             case FitToHeight:
@@ -3147,24 +2991,19 @@ namespace Papyro
                 break;
             }
 
-            d->updateScrollBarsOld();
+            d->updateScrollBarPolicies();
 
-            if (mode == CustomZoom)
-            {
+            if (mode == CustomZoom) {
                 setZoom(zoom());
-            }
-            else
-            {
+            } else {
                 // recalculate layout if this originally came from such a request
                 if (sender() != d->actionFitToHeight &&
                     sender() != d->actionFitToWidth &&
                     sender() != d->actionFitToWindow) {
-                    d->updatePageViewLayout();
+                    d->update_layout(GridChange);
                 } else {
                     // Otherwise just recalculate zoom factors
-                    ++d->layout.resizing;
-                    d->updatePageViewZoom();
-                    --d->layout.resizing;
+                    d->update_layout(SizeChange);
                 }
                 viewport()->update();
                 emit zoomModeChanged();
@@ -3220,7 +3059,7 @@ namespace Papyro
     {
         Spine::BoundingBox bb;
         bool first = true;
-        size_t page;
+        int page;
         foreach (Spine::Area area, extent->areas()) {
             if (first) {
                 page = area.page;
@@ -3235,9 +3074,6 @@ namespace Papyro
 
     void DocumentView::showPage(const QVariantMap & params)
     {
-        QRegExp rectSplitter("\\[\\s*(\\d+(?:\\.\\d+)?)\\s+(\\d+(?:\\.\\d+)?)\\s+(\\d+(?:\\.\\d+)?)\\s+(\\d+(?:\\.\\d+)?)\\s*\\]");
-        QRegExp pointSplitter("\\[\\s*(\\d+(?:\\.\\d+)?)\\s+(\\d+(?:\\.\\d+)?)\\s*\\]");
-
         bool hasPage = params.contains("page");
         bool hasPos = params.contains("pos");
         bool hasRect = params.contains("rect");
@@ -3252,11 +3088,11 @@ namespace Papyro
         QString text;
         if (hasPos) {
             rect = QRectF(params.value("pos").toPointF(), QSizeF(0, 0));
-        } else if (hasRect && rectSplitter.exactMatch(params.value("rect").toString())) {
+        } else if (hasRect) {
             rect = params.value("rect").toRectF();
-        } else if (hasAnchor && params.contains("anchor")) {
+        } else if (hasAnchor) {
             anchor = params.value("anchor").toString();
-        } else if (hasText && params.contains("text")) {
+        } else if (hasText) {
             text = params.value("text").toString();
         }
 
@@ -3269,8 +3105,7 @@ namespace Papyro
             if (hasAnchor) {
                 // Find the appropriate anchor
                 foreach (Spine::AnnotationHandle annotation, document()->annotations()) {
-                    if (annotation->getFirstProperty("concept") == "Anchor" &&
-                        annotation->getFirstProperty("property:anchor") == unicodeFromQString(anchor)) {
+                    if (annotation->getFirstProperty("property:anchor") == unicodeFromQString(anchor)) {
                         extents = annotation->extents();
                         areas = annotation->areas();
                         break;
@@ -3290,15 +3125,24 @@ namespace Papyro
                 }
             }
 
-            if (show == "select" || show == "highlight") {
+            if (show == "select") {
                 document()->clearSelection();
                 document()->setTextSelection(Spine::TextSelection(extents));
                 document()->setAreaSelection(areas);
-            } // FIXME have other forms of showing
+            } else if (show == "highlight" && !extents.empty()) {
+                Spine::AnnotationHandle highlight = d->createHighlight(0, *extents.begin(), false, false);
+                highlight->setProperty("displayTooltip", "You were brought to this article because of this phrase");
+                highlight->removeProperty("property:color");
+                highlight->setProperty("property:color", "#FFE8D8");
+                document()->addAnnotation(highlight);
+            }
+            // FIXME have other forms of showing
+        } else if (hasPage) {
+            showPage((size_t) page);
         }
     }
 
-    void DocumentView::showPage(size_t pageNumber, const QRectF & pageRect)
+    void DocumentView::showPage(int pageNumber, const QRectF & pageRect)
     {
         if (!document()) { return; }
 
@@ -3321,7 +3165,7 @@ namespace Papyro
                 }
 
                 if (pageFlow() == Separate) {
-                    d->updatePageViewLayout();
+                    d->update_layout(GridChange);
                 }
             }
 
@@ -3458,7 +3302,7 @@ namespace Papyro
     void DocumentView::showPreviousPage()
     {
         if (pageFlow() == Separate) {
-            size_t step = pageFlow() == Separate ? d->layout.columnSpacing.size() : 1;
+            int step = pageFlow() == Separate ? d->layout.columnSpacing.size() : 1;
             if (step <= d->pageNumber)
             {
                 showPage(d->pageNumber - step);

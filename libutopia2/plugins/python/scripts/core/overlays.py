@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -94,7 +94,7 @@ class CitationOverlayRendererMapper(utopia.document.OverlayRendererMapper):
 # Hyperlink
 class HyperlinkOverlayRendererMapper(utopia.document.OverlayRendererMapper):
     def mapToId(self, document, annotation):
-        if annotation.get('concept') in ('Hyperlink',):
+        if annotation.get('concept') in ('Hyperlink', 'WebPage'):
             return 'hyperlink'
     def weight(self):
         return 10

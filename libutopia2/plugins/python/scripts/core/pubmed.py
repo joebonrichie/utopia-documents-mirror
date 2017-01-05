@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,8 +29,8 @@
 #   
 ###############################################################################
 
-import common.eutils
-import common.pubmed
+import utopialib.eutils
+import utopialib.pubmed
 import spineapi
 import urllib
 import utopia.document
@@ -43,7 +43,7 @@ class PubMedAnnotator(utopia.document.Annotator, utopia.document.Visualiser):
     def on_explore_event(self, phrase, document):
         rt = ''
 
-        searchresult = common.eutils.esearch(db='pubmed', retmax=5, term=phrase)
+        searchresult = utopialib.eutils.esearch(db='pubmed', retmax=5, term=phrase)
 
         root = etree.fromstring(searchresult)
 
@@ -51,11 +51,11 @@ class PubMedAnnotator(utopia.document.Annotator, utopia.document.Visualiser):
         if len(ids) > 0:
             idlist = ','.join((id.text for id in ids))
 
-            searchresult = common.eutils.efetch(db='pubmed', id=idlist)
+            searchresult = utopialib.eutils.efetch(db='pubmed', id=idlist)
             articleset = etree.fromstring(searchresult)
 
             for article in articleset.findall('./PubmedArticle'):
-                citation = common.pubmed.parse_PubmedArticle(article)
+                citation = utopialib.pubmed.parse_PubmedArticle(article)
 
                 doi = citation['doi'] = citation.get('identifiers', {}).get('doi')
                 pmid = citation['pmid'] = citation.get('identifiers', {}).get('pubmed')
@@ -65,9 +65,9 @@ class PubMedAnnotator(utopia.document.Annotator, utopia.document.Visualiser):
                 else:
                     link = ''
 
-                rt += u'<div class="box">{0} {1}</div>'.format(common.utils.format_citation(citation), link)
+                rt += u'<div class="box">{0} {1}</div>'.format(utopia.citation.format(citation), link)
 
-            rt += '<p class="right"><a href="http://www.ncbi.nlm.nih.gov/pubmed?term=' + urllib.quote_plus(phrase.encode('utf8')) + '">See more in PubMed...</a><p>'
+            rt += '<p class="right"><a href="http://www.ncbi.nlm.nih.gov/pubmed?term=' + urllib.quote_plus(phrase.encode('utf8')) + '">See more in PubMed...</a></p>'
 
             annotation = spineapi.Annotation()
             annotation['concept'] = 'PubMedArticleList'

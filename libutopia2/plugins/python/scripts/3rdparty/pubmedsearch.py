@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,8 +29,8 @@
 #   
 ###############################################################################
 
-import common.eutils
-import common.pubmed
+import utopialib.eutils
+import utopialib.pubmed
 import datetime
 import utopia.library
 from lxml import etree
@@ -41,7 +41,7 @@ class TestRemoteQuery(utopia.library.RemoteQuery):
 
     def parse(self, article):
         #print etree.tostring(article, pretty_print=True, encoding='utf8')
-        info = common.pubmed.parse_PubmedArticle(article)
+        info = utopialib.pubmed.parse_PubmedArticle(article)
         if len(info) > 0:
             # For PubMed entries, the uid is the PubMed ID
             unique_id = info.get('identifiers', {}).get('pubmed')
@@ -74,10 +74,10 @@ class TestRemoteQuery(utopia.library.RemoteQuery):
         term = query.get('query')
         if term is not None:
             # Remove hashtags
-            term = ' '.join((t for t in term.split() if not t.startswith('#')))
+            term = u' '.join((t for t in term.split() if not t.startswith('#')))
         if term is not None and len(term) > 0:
             # Remove hashtags
-            term = ' '.join((t for t in term.split() if not t.startswith('#')))
+            term = u' '.join((t for t in term.split() if not t.startswith('#')))
 
             # List to hold the results
             results = []
@@ -85,7 +85,7 @@ class TestRemoteQuery(utopia.library.RemoteQuery):
             # If no previous search exists, search now
             if webEnv is None:
                 # Fetch from PubMed any matching documents
-                searchresult = common.eutils.esearch(**{
+                searchresult = utopialib.eutils.esearch(**{
                     'db': 'pubmed',
                     'retmax': limit,
                     'term': term,
@@ -106,7 +106,7 @@ class TestRemoteQuery(utopia.library.RemoteQuery):
                 self.set_property('Count', count)
             else:
                 # If previous search exists, then get everything from then until now
-                searchresult = common.eutils.esearch(**{
+                searchresult = utopialib.eutils.esearch(**{
                     'db': 'pubmed',
                     'retmax': limit,
                     'term': term,
@@ -127,7 +127,7 @@ class TestRemoteQuery(utopia.library.RemoteQuery):
 
                     # Fetch the next set of new results
                     #print "-- fetching", newOffset, limit, newWebEnv, newQueryKey
-                    searchresult = common.eutils.efetch(**{
+                    searchresult = utopialib.eutils.efetch(**{
                         'db': 'pubmed',
                         'retmax': limit,
                         'WebEnv': newWebEnv,
@@ -156,7 +156,7 @@ class TestRemoteQuery(utopia.library.RemoteQuery):
 
             # Fetch the next set of results
             #print "-- fetching", offset, limit, webEnv, queryKey
-            searchresult = common.eutils.efetch(**{
+            searchresult = utopialib.eutils.efetch(**{
                 'db': 'pubmed',
                 'retmax': limit,
                 'WebEnv': webEnv,

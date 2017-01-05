@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -42,6 +42,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPushButton>
+#include <QUrlQuery>
 
 #include <QDebug>
 
@@ -134,9 +135,9 @@ namespace Kend
             // Create a request URI
             QUrl url(service->resourceUrl(Service::AuthenticationResource));
             url.setPath(url.path() + "/backends/" + service->authenticationMethod() + "/request-password-reset");
-            QList< QPair< QByteArray, QByteArray > > query;
-            query << qMakePair(QByteArray("user_id"), QUrl::toPercentEncoding(email->text()));
-            url.setEncodedQueryItems(query);
+            QUrlQuery query(url.query());
+            query.addQueryItem("user_id", email->text());
+            url.setQuery(query);
 
             QEventLoop commitLoop;
             QNetworkReply * reply = service->post(QNetworkRequest(url));

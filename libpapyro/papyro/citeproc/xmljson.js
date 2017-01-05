@@ -54,7 +54,7 @@
   Style and locale JSON should be formatted as follows. Note that
   an empty literal should be set as an explicit empty strings within
   children:[]
-  
+
   {
     name:"term",
     children:[
@@ -76,7 +76,7 @@ from xml.dom import minidom
 import json,re
 
 class jsonwalker:
-    
+
     def __init__(self):
         pass
 
@@ -246,7 +246,7 @@ CSL_JSON.prototype.getNodeValue = function (myjson,name) {
     } else if (myjson) {
         ret = myjson;
     }
-    // Just being careful here, following the former DOM code. The JSON object we receive 
+    // Just being careful here, following the former DOM code. The JSON object we receive
     // for this should be fully normalized.
     if (ret && ret.children && ret.children.length == 1 && "string" === typeof ret.children[0]) {
         ret = ret.children[0];
@@ -402,7 +402,7 @@ CSL_JSON.prototype.insertPublisherAndPlace = function(myjson) {
         if ("object" === typeof myjson.children[i]) {
             this.insertPublisherAndPlace(myjson.children[i]);
         }
-    }    
+    }
 }
 /*
 CSL_JSON.prototype.insertPublisherAndPlace = function(myxml) {
@@ -421,7 +421,7 @@ CSL_JSON.prototype.insertPublisherAndPlace = function(myxml) {
                 if (skippers.indexOf(j) > -1) {
                     continue;
                 }
-                var child = node.childNodes.item(j);                    
+                var child = node.childNodes.item(j);
                 var subskippers = [];
                 for (var k = 0, klen = child.childNodes.length; k < klen; k += 1) {
                     if (child.childNodes.item(k).nodeType !== 1) {

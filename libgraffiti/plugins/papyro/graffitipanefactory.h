@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -83,11 +83,6 @@ public:
         QPalette palette = this->palette();
         palette.setColor(QPalette::Active, QPalette::Window, Qt::white);
         this->setPalette(palette);
-
-        // Shrink font
-        QFont f(font());
-        f.setPixelSize(10);
-        setFont(f);
 
         // Widget stuff
         setMouseTracking(true);
@@ -291,7 +286,7 @@ protected Q_SLOTS:
 
         connect(_graffitiView, SIGNAL(resized()), this, SLOT(resizeContents()));
 
-        _flipWidget->scale(SCALE_FACTOR, SCALE_FACTOR);
+        _flipWidget->setScale(SCALE_FACTOR);
 
         if (this->parent() == 0) {
             QHBoxLayout * hLay = new QHBoxLayout;
@@ -475,8 +470,8 @@ public:
                             QString encoded(Papyro::qStringFromUnicode(media_link));
                             QStringList pairs(encoded.split("&"));
                             foreach (QString pair, pairs) {
-                                QString key(QUrl::fromPercentEncoding(pair.section('=', 0, 0).toAscii()));
-                                QString value(QUrl::fromPercentEncoding(pair.section('=', 1, 1).toAscii()));
+                                QString key(QUrl::fromPercentEncoding(pair.section('=', 0, 0).toUtf8()));
+                                QString value(QUrl::fromPercentEncoding(pair.section('=', 1, 1).toUtf8()));
                                 if (key == "type") mime_type = value;
                                 else if (key == "src") url = value;
                                 else if (key == "name") name = value;

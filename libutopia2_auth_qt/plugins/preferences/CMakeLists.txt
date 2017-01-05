@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -36,15 +36,7 @@ set(SOURCES
     accountspreferencespane.cpp
 )
 
-set(MOC_HEADERS
-    accountspreferencespane.h
-)
-
-set(RESOURCES utopia2_auth_qt_plugins_preferences_icons.qrc)
-
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS})
-
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
+qt5_add_resources(SOURCES utopia2_auth_qt_plugins_preferences_icons.qrc)
 
 include_directories(
   ${utopia2_INCLUDE_DIR}
@@ -55,8 +47,9 @@ include_directories(
   ${ICU_INCLUDE_DIR}
   )
 
-add_utopia_plugin( ${PROJECT_NAME} MODULE ${SOURCES} ${MOC_SOURCES} ${RES_SOURCES})
+add_utopia_plugin(${PROJECT_NAME} MODULE ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt utopia2_auth utopia2_auth_qt ${QT_LIBRARIES} ${Boost_LIBRARIES} ${ICU_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_auth utopia2_auth_qt utopia2_qt ${Boost_LIBRARIES} ${ICU_LIBRARIES})
+qt5_use_modules(${PROJECT_NAME} Widgets)
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

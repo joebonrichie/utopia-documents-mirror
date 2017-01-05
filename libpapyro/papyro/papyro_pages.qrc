@@ -1,7 +1,7 @@
 <!--
     
      This file is part of the Utopia Documents application.
-         Copyright (c) 2008-2014 Lost Island Labs
+         Copyright (c) 2008-2016 Lost Island Labs
              <info@utopiadocs.com>
      
      Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,23 +32,23 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource>
-        <file>pages/jquery-1.7.1.js</file>
-
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_flat_0_aaaaaa_40x100.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_flat_75_ffffff_40x100.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_55_fbf9ee_1x400.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_65_ffffff_1x400.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_75_dadada_1x400.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_glass_95_fef1ec_1x400.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-bg_highlight-soft_75_cccccc_1x100.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-icons_222222_256x240.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-icons_2e83ff_256x240.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-icons_454545_256x240.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-icons_888888_256x240.png</file>
-        <file>pages/jquery-ui/css/smoothness/images/ui-icons_cd0a0a_256x240.png</file>
-        <file>pages/jquery-ui/css/smoothness/jquery-ui.css</file>
-        <file>pages/jquery-ui/jquery-ui-1.8.19.js</file>
+        <file>pages/jquery.js</file>
+        <file>pages/jquery-ui/jquery-ui.js</file>
+        <file>pages/jquery-ui/jquery-ui.css</file>
+        <file>pages/jquery-ui/images/ui-bg_diagonals-thick_18_b81900_40x40.png</file>
+        <file>pages/jquery-ui/images/ui-bg_diagonals-thick_20_666666_40x40.png</file>
+        <file>pages/jquery-ui/images/ui-bg_flat_10_000000_40x100.png</file>
+        <file>pages/jquery-ui/images/ui-bg_glass_100_f6f6f6_1x400.png</file>
+        <file>pages/jquery-ui/images/ui-bg_glass_100_fdf5ce_1x400.png</file>
+        <file>pages/jquery-ui/images/ui-bg_glass_65_ffffff_1x400.png</file>
+        <file>pages/jquery-ui/images/ui-bg_gloss-wave_35_f6a828_500x100.png</file>
+        <file>pages/jquery-ui/images/ui-bg_highlight-soft_100_eeeeee_1x100.png</file>
+        <file>pages/jquery-ui/images/ui-bg_highlight-soft_75_ffe45c_1x100.png</file>
+        <file>pages/jquery-ui/images/ui-icons_222222_256x240.png</file>
+        <file>pages/jquery-ui/images/ui-icons_228ef1_256x240.png</file>
+        <file>pages/jquery-ui/images/ui-icons_ef8c08_256x240.png</file>
+        <file>pages/jquery-ui/images/ui-icons_ffd27a_256x240.png</file>
+        <file>pages/jquery-ui/images/ui-icons_ffffff_256x240.png</file>
 
         <file>pages/jqplot/jquery.jqplot.css</file>
         <file>pages/jqplot/jquery.jqplot.js</file>
@@ -74,6 +74,7 @@
         <file>pages/jqplot/jqplot.mekkoAxisRenderer.js</file>
         <file>pages/jqplot/jqplot.mekkoRenderer.js</file>
         <file>pages/jqplot/jqplot.meterGaugeRenderer.js</file>
+        <file>pages/jqplot/jqplot.mobile.js</file>
         <file>pages/jqplot/jqplot.ohlcRenderer.js</file>
         <file>pages/jqplot/jqplot.pieRenderer.js</file>
         <file>pages/jqplot/jqplot.pointLabels.js</file>
@@ -91,11 +92,21 @@
         <file>pages/utils/hyphenate.js</file>
         <file>pages/utils/spinners.js</file>
 
+        <file>pages/molecules/ChemDoodleWeb.js</file>
+        <file>pages/molecules/ChemDoodleWeb.css</file>
+        <file>pages/molecules/molecules.js</file>
+        <file>pages/molecules/molecules.css</file>
+        <file>pages/molecules/molecules.png</file>
+        <file>pages/molecules/settings.png</file>
+        <file>pages/molecules/colours.png</file>
+        <file>pages/molecules/watermark.png</file>
+
+
         <file>pages/results.js</file>
         <file>pages/results.css</file>
         <file>pages/reset.css</file>
 
-        <file>pages/results.xml</file>
+        <file>pages/results.html</file>
 
         <file>icons/expandable_arrow.png</file>
         <file>icons/result-header-stub-structure.png</file>

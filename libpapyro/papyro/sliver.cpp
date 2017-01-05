@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -81,7 +81,6 @@ namespace Papyro
 
     void SliverPrivate::init()
     {
-        sliver->setFixedWidth(48);
         //sliver->setObjectName("sliver");
         //sliver->setAutoFillBackground(true);
 
@@ -111,8 +110,8 @@ namespace Papyro
     void SliverPrivate::setTitle(const QString & newTitle)
     {
         if (title != newTitle) {
-            bool entering(title.isEmpty());
-            bool exiting(newTitle.isEmpty());
+            //bool entering(title.isEmpty());
+            //bool exiting(newTitle.isEmpty());
 
             title = newTitle;
             // FIXME should be done differently

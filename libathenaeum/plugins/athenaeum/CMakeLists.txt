@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 ###############################################################################
 
 #add_subdirectory( mods )
-add_subdirectory( ris )
+#add_subdirectory( ris )
 add_subdirectory( bibtex )
 add_subdirectory( pdf )
 #add_subdirectory( pubmed )

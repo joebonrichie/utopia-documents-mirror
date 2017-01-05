@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,6 +33,8 @@
 #include <papyro/annotatorrunnablepool.h>
 #include <papyro/annotatorrunnablepool_p.h>
 
+#include <QEventLoop>
+
 namespace Papyro
 {
 
@@ -53,7 +55,7 @@ namespace Papyro
     /// AnnotatorRunnablePool ///////////////////////////////////////////////////////////
 
     AnnotatorRunnablePool::AnnotatorRunnablePool(QObject * parent)
-        : QThreadPool(parent), d(new AnnotatorRunnablePoolPrivate)
+        : QObject(parent), d(new AnnotatorRunnablePoolPrivate)
     {
         d->queued = 0;
         d->running = 0;
@@ -180,7 +182,7 @@ namespace Papyro
     {
         connect(runnable, SIGNAL(started()), this, SLOT(onStarted()));
         connect(runnable, SIGNAL(finished()), this, SLOT(onFinished()));
-        QThreadPool::start(runnable, priority);
+        d->threadPool.start(runnable, priority);
         ++d->queued;
     }
 
@@ -230,6 +232,11 @@ namespace Papyro
             d->futureQueues.append(QList< QPair< AnnotatorRunnable *, int > >());
             d->futureEmitters.append(0);
         }
+    }
+
+    void AnnotatorRunnablePool::waitForDone()
+    {
+        d->threadPool.waitForDone();
     }
 
 } // namespace Papyro

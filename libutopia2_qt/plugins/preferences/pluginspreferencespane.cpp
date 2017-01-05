@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,10 +29,12 @@
  *  
  *****************************************************************************/
 
+#include "pluginspreferencespane_p.h"
 #include "pluginspreferencespane.h"
 
-#include <utopia2/qt/webview.h>
 #include <utopia2/configuration.h>
+#include <utopia2/qt/webview.h>
+#include <utopia2/qt/configurator.h>
 
 #include <QDesktopServices>
 #include <QFile>
@@ -40,10 +42,15 @@
 #include <QListWidget>
 #include <QWebFrame>
 #include <QWebElementCollection>
-#include <QWebPage>
-#include <QWebView>
+#include <QWebInspector>
 
 #include <QDebug>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
+Q_DECLARE_METATYPE(Utopia::Configurator *)
 
 namespace
 {
@@ -72,8 +79,8 @@ namespace
     class PluginDelegate : public QAbstractItemDelegate
     {
     public:
-        PluginDelegate(PluginsPreferencesPane * pane, QObject * parent = 0)
-            : QAbstractItemDelegate(parent), pane(pane)
+        PluginDelegate(QObject * parent = 0)
+            : QAbstractItemDelegate(parent)
         {}
 
         void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const
@@ -86,7 +93,7 @@ namespace
                 painter->drawRect(option.rect);
                 painter->setPen(option.palette.highlightedText().color());
             }
-            if (Utopia::Configurator * configurator = pane->configuratorAt(index.row())) {
+            if (Utopia::Configurator * configurator = index.data(Qt::UserRole).value< Utopia::Configurator * >()) {
                 QRect rect(option.rect.adjusted(6, 6, -6, -6));
                 QImage icon(configurator->icon());
                 QString title(configurator->title());
@@ -112,160 +119,90 @@ namespace
             return QSize(100, 100);
         }
 
-    protected:
-        PluginsPreferencesPane * pane;
     };
 
 }
 
 
-PluginsPreferencesPane::PluginsPreferencesPane(QWidget * parent, Qt::WindowFlags f)
-    : Utopia::PreferencesPane(parent, f), _previousPluginIndex(-1)
+
+
+ConfiguratorControl::ConfiguratorControl(Utopia::Configurator * configurator,
+                                         QObject * parent)
+    : QObject(parent), configurator(configurator), blockSignals(false)
 {
-    // Load user CSS in order to override background colour
-    QFile cssTemplate(":/preferences/plugins/form.css");
-    cssTemplate.open(QIODevice::ReadOnly);
-    QString css(QString::fromUtf8(cssTemplate.readAll()));
-    css = css.arg(
-        palette().window().color().name(),
-        QString("%1").arg(font().pointSizeF() * 72 / 96.0)
-    );
-    QUrl cssUrl("data:text/css;charset=utf-8;base64," + css.toUtf8().toBase64());
+    connect(configurator->configuration(), SIGNAL(configurationChanged(const QString &)),
+            this, SLOT(onConfigurationChanged(const QString &)));
 
-    // Load configurators
-    foreach (Utopia::Configurator * configurator, Utopia::instantiateAllExtensionsOnce< Utopia::Configurator >()) {
-        QWebPage * page = new QWebPage(this);
-        page->settings()->setUserStyleSheetUrl(cssUrl);
-        page->mainFrame()->setContent(configurator->form().toUtf8());
-        page->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
-        connect(page, SIGNAL(linkClicked(const QUrl &)), this, SLOT(onWebPageLinkClicked(const QUrl &)));
-        connect(page, SIGNAL(contentsChanged()), this, SLOT(onWebPageContentsChanged()));
+    // Each configurator needs a web page for displaying its UI
+    page = new Utopia::WebPage(this);
+    connect(page, SIGNAL(linkClicked(const QUrl &)), this, SLOT(onWebPageLinkClicked(const QUrl &)));
+    connect(page, SIGNAL(contentsChanged()), this, SLOT(onWebPageContentsChanged()));
 
-        _configurators.append(qMakePair(configurator, page));
-    }
-
-    // Layout widget
-    QHBoxLayout * layout = new QHBoxLayout(this);
-    _listWidget = new QListWidget;
-    _listWidget->setFixedWidth(120);
-    _listWidget->setResizeMode(QListWidget::Fixed);
-    _listWidget->setItemDelegate(new PluginDelegate(this));
-    connect(_listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(onListWidgetCurrentRowChanged(int)));
-    layout->addWidget(_listWidget, 0);
-    _webView = new Utopia::WebView;
-    layout->addWidget(_webView, 1);
-
-    // Populate
-    QListIterator< QPair< Utopia::Configurator *, QWebPage * > > iter(_configurators);
-    while (iter.hasNext()) {
-        Utopia::Configurator * configurator = iter.next().first;
-        QString title(configurator->title());
-        if (title.isEmpty()) {
-            title = "Untitled Plugin";
-        }
-        QListWidgetItem * item = new QListWidgetItem(title);
-        item->setSizeHint(QSize(0, 100));
-        item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
-        _listWidget->addItem(item);
-    }
-
-    // Highlight first
-    if (_listWidget->count() > 0) {
-        _listWidget->setCurrentRow(0);
-    }
+    // Load in the template HTML
+    QFile htmlTemplate(":/preferences/plugins/form.html");
+    htmlTemplate.open(QIODevice::ReadOnly);
+    QString html = QString::fromUtf8(htmlTemplate.readAll()).arg(configurator->form());
+    page->mainFrame()->setContent(html.toUtf8(), "text/html");
+    page->mainFrame()->addToJavaScriptWindowObject("control", this);
+    page->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
 }
 
-bool PluginsPreferencesPane::apply()
+void ConfiguratorControl::onConfigurationChanged(const QString & key)
 {
-    save(_listWidget->currentRow());
-    return true;
-}
-
-Utopia::Configurator * PluginsPreferencesPane::configuratorAt(int idx)
-{
-    return _configurators.at(idx).first;
-}
-
-void PluginsPreferencesPane::discard()
-{
-    load(_listWidget->currentRow());
-}
-
-QIcon PluginsPreferencesPane::icon() const
-{
-    return QIcon(":/preferences/plugins/icon.png");
-}
-
-bool PluginsPreferencesPane::isValid() const
-{
-    return _listWidget->count() > 0;
-}
-
-void PluginsPreferencesPane::load(int idx)
-{
-    Utopia::Configuration * configuration = _configurators.at(idx).first->configuration();
-    QWebPage * page = _configurators.at(idx).second;
-    QWebFrame * frame = page->mainFrame();
-
-    // Deal with simple input elements
-    foreach (QWebElement inputElement, frame->findAllElements("input, textarea")) {
-        QString name = inputElement.attribute("name");
-        QString type = inputElement.attribute("type");
-        if (configuration->contains(name)) {
-            if (type == "checkbox") {
-                inputElement.evaluateJavaScript(QString("this.checked = %1").arg(configuration->get(name).toBool() ? "true" : "false"));
-            } else if (type == "radio") {
-                QString value = inputElement.attribute("value");
-                inputElement.evaluateJavaScript(QString("this.checked = %1").arg(configuration->get(name).toString() == value ? "true" : "false"));
-            } else {
-                QString value(serialise(configuration->get(name), type).replace("'", "\'"));
-                inputElement.evaluateJavaScript(QString("this.value = '%1'").arg(value));
-            }
+    if (!blockSignals) {
+        QString query = QString("input[name='%1'], textarea[name='%1']").arg(key);
+        QWebFrame * frame = page->mainFrame();
+        foreach (QWebElement inputElement, frame->findAllElements(query)) {
+            revert(inputElement);
         }
     }
-
-    // Due to a problem disconnecting signals from old pages, we cannot do the following:
-    //    _webView->setPage(page);
-    // We must instead manually remove the view from the page. This Qt bug is reportedly
-    // still present in 4.8. https://bugs.webkit.org/show_bug.cgi?id=49215
-    if (_webView->page()) {
-        _webView->page()->setView(0);
-    }
-    _webView->setPage(page);
-    _previousPluginIndex = idx;
 }
 
-void PluginsPreferencesPane::onListWidgetCurrentRowChanged(int newRow)
+void ConfiguratorControl::onWebPageContentsChanged()
 {
-    if (newRow < 0) {
-        if (_listWidget->count() > 0) {
-            _listWidget->setCurrentRow(0);
-        }
-    } else if (newRow < _configurators.size()) {
-        // Check current plugin configuration to see if it has changed
-        load(newRow);
+    if (!blockSignals) {
+        emit contentsChanged();
     }
 }
 
-void PluginsPreferencesPane::onWebPageContentsChanged()
-{
-    QWebPage * page = qobject_cast< QWebPage * >(sender());
-    // Inform the dialog that this pane has been modified
-    setModified(true);
-    emit modifiedChanged(true);
-}
-
-void PluginsPreferencesPane::onWebPageLinkClicked(const QUrl & url)
+void ConfiguratorControl::onWebPageLinkClicked(const QUrl & url)
 {
     QDesktopServices::openUrl(url);
 }
 
-void PluginsPreferencesPane::save(int idx)
+void ConfiguratorControl::revert()
 {
-    Utopia::Configuration * configuration = _configurators.at(idx).first->configuration();
-    QWebPage * page = _configurators.at(idx).second;
     QWebFrame * frame = page->mainFrame();
+    foreach (QWebElement inputElement, frame->findAllElements("input, textarea")) {
+        revert(inputElement);
+    }
+}
 
+void ConfiguratorControl::revert(QWebElement & inputElement)
+{
+    blockSignals = true;
+    Utopia::Configuration * configuration = configurator->configuration();
+    QString name = inputElement.attribute("name");
+    if (configuration->contains(name)) {
+        QString type = inputElement.attribute("type");
+        if (type == "checkbox") {
+            inputElement.evaluateJavaScript(QString("this.checked = %1; $(this).change()").arg(configuration->get(name).toBool() ? "true" : "false"));
+        } else if (type == "radio") {
+            QString value = inputElement.attribute("value");
+            inputElement.evaluateJavaScript(QString("this.checked = %1; $(this).change()").arg(configuration->get(name).toString() == value ? "true" : "false"));
+        } else {
+            QString value(serialise(configuration->get(name), type).replace("\\", "\\\\").replace("'", "\\'"));
+            inputElement.evaluateJavaScript(QString("this.value = '%1'; $(this).change()").arg(value));
+        }
+    }
+    blockSignals = false;
+}
+
+void ConfiguratorControl::save()
+{
+    blockSignals = true;
+    Utopia::Configuration * configuration = configurator->configuration();
+    QWebFrame * frame = page->mainFrame();
     foreach (QWebElement inputElement, frame->findAllElements("input, textarea")) {
         QVariant value;
         QString name = inputElement.attribute("name");
@@ -281,6 +218,133 @@ void PluginsPreferencesPane::save(int idx)
             value = parse(inputElement.evaluateJavaScript("this.value").toString(), type);
         }
         configuration->set(name, value);
+    }
+    blockSignals = false;
+}
+
+
+
+
+PluginsPreferencesPanePrivate::PluginsPreferencesPanePrivate(QObject * parent)
+    : QObject(parent)
+{}
+
+
+
+
+PluginsPreferencesPane::PluginsPreferencesPane(QWidget * parent, Qt::WindowFlags f)
+    : Utopia::PreferencesPane(parent, f), d(new PluginsPreferencesPanePrivate)
+{
+    // Load instances of all configurators
+    foreach (Utopia::Configurator * configurator, Utopia::instantiateAllExtensionsOnce< Utopia::Configurator >()) {
+        ConfiguratorControl * control = new ConfiguratorControl(configurator, d);
+        connect(control, SIGNAL(contentsChanged()), this, SLOT(onContentsChanged()));
+
+        // Ensure the background of the web page matches the widget's background
+        QString bgcolor = palette().color(QWidget::backgroundRole()).name();
+        QString css = QString("html { background-color: %1 !important; }").arg(bgcolor);
+        control->page->settings()->setUserStyleSheetUrl(QUrl("data:text/css;charset=utf-8;base64," + css.toUtf8().toBase64()));
+        control->page->setPalette(palette());
+
+        // Insert it into the list in the correct order (case-insensitive alphabetical)
+        int idx = 0;
+        foreach (const ConfiguratorControl * candidate, d->configurators) {
+            QString other = candidate->configurator->title().toLower();
+            if (other < configurator->title().toLower()) { // HACK less-than makes it reverse order, so Lazarus appears first
+                break;
+            }
+            ++idx;
+        }
+        d->configurators.insert(idx, control);
+    }
+
+    // Layout widget
+    QHBoxLayout * layout = new QHBoxLayout(this);
+    d->listWidget = new QListWidget;
+    d->listWidget->setFixedWidth(120);
+    d->listWidget->setResizeMode(QListWidget::Fixed);
+    d->listWidget->setItemDelegate(new PluginDelegate);
+    connect(d->listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(onListWidgetCurrentRowChanged(int)));
+    layout->addWidget(d->listWidget, 0);
+    d->webView = new Utopia::WebView;
+    layout->addWidget(d->webView, 1);
+
+    // Populate
+    foreach (const ConfiguratorControl * control, d->configurators) {
+        Utopia::Configurator * configurator = control->configurator;
+        QString title(configurator->title());
+        if (title.isEmpty()) {
+            title = "Untitled Plugin";
+        }
+        QListWidgetItem * item = new QListWidgetItem(title);
+        item->setSizeHint(QSize(0, 100));
+        item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        item->setData(Qt::UserRole, QVariant::fromValue< Utopia::Configurator * >(configurator));
+
+        d->listWidget->addItem(item);
+    }
+
+    // Highlight first
+    if (d->listWidget->count() > 0) {
+        d->listWidget->setCurrentRow(0);
+    }
+}
+
+bool PluginsPreferencesPane::apply()
+{
+    foreach (ConfiguratorControl * control, d->configurators) {
+        control->save();
+    }
+    return true;
+}
+
+void PluginsPreferencesPane::discard()
+{
+    foreach (ConfiguratorControl * control, d->configurators) {
+        control->revert();
+    }
+}
+
+QIcon PluginsPreferencesPane::icon() const
+{
+    return QIcon(":/preferences/plugins/icon.png");
+}
+
+bool PluginsPreferencesPane::isValid() const
+{
+    return d->listWidget->count() > 0;
+}
+
+void PluginsPreferencesPane::onContentsChanged()
+{
+    // Inform the dialog that this pane has been modified
+    setModified(true);
+    emit modifiedChanged(true);
+}
+
+void PluginsPreferencesPane::onListWidgetCurrentRowChanged(int newRow)
+{
+    if (newRow < 0) {
+        if (d->listWidget->count() > 0) {
+            d->listWidget->setCurrentRow(0);
+        }
+    } else if (newRow < d->configurators.size()) {
+        // Check current plugin configuration to see if it has changed
+        ConfiguratorControl * control = d->configurators.at(newRow);
+        d->webView->setPage(control->page);
+    }
+}
+
+void PluginsPreferencesPane::show(const QVariant & params)
+{
+    QString uuid = params.toMap().value("uuid").toString().toLower();
+    int idx = 0;
+    foreach (const ConfiguratorControl * control, d->configurators) {
+        if (control->configurator->configurationId() == QUuid(uuid)) {
+            d->listWidget->setCurrentRow(idx);
+            break;
+        }
+        ++idx;
     }
 }
 

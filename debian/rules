@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+export DEB_BUILD_MAINT_OPTIONS=hardening=+pie,+bindnow
+
 %:
 	dh $@ --with=python2 --buildsystem=cmake \
 		--builddirectory=utopia-build --parallel
@@ -14,6 +16,7 @@ build/dependencies/CMakeCache.txt:
 override_dh_auto_configure:	build/dependencies/CMakeCache.txt
 	cd utopia-build && \
 		cmake -D"CMAKE_VERBOSE_MAKEFILE:BOOL=ON" \
+		-D"UTOPIA_PACKAGE_MANAGED:BOOL=ON" \
 		-C"../CMakeConfig/configurations/Linux.txt" \
 		-C"../CMakeConfig/configurations/common.txt" \
 		-D"CMAKE_BUILD_TYPE:STRING=Release" \

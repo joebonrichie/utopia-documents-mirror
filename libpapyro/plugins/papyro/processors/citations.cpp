@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -70,7 +70,7 @@ void CitationActivator::activate(Spine::DocumentHandle document, Spine::Annotati
         Papyro::CitationPopup * popup = new Papyro::CitationPopup;
         std::set< std::string > ids;
         foreach (Spine::AnnotationHandle citation, annotations) {
-            std::string bibid = citation->getFirstProperty("property:bibid");
+            std::string bibid = citation->getFirstProperty("property:id");
             if (ids.find(bibid) == ids.end()) {
                 if (bibid.size() > 0) {
                     popup->addCitation(citation);

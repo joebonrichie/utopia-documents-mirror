@@ -1,10 +1,15 @@
-.threedm .ui-accordion .ui-accordion-content-active { overflow: auto !important; }
+.ui-accordion .ui-accordion-content-active { 
+    overflow: auto !important;
+    background: white;
+}
+
 .threedm {
     background: #fff;
     margin: 0px;
     padding: 4px;
     color: #555;
     word-wrap: break-word;
+    height: 94%;
 }
 
 .threedm a {
@@ -128,7 +133,7 @@
     margin-bottom: 8px;
 }
 
-.threedm .residueType3dm, .threedm .residueType3dmMutatedTo, .threedm .variantId,  .threedm .referenceId {
+.header3dm .residueType3dm, .header3dm .residueType3dmMutatedTo, .header3dm .variantId,  .header3dm .referenceId {
     font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
     line-height: 17px;
     font-size: 2em;
@@ -152,11 +157,7 @@
 }
 
 .threedm .header3dm {
-    border: 1px solid lightgray;
-    padding: 15px;
-    margin: 5px 0 15px 0;
     text-align: center;
-    background-color: #F6F6F6;
 }
 
 .threedm .residueNumber3dm, .threedm .residueNumber3d3dm, .threedm .residueProteinUrl3dm, .threedm .proteinRecommendedName3dm, .threedm .proteinAlternativeNames, .threedm .proteinAc3dm, .threedm .proteinSpeciesName, .inbetween, .threedm .message{
@@ -171,10 +172,6 @@
 .threedm .accordion {
     width: 100%;
     max-height : 400px;
-}
-
-.threedm .ui-accordion-header a {
-    font-size: 10px;
 }
 
 .threedm .ui-accordion-content {

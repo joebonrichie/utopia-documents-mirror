@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -64,7 +64,7 @@ namespace Utopia
 
     void SlaveMenu::actionEvent(QActionEvent * event) {
         // If an action has been added or removed, mirror on the master
-        if (d->master && d->stack == 0) {
+        if (d->stack == 0 && d->master) {
             ++d->stack;
 
             switch (event->type()) {
@@ -124,7 +124,6 @@ namespace Utopia
 
     void SlaveMenu::setMaster(QMenu * menu)
     {
-        //qDebug() << "SlaveMenu::setMaster" << menu;
         if (d->master) {
             d->master->removeEventFilter(this);
             setTitle(QString());

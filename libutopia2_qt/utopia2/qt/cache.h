@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -57,7 +57,7 @@ namespace Utopia
 
         // Create a new cache backend with the specified path name
         CachePrivate(const QString & path = QString())
-            : path(path), mutex(QMutex::Recursive)
+            : path(path), maximumSize(0), mutex(QMutex::Recursive)
         {}
         ~CachePrivate()
         {}
@@ -66,9 +66,28 @@ namespace Utopia
         QString path;
         // Items stored in cache
         QMap< QString, QPair< CachedItemClass, bool > > items;
+        // Maximum size
+        int maximumSize;
+        // Recently used items
+        QList< QString > recentlyUsed;
 
         // Mutex for concurrent access to this cache backend
         QMutex mutex;
+
+        // Check the size of this cache, removing elements if they cause it
+        // to exceed its maximum size
+        void resize()
+        {
+            // A zero maximum size means this cache is unrestricted
+            if (maximumSize > 0 && recentlyUsed.size() > maximumSize) {
+                // Remove excess items from the front of the list, removing
+                // them from the cache
+                while (recentlyUsed.size() > maximumSize) {
+                    QString doomed = recentlyUsed.takeFirst();
+                    items.remove(doomed);
+                }
+            }
+        }
 
         // Get an existing cache by path name or create a new one
         static boost::shared_ptr< CachePrivateClass > getCache(const QString & path)
@@ -172,6 +191,7 @@ namespace Utopia
 
             if (isValid()) {
                 d->items.clear();
+                d->recentlyUsed.clear();
             }
         }
 
@@ -206,9 +226,11 @@ namespace Utopia
 
             // Touch and return
             QPair< CachedItemClass, bool > & item = d->items[id];
+            d->recentlyUsed.removeAll(id);
+            d->recentlyUsed.append(id);
             item.first.touch();
             item.second = true;
-            return item.first;
+            return item.first.isValid() ? item.first : Item();
         }
 
         CachedItemClass getMeta(const QString & id) const
@@ -232,7 +254,7 @@ namespace Utopia
             QMutexLocker lock(&m);
             QMutexLocker lockShared(&d->mutex);
 
-            return isValid() && !d->path.isEmpty();
+            return isValid() && !d->path.isEmpty() && !d->path.startsWith(":");
         }
 
         bool isValid() const
@@ -241,7 +263,16 @@ namespace Utopia
             QMutexLocker lock(&m);
             QMutexLocker lockShared(&d->mutex);
 
-            return !d.isNull();
+            return (bool) d;
+        }
+
+        int maximumSize() const
+        {
+            // Lock access
+            QMutexLocker lock(&m);
+            QMutexLocker lockShared(&d->mutex);
+
+            return isValid() ? d->maximumSize : 0;
         }
 
         QString path() const
@@ -264,8 +295,13 @@ namespace Utopia
             // Remove if present
             remove(id);
 
+            // Check whether this now means we should remove an old item from
+            // the cache
+            d->resize();
+
             // Create new item
             d->items[id] = qMakePair(CachedItemClass(item, id, QDateTime::currentDateTime(), QDateTime::currentDateTime()), true);
+            d->recentlyUsed.push_back(id);
         }
 
         void remove(const QString & id)
@@ -276,7 +312,18 @@ namespace Utopia
 
             if (isValid() && exists(id)) {
                 d->items.remove(id);
+                d->recentlyUsed.removeAll(id);
             }
+        }
+
+        void setMaximumSize(int maximumSize)
+        {
+            // Lock access
+            QMutexLocker lock(&m);
+            QMutexLocker lockShared(&d->mutex);
+
+            d->maximumSize = maximumSize;
+            d->resize();
         }
 
         bool setPath(const QString & path, bool create = false)
@@ -292,7 +339,7 @@ namespace Utopia
             d = newCache;
             if (!first) oldCache->mutex.unlock(); // Unlock old shared mutex
             if (success) newCache->mutex.unlock(); // Unlock new shared mutex
-            return d;
+            return true;
         }
 
     protected:

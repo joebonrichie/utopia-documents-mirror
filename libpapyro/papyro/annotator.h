@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,8 +34,10 @@
 
 #include <papyro/config.h>
 
-#include <spine/Annotation.h>
-#include <spine/Document.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#  include <spine/Document.h>
+#endif
 #include <string>
 #include <utopia2/extension.h>
 #include <utopia2/configurable.h>
@@ -48,10 +50,12 @@
 namespace Papyro
 {
 
-    class LIBPAPYRO_API Annotator : public Utopia::Configurable, public Utopia::BusAgent
+    class LIBPAPYRO_API Annotator : public virtual Utopia::Configurable, public Utopia::BusAgent
     {
     public:
         typedef Annotator API;
+
+        virtual void cancel() {}
 
         // Event types: init, load, ready, filter, activate, marshal, persist, lookup
         // Event timings: before, on, after
@@ -66,7 +70,7 @@ namespace Papyro
         { return std::set< Spine::AnnotationHandle >(); }
 
         virtual std::string title() = 0;
-        virtual std::string uuid() = 0;
+        //virtual std::string uuid() = 0;
 
         std::string errorString() const { return _errorString; }
         void setErrorString(const std::string & errorString) { _errorString = errorString; }

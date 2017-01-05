@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -59,12 +59,6 @@ namespace Papyro
             return date;
         }
 
-        QVariant convert_date(const QVariant & input)
-        {
-            QDate inputDate(input.toDate());
-            return convert_date(inputDate.year(), inputDate.month(), inputDate.day());
-        }
-
         QVariant convert_year(const QVariant & input)
         {
             return convert_date(input.toString().toInt(), 0, 0);
@@ -102,6 +96,8 @@ namespace Papyro
             conversionMap["year"] = pair("issued", convert_year);
             conversionMap["abstract"] = pair("abstract", convert_str);
             conversionMap["publication-title"] = pair("container-title", convert_str);
+            conversionMap["publication-issn"] = pair("ISSN", convert_str);
+            conversionMap["publication-isbn"] = pair("ISBN", convert_str);
             conversionMap["publisher"] = pair("publisher", convert_str);
             conversionMap["pages"] = pair("page", convert_str);
             conversionMap["label"] = pair("citation-label", convert_str);
@@ -109,8 +105,6 @@ namespace Papyro
 
         static QMap< QString, QString > identifierMap;
         if (identifierMap.isEmpty()) {
-            identifierMap["isbn"] = "ISBN";
-            identifierMap["issn"] = "ISSN";
             identifierMap["pmcid"] = "PMCID";
             identifierMap["pmid"] = "PMID";
             identifierMap["doi"] = "DOI";

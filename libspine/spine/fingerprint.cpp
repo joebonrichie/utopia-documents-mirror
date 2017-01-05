@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libspine library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libspine library is free software: you can redistribute it and/or
@@ -88,7 +88,7 @@ namespace Spine {
             SHA256_Final(d->_buf, d->_ctx256.get());
             md_len = SHA256_DIGEST_LENGTH;
             
-            for(int i = 0; i < md_len; ++i) {
+            for(unsigned int i = 0; i < md_len; ++i) {
                 hexhash << std::hex << std::setw(2) << std::setfill('0') << (int)d->_buf[i];
             }
         }

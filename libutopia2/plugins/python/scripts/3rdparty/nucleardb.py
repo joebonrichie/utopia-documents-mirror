@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,8 +37,8 @@
 # encoding: UTF-8
 
 import base64
-import common.eutils
-import common.utils
+import utopialib.eutils
+import utopialib.utils
 import re
 import spineapi
 import suds.client
@@ -85,7 +85,7 @@ class NucleaRDBAnnotator(utopia.document.Annotator):
         if len(document.annotations('NucleaRDB cache')) == 0:
             print 'annotating stuff . . .'
 
-            pubmedId = common.utils.metadata(document, 'pmid')
+            pubmedId = utopialib.utils.metadata(document, 'identifiers[pubmed]')
             if pubmedId is not None:
                 print 'found pubmed id: ' + pubmedId
             else:

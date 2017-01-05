@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,13 +31,13 @@
 
 #include <papyro/cslengine.h>
 #include <utopia2/global.h>
-#include <qjson/serializer.h>
 
 #include <boost/weak_ptr.hpp>
 
 #include <QDir>
 #include <QDomDocument>
 #include <QFile>
+#include <QJsonDocument>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QResource>
@@ -57,11 +57,6 @@ namespace Papyro
 
         QVariant elementToVariant(const QDomElement & element)
         {
-            static QStringList textual;
-            if (textual.isEmpty()) {
-                textual << "term" << "single" << "multiple";
-            }
-
             QVariantMap obj;
             obj["name"] = element.tagName();
             QVariantMap attrs;
@@ -77,9 +72,7 @@ namespace Papyro
             }
             for(QDomNode n = element.firstChild(); !n.isNull(); n = n.nextSibling()) {
                 if (n.isText()) {
-                    if (element.childNodes().size() == 1 && textual.contains(element.tagName())) {
-                        children << n.toText().data();
-                    }
+                    children << n.toText().data();
                 } else if (n.isElement()) {
                     children << elementToVariant(n.toElement());
                 }
@@ -97,7 +90,7 @@ namespace Papyro
             QDomElement elem = doc.documentElement();
             QVariant converted = elementToVariant(elem);
 
-            return QJson::Serializer().serialize(converted);
+            return QString::fromUtf8(QJsonDocument::fromVariant(converted).toJson());
         }
 
         QScriptValue retrieveLocale(QScriptContext * context, QScriptEngine * engine)

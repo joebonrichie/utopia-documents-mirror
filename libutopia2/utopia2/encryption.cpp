@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@
 
 #include <QByteArray>
 #include <QCryptographicHash>
+#include <QDataStream>
 #include <QRegExp>
 #include <QSettings>
 #include <QStringList>
@@ -132,7 +133,6 @@ namespace Utopia
 
     void generateSecurityBlocks()
     {
-        int block_count = _get_stored_security_block_count();
         bool recrypt = false;
 
         // If no encryption block is present...
@@ -169,7 +169,7 @@ namespace Utopia
                 conf.beginGroup(uuid);
                 conf.beginGroup("properties");
                 QByteArray ciphertext = conf.value("cachedCredentials").toByteArray();
-                ciphertext = encrypt(decrypt(ciphertext, QUuid(uuid)), QUuid(uuid));
+                ciphertext = encrypt(decrypt(ciphertext, QUuid(uuid).toString()), QUuid(uuid).toString());
                 conf.setValue("cachedCredentials", ciphertext);
                 conf.endGroup();
                 conf.endGroup();
@@ -182,7 +182,7 @@ namespace Utopia
             foreach (const QString & uuid, conf.childGroups()) {
                 conf.beginGroup(uuid);
                 QByteArray ciphertext = conf.value("data").toByteArray();
-                ciphertext = encrypt(decrypt(ciphertext, QUuid(uuid)), QUuid(uuid));
+                ciphertext = encrypt(decrypt(ciphertext, QUuid(uuid).toString()), QUuid(uuid).toString());
                 conf.setValue("data", ciphertext);
                 conf.endGroup();
             }
@@ -257,22 +257,35 @@ namespace Utopia
 
         QByteArray key(_get_stored_pk(block_index) + hash);
 
-        EVP_CIPHER_CTX ctx;
-        EVP_CIPHER_CTX_init(&ctx);
+
+#if OPENSSL_VERSION_NUMBER < 0x010100000
+        EVP_CIPHER_CTX ctx_s;
+        EVP_CIPHER_CTX_init(&ctx_s);
+        EVP_CIPHER_CTX * ctx = &ctx_s;
+#else
+        EVP_CIPHER_CTX * ctx = EVP_CIPHER_CTX_new();
+#endif
 
         unsigned char outbuf[in.size() + EVP_MAX_BLOCK_LENGTH + 2048];
-        int outlen, tmplen;
+        int outlen, tmplen, final_rc = 0;
 
-        if (EVP_EncryptInit(&ctx, EVP_bf_cbc(), (const unsigned char *) key.constData(), (const unsigned char *) iv.constData()) &&
-            EVP_EncryptUpdate(&ctx, outbuf, &outlen, (const unsigned char *) in.constData(), in.size()) &&
-            EVP_EncryptFinal(&ctx, outbuf + outlen, &tmplen)) {
+        if (EVP_EncryptInit(ctx, EVP_bf_cbc(), (const unsigned char *) key.constData(), (const unsigned char *) iv.constData()) &&
+            EVP_EncryptUpdate(ctx, outbuf, &outlen, (const unsigned char *) in.constData(), in.size()) &&
+            (final_rc = EVP_EncryptFinal(ctx, outbuf + outlen, &tmplen))) {
             outlen += tmplen;
             ciphertext = QByteArray((const char *) outbuf, outlen);
         }
 
-        EVP_CIPHER_CTX_cleanup(&ctx);
+#if OPENSSL_VERSION_NUMBER < 0x010100000
+        EVP_CIPHER_CTX_cleanup(ctx);
+#else
+        EVP_CIPHER_CTX_free(ctx);
+#endif
+        if (!final_rc) {
+            return QByteArray();
+        }
 
-        return QString("utopia:enc:%1:").arg(block_index).toAscii() + ciphertext;
+        return QString("utopia:enc:%1:").arg(block_index).toUtf8() + ciphertext;
     }
 
     QString encrypt(const QString & plaintext, const QString & salt)
@@ -285,7 +298,7 @@ namespace Utopia
         int block_index = 0;
         int ciphertext_offset = 0;
         QRegExp encRegExp("^utopia:enc:(\\d+):");
-        if (encRegExp.indexIn(QString::fromAscii(ciphertext)) == 0) {
+        if (encRegExp.indexIn(QString::fromUtf8(ciphertext)) == 0) {
             block_index = encRegExp.cap(1).toInt();
             ciphertext_offset = encRegExp.cap(0).size();
         }
@@ -304,27 +317,39 @@ namespace Utopia
 
         QByteArray key(_get_stored_pk(block_index) + hash);
 
-        EVP_CIPHER_CTX ctx;
-        EVP_CIPHER_CTX_init(&ctx);
+#if OPENSSL_VERSION_NUMBER < 0x010100000
+        EVP_CIPHER_CTX ctx_s;
+        EVP_CIPHER_CTX_init(&ctx_s);
+        EVP_CIPHER_CTX * ctx = &ctx_s;
+#else
+        EVP_CIPHER_CTX * ctx = EVP_CIPHER_CTX_new();
+#endif
 
         unsigned char outbuf[in.size()];
-        int outlen, tmplen;
+        int outlen, tmplen, final_rc = 0;
 
-        if (EVP_DecryptInit(&ctx, EVP_bf_cbc(), (const unsigned char *) key.constData(), (const unsigned char *) iv.constData()) &&
-            EVP_DecryptUpdate(&ctx, outbuf, &outlen, (const unsigned char *) in.constData(), in.size()) &&
-            EVP_DecryptFinal(&ctx, outbuf + outlen, &tmplen)) {
+        if (EVP_DecryptInit(ctx, EVP_bf_cbc(), (const unsigned char *) key.constData(), (const unsigned char *) iv.constData()) &&
+            EVP_DecryptUpdate(ctx, outbuf, &outlen, (const unsigned char *) in.constData(), in.size()) &&
+            (final_rc = EVP_DecryptFinal(ctx, outbuf + outlen, &tmplen))) {
             outlen += tmplen;
             plaintext = QByteArray((const char *) outbuf, outlen);
         }
 
-        EVP_CIPHER_CTX_cleanup(&ctx);
+#if OPENSSL_VERSION_NUMBER < 0x010100000
+        EVP_CIPHER_CTX_cleanup(ctx);
+#else
+        EVP_CIPHER_CTX_free(ctx);
+#endif
+        if (!final_rc) {
+            return QByteArray();
+        }
 
         return plaintext;
     }
 
     QString decrypt(const QString & ciphertext, const QString & salt)
     {
-        return QString::fromUtf8(decrypt(QByteArray::fromBase64(ciphertext.toAscii()), salt));
+        return QString::fromUtf8(decrypt(QByteArray::fromBase64(ciphertext.toUtf8()), salt));
     }
 
     QString encryptPassword(const QString & username, const QString & password)

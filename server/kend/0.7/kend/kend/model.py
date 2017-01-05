@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -46,14 +46,15 @@ KEND_NS = {
 def _makeNamespace(prefix):
     return {'uri' : '%s/%s#' % (KEND_NS['uri'], prefix), 'prefix': prefix}
 
+STRUCTURE_NS = _makeNamespace('structure')
 RELATION_NS = _makeNamespace('relation')
 PARAMETER_NS = _makeNamespace('parameter')
 PROPERTY_NS  = _makeNamespace('property')
 PROVENANCE_NS  = _makeNamespace('provenance')
 SESSION_NS   = _makeNamespace('session')
 
-NS         = dict(((ns['prefix'], ns['uri']) for ns in (PARAMETER_NS, PROPERTY_NS, SESSION_NS, PROVENANCE_NS, KEND_NS)))
-NS_INVERSE = dict(((ns['uri'], ns['prefix']) for ns in (PARAMETER_NS, PROPERTY_NS, SESSION_NS, PROVENANCE_NS)))
+NS         = dict(((ns['prefix'], ns['uri']) for ns in (PARAMETER_NS, PROPERTY_NS, SESSION_NS, PROVENANCE_NS, STRUCTURE_NS, KEND_NS)))
+NS_INVERSE = dict(((ns['uri'], ns['prefix']) for ns in (PARAMETER_NS, PROPERTY_NS, SESSION_NS, PROVENANCE_NS, STRUCTURE_NS)))
 
 
 ##################

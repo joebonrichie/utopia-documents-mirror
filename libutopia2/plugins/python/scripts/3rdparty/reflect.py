@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -78,7 +78,7 @@ class ReflectAnnotator(utopia.document.Annotator):
             annotations = {}
 
             for item in root.xpath('//r:item', namespaces = ns):
-                itemName = item.findtext('{%s}name' % ns['r']).lower().strip()
+                itemName = etree.tostring(item.find('{%s}name' % ns['r']), method="text", encoding=unicode, with_tail=False).lower().strip()
                 if itemName not in seenItemNames:
                     for entity in item.xpath('.//r:entity', namespaces = ns):
                         entityType = entity.findtext('{%s}type' % ns['r'])

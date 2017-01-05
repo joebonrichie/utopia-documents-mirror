@@ -97,8 +97,8 @@ elif [ x"${ARCH}" = x"Windows" ]; then
     # Force a release install on win32
     patch -p1 <<'EOF'
 $ diff -Nauw libQGLViewer-2.3.5/QGLViewer/QGLViewer.pro.original libQGLViewer-2.3.5/QGLViewer/QGLViewer.pro
---- libQGLViewer-2.3.5/QGLViewer/QGLViewer.pro	2009-08-17 16:45:40.000000000 +0100
-+++ libQGLViewer-2.3.5/QGLViewer/QGLViewer.pro.original	2009-08-17 16:43:45.000000000 +0100
+--- libQGLViewer-2.6.1/QGLViewer/QGLViewer.pro	2009-08-17 16:45:40.000000000 +0100
++++ libQGLViewer-2.6.1/QGLViewer/QGLViewer.pro.original	2009-08-17 16:43:45.000000000 +0100
 @@ -275,7 +275,6 @@
  #               ---------------------
  win32 {
@@ -107,17 +107,18 @@ $ diff -Nauw libQGLViewer-2.3.5/QGLViewer/QGLViewer.pro.original libQGLViewer-2.
 
    # Needed by Intel C++, (icl.exe) so that WINGDIAPI is a defined symbol in gl.h.
    DEFINES *= WIN32
-@@ -302,6 +301,10 @@
-       QMAKE_CXXFLAGS *= -EHs
-     }
+@@ -309,6 +309,11 @@
+ 	  QMAKE_CXXFLAGS *= -EHs
+ 	}
    }
++
 +  include.path = $${INCLUDE_DIR}/QGLViewer
 +  include.files = $${QGL_HEADERS}
 +  target.path = $${LIB_DIR}
 +  INSTALLS *= target include
  }
 
- contains( QT_VERSION, "^4.*" ) {
+
 EOF
     PATH=${PREFIX}/Qt/bin:$PATH
 	MKSPEC="-spec win32-g++"
@@ -129,11 +130,6 @@ cat >>QGLViewer.pro <<'EOF'
 # FOLLOWING CODE ADDED BY UTOPIA BUILD SYSTEM
 CONFIG -= debug release
 CONFIG *= debug_and_release build_all
-
-build_pass:CONFIG(Debug, Release|Debug) {
-  unix: TARGET = $$join(TARGET,,,_debug)
-  else: TARGET = $$join(TARGET,,,d)
-}
 EOF
 
 PATH=${PREFIX}/bin:$PATH

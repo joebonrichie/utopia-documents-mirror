@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -36,13 +36,17 @@
 #include <papyro/annotatorrunnablepool.h>
 #include <papyro/decorator.h>
 #include <papyro/documentmanager.h>
+#include <papyro/librarymodel.h>
 #include <papyro/papyrotab.h>
+#include <papyro/citation.h>
 
 #include <utopia2/bus.h>
 #include <utopia2/busagent.h>
 #include <utopia2/networkaccessmanager.h>
 
-#include <boost/shared_ptr.hpp>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <boost/shared_ptr.hpp>
+#endif
 
 #include <QObject>
 #include <QQueue>
@@ -58,6 +62,7 @@ class QLineEdit;
 class QMenu;
 class QPushButton;
 class QVBoxLayout;
+class QSplitter;
 class QStackedLayout;
 
 namespace Utopia
@@ -133,6 +138,7 @@ namespace Papyro
         qreal progress;
         QString error;
         PapyroTab::State state;
+        Athenaeum::CitationHandle citation;
 
         // This tab's widgets
         //
@@ -159,6 +165,8 @@ namespace Papyro
         QPushButton * lookupButton;
         Pager * pager;
         Sidebar * sidebar;
+        QWidget * progressWidget;
+        QSplitter * contentSplitter;
 
         // Progress widgets
         QStackedLayout * mainLayout;
@@ -185,6 +193,7 @@ namespace Papyro
         // Management of the document
         boost::shared_ptr< DocumentManager > documentManager;
         DocumentSignalProxy * documentSignalProxy;
+        boost::shared_ptr< Athenaeum::LibraryModel > libraryModel;
 
         // Management of the flow browser
         Utopia::FlowBrowserModel * imageBrowserModel;
@@ -221,7 +230,9 @@ namespace Papyro
         SelectionProcessorAction * activeSelectionProcessorAction;
 
         // Annotators
-        void open(Spine::DocumentHandle document, const QVariantMap & params = QVariantMap());
+        void open(Spine::DocumentHandle document,
+                  const QVariantMap & params = QVariantMap(),
+                  Athenaeum::CitationHandle citation = Athenaeum::CitationHandle());
         void queueAnnotatorRunnable(AnnotatorRunnable * runnable);
         bool ready;
         void loadAnnotators();
@@ -232,12 +243,17 @@ namespace Papyro
         Spine::DocumentHandle document() const;
 
     signals:
+        void cancellationRequested();
         void closeRequested();
         void contextMenuAboutToShow(QMenu * menu);
         void errorChanged(const QString & reason);
         void stateChanged(PapyroTab::State state);
+        void starredChanged(bool starred);
+        void knownChanged(bool known);
 
     public slots:
+        void cancelRunnables();
+
         // Annotation framework
         bool on_load_event_chain();
         bool on_activate_event_chain(boost::shared_ptr< Annotator > annotator = boost::shared_ptr< Annotator >(), const QVariantMap & kwargs = QVariantMap(), QObject * obj = 0, const char * receiver = 0);
@@ -259,9 +275,11 @@ namespace Papyro
         void onAnnotatorFinished();
         void onAnnotatorSkipped();
         void onAnnotatorStarted();
+        void onCitationChanged(int index, QVariant value);
         void onDispatcherAnnotationFound(Spine::AnnotationHandle annotation);
         void onDocumentAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added);
         void onDocumentAreaSelectionChanged(const std::string & name, const Spine::AreaSet & extents, bool added);
+        void onDocumentProcessingFinished();
         void onDocumentTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added);
         void onDocumentViewAnnotationsActivated(Spine::AnnotationSet annotations, const QPoint & globalPos);
         void onDocumentViewContextMenu(QMenu * menu, Spine::DocumentHandle document, Spine::CursorHandle cursor);
@@ -290,13 +308,13 @@ namespace Papyro
         void showImageBrowser(bool show);
         void showSidebar(bool show);
         void showLookupBar(bool show);
+        void visualiseAnnotations(Spine::AnnotationSet annotations);
 
     protected:
         bool eventFilter(QObject * obj, QEvent * event);
         void resubscribeToBus();
         QString busId() const;
         void receiveFromBus(const QString & sender, const QVariant & data);
-        void visualiseAnnotations(Spine::AnnotationSet annotations);
 
     }; // class PapyroTabPrivate
 

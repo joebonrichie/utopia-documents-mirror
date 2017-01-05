@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -64,6 +64,9 @@
 
 #include <QDir>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 
 #define REGISTER_PYTHON_EXTENSION_FACTORIES(package, cls)                                                   \
@@ -170,52 +173,83 @@ extern "C" void utopia_registerExtensions()
       );
 
     // These are the allowed places / names for Python plugins
-    typedef std::pair< Utopia::Plugin::PluginBase, QString > path_pair;
-    std::list< path_pair > paths;
-    paths.push_back(path_pair(Utopia::Plugin::InstallBase, QString("python/core")));
-    paths.push_back(path_pair(Utopia::Plugin::InstallBase, QString("python/3rdparty")));
-    paths.push_back(path_pair(Utopia::Plugin::ProfileBase, QString("python")));
+    QFileInfoList paths;
+    paths << (Utopia::plugin_path() + "/python/core");
+    paths << (Utopia::plugin_path() + "/python/3rdparty");
+    paths << (Utopia::profile_path(Utopia::ProfilePlugins) + "/python");
     QStringList names;
     names << "*.py" << "*.zip";
 
     SAFE_EXEC("import utopia");
-    std::list< path_pair > old_paths(paths);
-    old_paths.push_back(path_pair(Utopia::Plugin::InstallBase, QString("python")));
-    foreach (path_pair path, old_paths) {
-        global["_plugin_dir"] = unicode(Utopia::Plugin::constructAbsolutePath(path.first, path.second));
-        SAFE_EXEC("utopia.extension.cleanPluginDir(_plugin_dir)");
+    QFileInfoList old_paths(paths);
+    old_paths << (Utopia::plugin_path() + "/python"); // We add this to clear out this legacy path
+    foreach (const QFileInfo & path, old_paths) {
+        if (path.isDir()) {
+            global["_plugin_dir"] = unicode(path.absoluteFilePath());
+            SAFE_EXEC("utopia.extension.cleanPluginDir(_plugin_dir)");
+        }
     }
 
     {
         try {
-        python::object module(python::import("utopia"));
-        python::object citation(module.attr("citation"));
-        python::scope outer(citation);
-        python::def("format", python::make_function(bind(format_citation, _1, python::object()), python::default_call_policies(), mpl::vector< python::object, python::object >()));
-        python::def("format", python::make_function(bind(format_citation, _1, _2), python::default_call_policies(), mpl::vector< python::object, python::object, python::object >()));
+            python::object citation(python::import("utopia.citation"));
+            python::scope outer(citation);
+            python::def("_formatCSL", python::make_function(bind(format_citation, _1, python::object()), python::default_call_policies(), mpl::vector< python::object, python::object >()));
+            python::def("_formatCSL", python::make_function(bind(format_citation, _1, _2), python::default_call_policies(), mpl::vector< python::object, python::object, python::object >()));
         } catch (python::error_already_set e) { PyErr_PrintEx(0); }
+    }
+
+    // Now add any paths found in the UTOPIA_PLUGIN_PATH environment variable
+    {
+#ifdef _WIN32
+        QRegExp delim("\\s*;\\s*");
+        char env[1024*1024] = { 0 };
+        int status = GetEnvironmentVariable("UTOPIA_PLUGIN_PATH", env, sizeof(env));
+        if (status == 0) { env[0] = 0; }
+        QString envPathStr = QString(*env ? env : "");
+#else
+        QRegExp delim("\\s*:\\s*");
+        char * env = ::getenv("UTOPIA_PLUGIN_PATH");
+        QString envPathStr = QString(env && *env ? env : "");
+#endif
+        QStringList envPaths = envPathStr.split(delim, QString::SkipEmptyParts);
+        foreach (QString envPath, envPaths) {
+            if (QFileInfo(envPath).exists()) {
+                paths << envPath;
+            }
+        }
     }
 
     // Resolve all plugins found in the above specified plugins paths.
     // FIXME deleting unused ones?
     boost::shared_ptr< Utopia::PluginManager > pluginManager(Utopia::PluginManager::instance());
-    foreach (path_pair path, paths) {
+    foreach (QFileInfo path, paths) {
         //qDebug() << "path" << path.first << path.second;
-        QDir dir(Utopia::Plugin::constructAbsolutePath(path.first, path.second));
-        dir.setFilter(QDir::Files | QDir::Dirs);
-        dir.setNameFilters(names);
-        foreach (QString script, dir.entryList()) {
-            //qDebug() << "resolve" << path.first << (path.second + "/" + script);
-            pluginManager->resolve(path.first, path.second + "/" + script);
+        if (path.exists()) {
+            if (path.isFile() || (path.isDir() && path.suffix() == "zip")) {
+                //qDebug() << "resolve" << path.absoluteFilePath();
+                pluginManager->resolve(path);
+            } else if (path.isDir()) {
+                QDir dir(path.absoluteFilePath());
+                dir.setFilter(QDir::Files | QDir::Dirs);
+                dir.setNameFilters(names);
+                foreach (QFileInfo script, dir.entryInfoList()) {
+                    // Ignore underscored names
+                    if (!script.fileName().startsWith("_")) {
+                        //qDebug() << "resolve" << script.absoluteFilePath();
+                        pluginManager->resolve(script);
+                    }
+                }
+            }
+
         }
     }
 
     // Load discovered plugins
     foreach (Utopia::Plugin * plugin, pluginManager->plugins()) {
-        QString absolutePath = plugin->absolutePath();
-        //qDebug() << "absolutePath" << absolutePath;
-        if (QFile::exists(absolutePath)) {
-            global["_plugin_path"] = unicode(absolutePath);
+        QString path = plugin->path();
+        if (QFile::exists(path)) {
+            global["_plugin_path"] = unicode(path);
             SAFE_EXEC("utopia.extension.loadPlugin(_plugin_path)");
         }
     }

@@ -1,68 +1,128 @@
 # libutf8proc Makefile
 
+# programs
+MAKE=make
+AR?=ar
+CC?=gcc
+INSTALL=install
 
-# settings
+# compiler settings
+CFLAGS ?= -O2
+PICFLAG = -fPIC
+C99FLAG = -std=c99
+UCFLAGS = $(CFLAGS) $(PICFLAG) $(C99FLAG) -DUTF8PROC_EXPORTS
 
-cflags = -O2 -std=c99 -pedantic -Wall -fpic $(CFLAGS)
-cc = $(CC) $(cflags)
+# shared-library version MAJOR.MINOR.PATCH ... this may be *different*
+# from the utf8proc version number because it indicates ABI compatibility,
+# not API compatibility: MAJOR should be incremented whenever *binary*
+# compatibility is broken, even if the API is backward-compatible
+# Be sure to also update these in CMakeLists.txt!
+MAJOR=1
+MINOR=3
+PATCH=0
 
+OS := $(shell uname)
+ifeq ($(OS),Darwin) # MacOS X
+  SHLIB_EXT = dylib
+  SHLIB_VERS_EXT = $(MAJOR).dylib
+else # GNU/Linux, at least (Windows should probably use cmake)
+  SHLIB_EXT = so
+  SHLIB_VERS_EXT = so.$(MAJOR).$(MINOR).$(PATCH)
+endif
+
+# installation directories (for 'make install')
+prefix=/usr/local
+libdir=$(prefix)/lib
+includedir=$(prefix)/include
 
 # meta targets
 
-c-library: libutf8proc.a libutf8proc.so
+.PHONY: all, clean, update, data
 
-ruby-library: ruby/utf8proc_native.so
+all: libutf8proc.a libutf8proc.$(SHLIB_EXT)
 
-pgsql-library: pgsql/utf8proc_pgsql.so
+clean:
+	rm -f utf8proc.o libutf8proc.a libutf8proc.$(SHLIB_VERS_EXT) libutf8proc.$(SHLIB_EXT) test/normtest test/graphemetest test/printproperty test/charwidth test/valid test/iterate
+	$(MAKE) -C bench clean
+	$(MAKE) -C data clean
 
-all: c-library ruby-library ruby-gem pgsql-library
+data: data/utf8proc_data.c.new
 
-clean::
-	rm -f utf8proc.o libutf8proc.a libutf8proc.so
-	cd ruby/ && test -e Makefile && (make clean && rm -f Makefile) || true
-	rm -Rf ruby/gem/lib ruby/gem/ext
-	rm -f ruby/gem/utf8proc-*.gem
-	cd pgsql/ && make clean
+update: data/utf8proc_data.c.new
+	cp -f data/utf8proc_data.c.new utf8proc_data.c
 
 # real targets
 
+data/utf8proc_data.c.new: libutf8proc.$(SHLIB_EXT) data/data_generator.rb data/charwidths.jl
+	$(MAKE) -C data utf8proc_data.c.new
+
 utf8proc.o: utf8proc.h utf8proc.c utf8proc_data.c
-	$(cc) -c -o utf8proc.o utf8proc.c
+	$(CC) $(UCFLAGS) -c -o utf8proc.o utf8proc.c
 
 libutf8proc.a: utf8proc.o
 	rm -f libutf8proc.a
-	ar rs libutf8proc.a utf8proc.o
+	$(AR) rs libutf8proc.a utf8proc.o
 
-libutf8proc.so: utf8proc.o
-	$(cc) -shared -o libutf8proc.so utf8proc.o
-	chmod a-x libutf8proc.so
+libutf8proc.so.$(MAJOR).$(MINOR).$(PATCH): utf8proc.o
+	$(CC) $(LDFLAGS) -shared -o $@ -Wl,-soname -Wl,libutf8proc.so.$(MAJOR) utf8proc.o
+	chmod a-x $@
 
-libutf8proc.dylib: utf8proc.o
-	$(cc) -dynamiclib -o $@ $^ -install_name $(libdir)/$@
+libutf8proc.so: libutf8proc.so.$(MAJOR).$(MINOR).$(PATCH)
+	ln -f -s libutf8proc.so.$(MAJOR).$(MINOR).$(PATCH) $@
+	ln -f -s libutf8proc.so.$(MAJOR).$(MINOR).$(PATCH) $@.$(MAJOR)
 
-ruby/Makefile: ruby/extconf.rb
-	cd ruby && ruby extconf.rb
+libutf8proc.$(MAJOR).dylib: utf8proc.o
+	$(CC) -dynamiclib -o $@ $^ -install_name $(libdir)/$@ -Wl,-compatibility_version -Wl,$(MAJOR) -Wl,-current_version -Wl,$(MAJOR).$(MINOR).$(PATCH)
 
-ruby/utf8proc_native.so: utf8proc.h utf8proc.c utf8proc_data.c \
-		ruby/utf8proc_native.c ruby/Makefile
-	cd ruby && make
+libutf8proc.dylib: libutf8proc.$(MAJOR).dylib
+	ln -f -s libutf8proc.$(MAJOR).dylib $@
 
-ruby/gem/lib/utf8proc.rb: ruby/utf8proc.rb
-	test -e ruby/gem/lib || mkdir ruby/gem/lib
-	cp ruby/utf8proc.rb ruby/gem/lib/
+install: libutf8proc.a libutf8proc.$(SHLIB_EXT) libutf8proc.$(SHLIB_VERS_EXT)
+	mkdir -m 755 -p $(DESTDIR)$(includedir)
+	$(INSTALL) -m 644 utf8proc.h $(DESTDIR)$(includedir)
+	mkdir -m 755 -p $(DESTDIR)$(libdir)
+	$(INSTALL) -m 644 libutf8proc.a $(DESTDIR)$(libdir)
+	$(INSTALL) -m 755 libutf8proc.$(SHLIB_VERS_EXT) $(DESTDIR)$(libdir)
+	ln -f -s $(libdir)/libutf8proc.$(SHLIB_VERS_EXT) $(DESTDIR)$(libdir)/libutf8proc.$(SHLIB_EXT)
+ifneq ($(OS),Darwin)
+	ln -f -s $(libdir)/libutf8proc.$(SHLIB_VERS_EXT) $(DESTDIR)$(libdir)/libutf8proc.so.$(MAJOR)
+	ln -f -s $(libdir)/libutf8proc.$(SHLIB_VERS_EXT) $(DESTDIR)$(libdir)/libutf8proc.so.$(MAJOR).$(MINOR)
+endif
 
-ruby/gem/ext/extconf.rb: ruby/extconf.rb
-	test -e ruby/gem/ext || mkdir ruby/gem/ext
-	cp ruby/extconf.rb ruby/gem/ext/
+# Test programs
 
-ruby/gem/ext/utf8proc_native.c: utf8proc.h utf8proc_data.c utf8proc.c ruby/utf8proc_native.c
-	test -e ruby/gem/ext || mkdir ruby/gem/ext
-	cat utf8proc.h utf8proc_data.c utf8proc.c ruby/utf8proc_native.c | grep -v '#include "utf8proc.h"' | grep -v '#include "utf8proc_data.c"' | grep -v '#include "../utf8proc.c"' > ruby/gem/ext/utf8proc_native.c
+data/NormalizationTest.txt:
+	$(MAKE) -C data NormalizationTest.txt
 
-ruby-gem:: ruby/gem/lib/utf8proc.rb ruby/gem/ext/extconf.rb ruby/gem/ext/utf8proc_native.c
-	cd ruby/gem && gem build utf8proc.gemspec
+data/GraphemeBreakTest.txt:
+	$(MAKE) -C data GraphemeBreakTest.txt
 
-pgsql/utf8proc_pgsql.so: utf8proc.h utf8proc.c utf8proc_data.c \
-		pgsql/utf8proc_pgsql.c
-	cd pgsql && make
+test/normtest: test/normtest.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/normtest.c utf8proc.o -o $@
 
+test/graphemetest: test/graphemetest.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/graphemetest.c utf8proc.o -o $@
+
+test/printproperty: test/printproperty.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/printproperty.c utf8proc.o -o $@
+
+test/charwidth: test/charwidth.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/charwidth.c utf8proc.o -o $@
+
+test/valid: test/valid.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/valid.c utf8proc.o -o $@
+
+test/iterate: test/iterate.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/iterate.c utf8proc.o -o $@
+
+test/case: test/case.c utf8proc.o utf8proc.h test/tests.h
+	$(CC) $(UCFLAGS) test/case.c utf8proc.o -o $@
+
+check: test/normtest data/NormalizationTest.txt test/graphemetest data/GraphemeBreakTest.txt test/printproperty test/case test/charwidth test/valid test/iterate bench/bench.c bench/util.c bench/util.h utf8proc.o
+	$(MAKE) -C bench
+	test/normtest data/NormalizationTest.txt
+	test/graphemetest data/GraphemeBreakTest.txt
+	test/charwidth
+	test/valid
+	test/iterate
+	test/case

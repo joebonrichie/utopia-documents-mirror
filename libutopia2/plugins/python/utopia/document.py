@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,8 +37,6 @@ import utopia.extension
 
 class PhraseLookup(utopia.extension.Extension):
 	pass
-
-import spineapi
 
 class Visualiser(utopia.extension.Extension):
     def cssId(self, size = 6, chars = string.ascii_lowercase + string.digits, initial_chars = string.ascii_lowercase):
@@ -103,3 +101,6 @@ def buffer(fn):
             document.flush()
         return result
     return wrapper
+
+
+

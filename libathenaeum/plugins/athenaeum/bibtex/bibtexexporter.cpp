@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 #include "bibtexexporter.h"
 
 #include "version_p.h"
-#include <athenaeum/abstractbibliographiccollection.h>
+#include <papyro/abstractbibliography.h>
 
 #include <QList>
 #include <QString>
@@ -60,16 +60,16 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
     types["newspaper article"] = "MISC";
 
     // Mapping
-    typedef QPair< QString, AbstractBibliographicCollection::Roles > Mapping;
+    typedef QPair< QString, AbstractBibliography::Roles > Mapping;
     QVector< Mapping > translation;
-    translation << Mapping("title", AbstractBibliographicCollection::TitleRole);
-    translation << Mapping("abstract", AbstractBibliographicCollection::AbstractRole);
-    translation << Mapping("url", AbstractBibliographicCollection::UrlRole);
-    translation << Mapping("volume", AbstractBibliographicCollection::VolumeRole);
-    translation << Mapping("number", AbstractBibliographicCollection::IssueRole);
-    translation << Mapping("year", AbstractBibliographicCollection::YearRole);
-    translation << Mapping("journal", AbstractBibliographicCollection::PublicationTitleRole);
-    translation << Mapping("publisher", AbstractBibliographicCollection::PublisherRole);
+    translation << Mapping("title", AbstractBibliography::TitleRole);
+    translation << Mapping("abstract", AbstractBibliography::AbstractRole);
+    translation << Mapping("url", AbstractBibliography::UrlRole);
+    translation << Mapping("volume", AbstractBibliography::VolumeRole);
+    translation << Mapping("number", AbstractBibliography::IssueRole);
+    translation << Mapping("year", AbstractBibliography::YearRole);
+    translation << Mapping("journal", AbstractBibliography::PublicationTitleRole);
+    translation << Mapping("publisher", AbstractBibliography::PublisherRole);
 
     // Write out
     QFile file(filename);
@@ -88,7 +88,7 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
             QString firstAuthorSurname;
             QStringMap fields;
 
-            fields["type"] = types.value(index.data(AbstractBibliographicCollection::TypeRole).toString(), "MISC");
+            fields["type"] = types.value(index.data(AbstractBibliography::TypeRole).toString(), "MISC");
 
             // Translate standard fields
             foreach (const Mapping & pair, translation) {
@@ -100,7 +100,7 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
 
             // Authors
             QStringList authors;
-            foreach (const QString & author, index.data(AbstractBibliographicCollection::AuthorsRole).toStringList()) {
+            foreach (const QString & author, index.data(AbstractBibliography::AuthorsRole).toStringList()) {
                 QString forenames = author.section(", ", 1, 1);
                 QString surnames = author.section(", ", 0, 0);
                 if (firstAuthorSurname.isEmpty()) {
@@ -114,15 +114,15 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
 
             // Pages
             QStringList pagesList;
-            pagesList << index.data(AbstractBibliographicCollection::PageFromRole).toString();
-            pagesList << index.data(AbstractBibliographicCollection::PageToRole).toString();
+            pagesList << index.data(AbstractBibliography::PageFromRole).toString();
+            pagesList << index.data(AbstractBibliography::PageToRole).toString();
             QString pages = pagesList.join("-");
             if (!pages.isEmpty() && pages != "-") {
                 fields["pages"] = pages;
             }
 
             // Keywords
-            QStringList keywords = index.data(AbstractBibliographicCollection::KeywordsRole).toStringList();
+            QStringList keywords = index.data(AbstractBibliography::KeywordsRole).toStringList();
             if (!keywords.isEmpty()) {
                 fields["keywords"] = keywords.join(", ");
             }
@@ -131,7 +131,7 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
             QStringMap identifiers;
             identifiers["doi"] = "doi";
             // FIXME More BibTeX codes for identifiers!
-            QMapIterator< QString, QVariant > id_iter(index.data(AbstractBibliographicCollection::IdentifiersRole).toMap());
+            QMapIterator< QString, QVariant > id_iter(index.data(AbstractBibliography::IdentifiersRole).toMap());
             while (id_iter.hasNext()) {
                 id_iter.next();
                 if (identifiers.contains(id_iter.key())) {

@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,8 +30,13 @@
 ###############################################################################
 
 set(SOURCES
+  unicode.cpp
   utf8proc/utf8proc.c
   )
+
+add_definitions (
+  -DUTF8PROC_EXPORTS
+)
 
 add_utopia_library(utf8 STATIC ${SOURCES} )
 #target_link_libraries (utf8 )

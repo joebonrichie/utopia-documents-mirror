@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -55,8 +55,10 @@ find_library(
 mark_as_advanced(QGLViewer_LIBRARY_RELEASE)
 if(WIN32)
   set(QGLViewer "QGLViewerd2")
+elseif(APPLE)
+  set(QGLViewer "QGLViewer_debug")
 else()
-  set(QGLViewer "${QGLViewer}_debug")
+  SET(QGLViewer "qglviewer-qt4")
 endif()
 find_library(
   QGLViewer_LIBRARY_DEBUG

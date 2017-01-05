@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -230,7 +230,6 @@ namespace CINEMA6
 
                 painter->setPen(Qt::NoPen);
                 painter->setBrush(QColor(60, 60, 80));
-                int unitLeft = this->rectAt(firstUnit).left();
                 bool odd = true;
                 for (int res = firstUnit; res <= lastUnit + 8; res += 3)
                 {

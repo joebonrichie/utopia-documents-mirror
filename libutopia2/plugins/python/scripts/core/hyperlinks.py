@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -38,7 +38,8 @@ import collections
 
 class OutlineBuilder(utopia.document.Annotator):
     """Build outline navigator"""
-    def on_load_event(self, document):
+
+    def after_ready_event(self, document):
         outline={}
 
         for a in document.annotations():
@@ -66,7 +67,7 @@ class OutlineBuilder(utopia.document.Annotator):
             a['concept'] = 'Collated'
             a['property:name'] = 'Outline'
             a['property:description'] = 'Document Structure'
-            a['session:weight'] = '10000'
+            a['session:weight'] = '999'
             a['property:html'] = html
             document.addAnnotation(a)
 

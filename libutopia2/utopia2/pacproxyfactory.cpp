@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -142,7 +142,7 @@ namespace Utopia
 
     static QString env(const QString & name)
     {
-        return QString(::getenv(name.toAscii().data()));
+        return QString(::getenv(name.toUtf8().data()));
     }
 
 
@@ -209,7 +209,7 @@ namespace Utopia
             bool valid(!username.isEmpty() && !password.isEmpty());
             if (valid) {
                 Attempt entry = { username, password, 2 };
-                credentialCacheByRealm[QUrl::fromPercentEncoding(realm.toAscii())] = entry;
+                credentialCacheByRealm[QUrl::fromPercentEncoding(realm.toUtf8())] = entry;
             }
             conf.endGroup();
             if (!valid) {

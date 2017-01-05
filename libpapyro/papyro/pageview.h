@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,10 +33,12 @@
 #define PAGEVIEW_H
 
 #include <papyro/config.h>
-#include <spine/Document.h>
-#include <spine/Cursor.h>
-#include <spine/TextSelection.h>
-#include <spine/Annotation.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Document.h>
+#  include <spine/Cursor.h>
+#  include <spine/TextSelection.h>
+#  include <spine/Annotation.h>
+#endif
 
 #include <QColor>
 #include <QImage>
@@ -104,7 +106,6 @@ namespace Papyro
         void clearTemporaryFocus();
         void copySelectedText();
         Spine::CursorHandle cursorAt(const QPointF & point, Spine::DocumentElement element_ = Spine::ElementCharacter) const;
-        void dirtyImage();
         Spine::DocumentHandle document() const;
         void focusExtent(Spine::Area area);
         void focusExtent(Spine::TextExtentHandle extent);
@@ -112,17 +113,18 @@ namespace Papyro
         double horizontalZoom() const;
         Spine::CursorHandle imageCursorAt(const QPointF & point) const;
         bool isNull() const;
-        QRectF mediaRect() const;
-        QSizeF mediaSize() const;
+        QRectF mediaRect(bool transformed = false) const;
+        QSizeF mediaSize(bool transformed = false) const;
         Spine::CursorHandle newCursor() const;
         const Spine::Page * page() const;
         int pageNumber() const;
-        QRectF pageRect() const;
-        QSizeF pageSize() const;
+        QRectF pageRect(bool transformed = false) const;
+        QSizeF pageSize(bool transformed = false) const;
         void populateContextMenuAt(QMenu * menu, const QPoint & pos);
         void resizeToHeight(int h);
         void resizeToSize(const QSize & size);
         void resizeToWidth(int w);
+        int rotation() const;
         void setActiveSpotlight(Spine::TextExtentHandle extent);
         void setSpotlights(const Spine::TextExtentSet & extents);
         const Spine::TextExtentSet & spotlights() const;
@@ -133,6 +135,7 @@ namespace Papyro
         QPointF transformToPage(const QPoint & point) const;
         QRectF transformToPage(const QRect & rect) const;
         QSizeF transformToPage(const QSize & size) const;
+        QTransform userTransform() const;
         double verticalZoom() const;
 
         // Public static helpers methods
@@ -140,9 +143,10 @@ namespace Papyro
         static QPainterPath asPath(const Spine::TextSelection & selection, int pageNumber);
 
     public slots:
+        void setHorizontalZoom(double zoom);
         void setPage(Spine::DocumentHandle document, int page);
         void setPage(int page);
-        void setHorizontalZoom(double zoom);
+        void setRotation(int degrees);
         void setVerticalZoom(double zoom);
         void setZoom(double zoom);
         void updateAnnotations(const std::string & name, const Spine::AnnotationSet & annotations, bool added);
@@ -157,6 +161,7 @@ namespace Papyro
         void exploreSelection();
         void publishChanges();
         void urlRequested(const QUrl & url, const QString & target);
+        void pageRotated();
 
     protected:
         void contextMenuEvent(QContextMenuEvent * event);

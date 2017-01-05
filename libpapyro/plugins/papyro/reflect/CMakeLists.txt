@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,34 +33,23 @@ project(papyro-reflect)
 
 set(SOURCES
   reflection.cpp
-
   reflect.cpp
   )
-
-set(HEADERS
-  reflection.h
-  )
-
-set(MOC_HEADERS
-  )
-
-set(RESOURCES)
 
 include_directories(
   ${PROJECT_BINARY_DIR}
   ${Boost_INCLUDE_DIR}
   ${utf8_INCLUDE_DIR}
+  ${athenaeum_INCLUDE_DIR}
   ${papyro_INCLUDE_DIR}
   ${spine_INCLUDE_DIR}
   ${utopia2_qt_INCLUDE_DIR}
   ${utopia2_auth_qt_INCLUDE_DIR}
   )
 
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED)
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
-
-add_utopia_plugin(${PROJECT_NAME} MODULE ${SOURCES} ${MOC_SOURCES} ${RES_SOURCES})
+add_utopia_plugin(${PROJECT_NAME} MODULE ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt utopia2_auth_qt papyro ${Boost_LIBRARIES} utf8)
+qt5_use_modules(${PROJECT_NAME} Svg WebKitWidgets)
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

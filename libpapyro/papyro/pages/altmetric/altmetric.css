@@ -29,7 +29,7 @@
 }
 
 .altmetric .citation .pie {
-  position: relative:
+  position: relative;
   top: 0px;
   left: 0px;
   width: 80px;
@@ -47,7 +47,7 @@
 
 /* this is the class used for the quotes under each article */
 .altmetric .citation .tq {
-  margin: 2px;
+  margin: 0px;
   padding: 2px 6px 2px 6px;
   background-color: #EFEFEF;
   border: 1px solid #999999;
@@ -56,6 +56,10 @@
   -webkit-border-radius: 8px;
   -moz-border-radius: 8px;
   font-size: 0.8em;
+}
+
+.altmetric .citation .tq + .altmetric .citation .tq {
+  margin-top: 2px;
 }
 
 /* journal name */

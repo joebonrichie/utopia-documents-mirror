@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -118,7 +118,6 @@ namespace CINEMA6
         int width = rect.width();
         int height = rect.height();
         int textHeight = height < 8 ? 8 : height;
-        bool isAnnotation = isComponent< AnnotationComponent >(component);
 
         QFont font = painter->font();
         float size = font.pointSizeF() * 1.2;

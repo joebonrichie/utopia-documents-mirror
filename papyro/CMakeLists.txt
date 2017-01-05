@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -40,13 +40,6 @@ set(SOURCES
   qtlocalpeer.cpp
   qtsingleapplication.cpp
   )
-  
-set(MOC_HEADERS
-  qtsingleapplication.h
-  qtlocalpeer.h
-  )
-
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS})
 
 include_directories(
   ${papyro_INCLUDE_DIR}
@@ -56,6 +49,7 @@ include_directories(
   ${utopia2_auth_qt_INCLUDE_DIR}
   ${Boost_INCLUDE_DIR}
   ${spine_INCLUDE_DIR}
+  ${athenaeum_INCLUDE_DIR}
   ${utf8_INCLUDE_DIR}
   )
 
@@ -68,19 +62,20 @@ else()
   set(SOURCES ${SOURCES} Utopia.rc)
 endif()
 
-add_utopia_executable(${PROJECT_NAME} ${GUI_TYPE} ${SOURCES} ${MOC_SOURCES})
+add_utopia_executable(${PROJECT_NAME} ${GUI_TYPE} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+  papyro
+  spine
+  utf8
   utopia2
   utopia2_qt
   utopia2_auth
   utopia2_auth_qt
-  papyro
-  spine
-  ${QT_LIBRARIES}
-  utf8
+  athenaeum
   ${Boost_LIBRARIES}
   )
+qt5_use_modules(${PROJECT_NAME} Widgets Network Gui Core OpenGL)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${BIN_INSTALL_DIR} COMPONENT "${COMPONENT}")
 

@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -36,7 +36,25 @@
 
 import re
 import urllib
+import utopia.citation
 import utopia.document
+
+
+# Duplicated from the resolvers file
+def hasLink(metadata, criteria):
+    links = metadata.get('links', [])
+    for link in links:
+        found = True
+        for key, value in criteria.iteritems():
+            print(link)
+            if link.get(key) != value:
+                found = False
+                break
+        if found:
+            return True
+    return False
+
+
 
 
 class GoogleScholarLinkFinder(utopia.document.LinkFinder):
@@ -59,3 +77,27 @@ class GooglePhraseLookup(utopia.document.PhraseLookup):
     def lookup(self, phrase):
         return "http://www.google.com/search?q=%s" % urllib.quote(re.sub(r'\W+', ' ', phrase).strip().encode('utf-8'))
 
+
+class GoogleScholarResolver(utopia.library.Resolver):
+    """Resolve search link for google scholar"""
+
+    def resolve(self, metadata, document = None):
+        if not hasLink(metadata, {'type': 'search', ':whence': 'google'}):
+            displayText = utopia.citation.format(metadata)
+            displayTextStripped = re.sub(r'<[^>]*>', '', displayText)
+            links = metadata.get('links', [])
+            links.append({
+                'url': 'http://scholar.google.com/scholar?{0}'.format(urllib.urlencode({'q': displayTextStripped.encode('utf8')})),
+                'mime': 'text/html',
+                'title': 'Search for article...',
+                'name': 'Search',
+                ':weight': 100,
+                ':whence': 'google',
+                })
+            return { 'links': links }
+
+    def purposes(self):
+        return 'dereference'
+
+    def weight(self):
+        return 100

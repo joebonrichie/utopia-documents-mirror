@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QEventLoop>
+#include <QIODevice>
 #include <QMap>
 #include <QMetaEnum>
 #include <QNetworkReply>
@@ -118,10 +119,10 @@ namespace Kend
     {
         QNetworkRequest req(req_);
         if (service->isLoggedIn() || service->serviceState() == Service::LoggingOutState) {
-            req.setRawHeader("Authorization", QString("Kend %1").arg(service->authenticationToken()).toAscii());
+            req.setRawHeader("Authorization", QString("Kend %1").arg(service->authenticationToken()).toUtf8());
         }
         if (!mime_type.isEmpty()) {
-            req.setRawHeader("Content-Type", mime_type.toAscii());
+            req.setRawHeader("Content-Type", mime_type.toUtf8());
         }
         return req;
     }
@@ -536,7 +537,7 @@ namespace Kend
 
     QByteArray Service::cacheCredentials() const
     {
-        return Utopia::encrypt(encode(credentials()), uuid());
+        return Utopia::encrypt(encode(credentials()), uuid().toString());
     }
 
     QString Service::authenticationMethod() const
@@ -834,7 +835,7 @@ namespace Kend
 
     void Service::uncacheCredentials(const QByteArray & encoded)
     {
-        setCredentials(decode(Utopia::decrypt(encoded, uuid())));
+        setCredentials(decode(Utopia::decrypt(encoded, uuid().toString())));
     }
 
     QUrl Service::url() const

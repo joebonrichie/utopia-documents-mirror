@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,11 +32,14 @@
 #include <papyro/citationpopup_p.h>
 #include <papyro/citationpopup.h>
 #include <papyro/citationfinder.h>
+#include <papyro/citations.h>
 #include <papyro/cslengine.h>
 #include <papyro/cslengineadapter.h>
 #include <papyro/utils.h>
+#include <papyro/resolverrunnable.h>
 
 #include <QHBoxLayout>
+#include <QJsonDocument>
 #include <QLabel>
 #include <QList>
 #include <QVBoxLayout>
@@ -48,68 +51,47 @@ namespace Papyro
     CitationPanel::CitationPanel(Spine::AnnotationHandle citation)
         : QWidget(0), citation(citation), completed(citation->capabilities< CitationFinderCapability >().size())
     {
+        // Get a pointer to the CSL engine for formatting
         boost::shared_ptr< CSLEngine > cslengine(CSLEngine::instance());
 
-        bool hasPdf = citation->hasProperty("property:pdf");
+        // Create layout for this widget
         _layout = new QHBoxLayout(this);
         _layout->setContentsMargins(4, 4, 4, 4);
         _layout->setSpacing(6);
 
-        QVariantMap metadata;
-        std::multimap< std::string, std::string > properties(citation->properties());
-        std::multimap< std::string, std::string >::const_iterator iter(properties.begin());
-        std::multimap< std::string, std::string >::const_iterator end(properties.end());
-        for (; iter != end; ++iter) {
-            //qDebug() << "===" << qStringFromUnicode(iter->first) << qStringFromUnicode(iter->second);
-            if (iter->first == "property:authors") {
-                QStringList authors(metadata.value("authors").toStringList());
-                authors << qStringFromUnicode(iter->second);
-                metadata["authors"] = authors;
-            } else if (iter->first.compare(0, 9, "property:") == 0) {
-                metadata[qStringFromUnicode(iter->first.substr(9))] = qStringFromUnicode(iter->second);
-            }
-        }
-        //qDebug() << "---" << metadata;
-        //qDebug() << "---" << convert_to_cslengine(metadata);
+        // Compile a citation map from this annotation
+        QVariantMap metadata = citationToMap(citation);
+
+        // Turn the citation into a formatted string
         QString formatted;
         if (metadata.contains("authors") && metadata.contains("title") && metadata.contains("publication-title")) {
             formatted = cslengine->format(convert_to_cslengine(metadata));
         } else {
             formatted = qStringFromUnicode(citation->getFirstProperty("property:displayText"));
         }
-        //qDebug() << "+++" << formatted;
 
-        QLabel * label = new QLabel(formatted);
+        citationLabel = new QLabel(formatted);
         {
-#ifndef Q_OS_WIN32
-            QFont f(label->font());
+#ifndef Q_OS_WIN
+            QFont f(citationLabel->font());
             f.setPointSizeF(f.pointSizeF() * 0.85);
-            label->setFont(f);
+            citationLabel->setFont(f);
 #endif
         }
-        label->setWordWrap(true);
-        label->setFixedWidth(hasPdf ? 280 : 318);
-        label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
-        label->adjustSize();
-        _layout->addWidget(label, 1);
+        citationLabel->setWordWrap(true);
+        citationLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+        citationLabel->setFixedWidth(280);
+        citationLabel->adjustSize();
+        _layout->addWidget(citationLabel, 1);
 
-        if (hasPdf) {
-            QWidget * pdfWidget = new QWidget;
-            pdfLayout = new QStackedLayout(pdfWidget);
-            _layout->addWidget(pdfWidget, 1, Qt::AlignVCenter | Qt::AlignRight);
-
-            pdfLabel = new QLabel;
-            pdfLabel->setPixmap(QPixmap(":/icons/mime-pdf.png"));
-            pdfLabel->setFixedWidth(32);
-            pdfLabel->setCursor(Qt::PointingHandCursor);
-            pdfLabel->setToolTip("View cited article");
-            pdfLabel->installEventFilter(this);
-            pdfLayout->addWidget(pdfLabel);
-
-            pdfSpinner = new Utopia::Spinner;
-            pdfLayout->addWidget(pdfSpinner);
-            pdfSpinner->setFixedWidth(32);
-        }
+        pdfLabel = new QLabel;
+        pdfLabel->setPixmap(QPixmap(":/icons/mime-pdf.png"));
+        pdfLabel->setFixedWidth(32);
+        pdfLabel->setCursor(Qt::PointingHandCursor);
+        pdfLabel->setToolTip("View cited article");
+        pdfLabel->installEventFilter(this);
+        _layout->addWidget(pdfLabel, 1, Qt::AlignVCenter | Qt::AlignRight);
+        pdfLabel->hide();
 
         QWidget * moreWidget = new QWidget;
         moreLayout = new QStackedLayout(moreWidget);
@@ -134,6 +116,8 @@ namespace Papyro
         }
 
         connect(&signalMapper, SIGNAL(mapped(const QString &)), this, SLOT(onLinkClicked(const QString &)));
+
+        Athenaeum::ResolverRunnable::dereference(Athenaeum::Citation::fromMap(metadata), this, SLOT(onResolverRunnableCompleted(Athenaeum::CitationHandle)));
     }
 
     void CitationPanel::addLink(QString title, QString url)
@@ -158,12 +142,15 @@ namespace Papyro
                 }
             }
             menu.insertAction(after, action);
-        } else {
-            // Stop spinner once complete
-            if (--completed == 0) {
-                moreLayout->setCurrentWidget(moreLabel);
-                spinner->stop();
-            }
+        }
+    }
+
+    void CitationPanel::addPdf(QString title, QString url)
+    {
+        if (!url.isEmpty()) {
+            pdfLabel->show();
+            pdfLabel->setProperty("url", url);
+            pdfLabel->setToolTip(title);
         }
     }
 
@@ -171,7 +158,7 @@ namespace Papyro
     {
         if (event->type() == QEvent::MouseButtonRelease) {
             if (obj == pdfLabel) {
-                QUrl url = qStringFromUnicode(citation->getFirstProperty("property:pdf"));
+                QUrl url = pdfLabel->property("url").toString();
                 emit requestUrl(url, "tab");
                 if ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0) {
                     window()->close();
@@ -188,6 +175,79 @@ namespace Papyro
     {
         emit requestUrl(url, QString());
     }
+
+    struct CompareLinks {
+        // is lhs more important than rhs?
+        bool operator () (const QVariantMap & lhs, const QVariantMap & rhs) {
+            // Ordering of type strings
+            static QStringList types;
+            if (types.isEmpty()) {
+                types << "search";
+                types << "abstract";
+                types << "article";
+            }
+
+            int lhs_type(types.indexOf(lhs.value("type").toString()));
+            int rhs_type(types.indexOf(rhs.value("type").toString()));
+            int lhs_weight(lhs.value(":weight").toInt());
+            int rhs_weight(rhs.value(":weight").toInt());
+            if (lhs_type == rhs_type) {
+                return lhs_weight > rhs_weight;
+            } else {
+                return lhs_type > rhs_type;
+            }
+        }
+    };
+
+    void CitationPanel::onResolverRunnableCompleted(Athenaeum::CitationHandle citation)
+    {
+        QVariantMap metadata(citation->toMap());
+        static CompareLinks compareLinks;
+        QMap< QString, QVariantMap > links;
+        QMap< QString, QVariantMap > pdfs;
+        foreach (QVariant item, metadata.value("links").toList()) {
+            // Should we add this link?
+            bool add = false;
+            // Get the link, and unpack some useful values
+            QVariantMap link(item.toMap());
+            QString whence(link.value(":whence").toString());
+            //int weight(link.value(":weight").toInt());
+            QString type(link.value("type").toString());
+            QString mime(link.value("mime").toString());
+            // If no exisiting link with the same whence, add this item
+            if (mime == "text/html" && !links.contains(whence)) {
+                add = true;
+            } else {
+                // Check existing values to make sure we add the correct links
+                QVariantMap existing(links.value(whence));
+                add = compareLinks(link, existing);
+            }
+            // Add if need be
+            if (add) {
+                links[whence] = link;
+            }
+        }
+        QList< QVariantMap > ordered(links.values());
+        qSort(ordered.begin(), ordered.end(), compareLinks);
+
+        // Now add links to the panel
+        bool pdf = false;
+        foreach (QVariantMap link, ordered) {
+            if (link["mime"] == "application/pdf") {
+                if (!pdf) {
+                    pdf = true;
+                    addPdf(link["title"].toString(), link["url"].toString());
+                }
+            } else {
+                addLink(link["title"].toString(), link["url"].toString());
+            }
+        }
+
+        moreLayout->setCurrentWidget(moreLabel);
+        spinner->stop();
+    }
+
+
 
 
 
@@ -215,7 +275,7 @@ namespace Papyro
         std::string id_str(citation->getFirstProperty("property:label"));
         int id_num = 0;
         if (id_str.empty()) {
-            id_str = citation->getFirstProperty("property:bibid");
+            id_str = citation->getFirstProperty("property:id");
         } else if (d->numerical) {
             bool ok;
             id_num = qStringFromUnicode(id_str).toInt(&ok);
@@ -233,7 +293,7 @@ namespace Papyro
                 std::string other_id_str = other->citation->getFirstProperty("property:label");
                 int other_id_num = 0;
                 if (other_id_str.empty()) {
-                    other_id_str = other->citation->getFirstProperty("property:bibid");
+                    other_id_str = other->citation->getFirstProperty("property:id");
                 } else if (d->numerical) {
                     bool ok;
                     other_id_num = qStringFromUnicode(other_id_str).toInt(&ok);
@@ -251,7 +311,7 @@ namespace Papyro
 
         // Generate links
         foreach (boost::shared_ptr< CitationFinderCapability > finder, citation->capabilities< CitationFinderCapability >()) {
-            finder->generate(citation, panel, SLOT(addLink(QString, QString)));
+            //finder->generate(citation, panel, SLOT(addLink(QString, QString)));
         }
     }
 

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -518,7 +518,7 @@ namespace Kend
     {
         painter->save();
 
-        if (const QStyleOptionViewItemV4 * itemOptionV4 = qstyleoption_cast< const QStyleOptionViewItemV4 * >(&option)) {
+        if (/* const QStyleOptionViewItemV4 * itemOptionV4 = */ qstyleoption_cast< const QStyleOptionViewItemV4 * >(&option)) {
 		    // Collect option information
             const QStyleOptionViewItemV3 * optionV3 = qstyleoption_cast< const QStyleOptionViewItemV3 * >(&option);
             const QWidget * widget = optionV3 ? optionV3->widget : 0;
@@ -590,14 +590,14 @@ namespace Kend
         tableView->setItemDelegateForColumn(1, new AccountDelegate(this));
         tableView->setFocusPolicy(Qt::NoFocus);
         tableView->horizontalHeader()->hide();
-        tableView->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
-        tableView->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+        tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         tableView->horizontalHeader()->setSectionHidden(2, true);
-        tableView->horizontalHeader()->setResizeMode(3, QHeaderView::ResizeToContents);
-        tableView->horizontalHeader()->setResizeMode(4, QHeaderView::ResizeToContents);
+        tableView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+        tableView->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
         tableView->horizontalHeader()->resizeSection(3, 100);
         tableView->verticalHeader()->hide();
-        tableView->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+        tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
         tableView->setAlternatingRowColors(true);
         tableView->setSelectionMode(QAbstractItemView::SingleSelection);
         tableView->setSelectionBehavior(QAbstractItemView::SelectRows);

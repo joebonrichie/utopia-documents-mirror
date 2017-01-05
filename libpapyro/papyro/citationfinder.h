@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,7 +35,9 @@
 #include <papyro/config.h>
 #include <papyro/capabilities.h>
 
-#include <spine/Annotation.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#endif
 
 #include <QString>
 

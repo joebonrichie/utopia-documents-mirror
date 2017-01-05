@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -77,7 +77,7 @@ namespace Utopia
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     FlowBrowserItem::FlowBrowserItem(QGLWidget * qglwidget, QVariant id)
-        : id(id), texture(0), aspectRatio(1), x(0), width(1), height(1), qglwidget(qglwidget), loaded(false)
+        : id(id), texture(0), aspectRatio(1), loaded(false), x(0), width(1), height(1), qglwidget(qglwidget)
     {
         setImage(QImage(":/images/flowbrowser_loading.png"));
         loaded = false;
@@ -328,7 +328,7 @@ namespace Utopia
 
     void FlowBrowserModelPrivate::onFinished()
     {
-        position = qRound(animation.to);
+        position = animation.to;
         emit updated();
     }
 

@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@
 #? www: http://www.plos.org/
 #? urls: http://www.plos.org/ http://alm.plos.org/ http://www.ploscompbiol.org/
 
-import common.utils
+import utopialib.utils
 import json
 import spineapi
 import urllib
@@ -45,14 +45,14 @@ import urllib2
 class PLOSALMAnnotator(utopia.document.Annotator):
     '''Annotate document with PLOS article level metrics'''
 
-    api_key = 'RECOCHzR7Ib9juq'
+    api_key = 'dtR6hV3mH4XJyahmfh5L'
 
     def on_ready_event(self, document):
         # Get resolved DOI
-        doi = common.utils.metadata(document, 'doi', '')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
 
         # Only for PLOS DOIs should this plugin do anything
-        if doi.startswith('10.1371/'):
+        if doi is not None and doi.startswith('10.1371/'):
 
             # Record the publisher identity information
             annotation = spineapi.Annotation()
@@ -63,42 +63,40 @@ class PLOSALMAnnotator(utopia.document.Annotator):
             document.addAnnotation(annotation, 'PublisherMetadata')
 
             # Attempt to get ALMs from PLOS API
-            url = 'http://alm.plos.org/articles/{0}.json?{{0}}'.format(doi)
-            query = { 'api_key': self.api_key, 'events': '1', 'source': 'counter,pmc' }
-            url = url.format(urllib.urlencode(query))
+            query = { 'api_key': self.api_key, 'info': 'detail', 'ids': doi, 'type': 'doi' }
+            url = 'http://alm.plos.org/api/v5/articles?{0}'.format(urllib.urlencode(query))
+            request = urllib2.Request(url, headers={'Accepts': 'application/json'})
             try:
-                alm_events = json.loads(urllib2.urlopen(url, timeout=8).read())
+                data = urllib2.urlopen(request, timeout=8).read()
+                alm = json.loads(data)
             # Not found
             except urllib2.HTTPError as e:
                 if e.code == 404: # just ignore 404
                     return
                 raise
 
-            plos_pdf_views = 0
-            plos_html_views = 0
-            pmc_pdf_views = 0
-            pmc_html_views = 0
+            articles = alm.get('data', [])
+            if len(articles) > 0:
+                article = articles[0]
+                metrics = dict(((source.get('name'), source.get('metrics')) for source in article.get('sources', [])))
 
-            for source in alm_events.get('article', {}).get('source', []):
-                if source.get('source') == 'Counter':
-                    events = source.get('events', [])
-                    plos_pdf_views, plos_html_views = reduce(lambda accum,event: (accum[0]+int(event.get('pdf_views', 0)),accum[1]+int(event.get('html_views', 0))), events, (0, 0))
-                elif source.get('source') == 'PubMed Central Usage Stats':
-                    events = source.get('events', [])
-                    pmc_pdf_views, pmc_html_views = reduce(lambda accum,event: (accum[0]+int(event.get('pdf', 0)),accum[1]+int(event.get('full-text', 0))), events, (0, 0))
+                plos_pdf_views = metrics.get('counter', {}).get('pdf') or 0
+                plos_html_views = metrics.get('counter', {}).get('html') or 0
+                pmc_pdf_views = metrics.get('pmc', {}).get('pdf') or 0
+                pmc_html_views = metrics.get('pmc', {}).get('html') or 0
 
-            annotation = spineapi.Annotation()
-            annotation['concept'] = 'PLOSALMRecord'
-            annotation['property:doi'] = doi
-            annotation['property:name'] = 'PLOS'
-            annotation['property:description'] = 'Download statistics'
-            annotation['property:plos_pdf_views'] = plos_pdf_views
-            annotation['property:plos_html_views'] = plos_html_views
-            annotation['property:pmc_pdf_views'] = pmc_pdf_views
-            annotation['property:pmc_html_views'] = pmc_html_views
-            annotation['property:sourceIcon'] = utopia.get_plugin_data_as_url('images/small_logo.png', 'image/png')
-            annotation['property:sourceDescription'] = '<p><a href="http://www.plos.org/">PLOS</a> article level metrics for downloads.</p>'
-            document.addAnnotation(annotation)
+                annotation = spineapi.Annotation()
+                annotation['concept'] = 'PLOSALMRecord'
+                annotation['property:doi'] = doi
+                annotation['property:name'] = 'PLOS'
+                annotation['property:description'] = 'Download statistics'
+                annotation['property:plos_pdf_views'] = plos_pdf_views
+                annotation['property:plos_html_views'] = plos_html_views
+                annotation['property:pmc_pdf_views'] = pmc_pdf_views
+                annotation['property:pmc_html_views'] = pmc_html_views
+                annotation['property:sourceIcon'] = utopia.get_plugin_data_as_url('images/small_logo.png', 'image/png')
+                annotation['property:sourceDescription'] = '<p><a href="http://www.plos.org/">PLOS</a> article level metrics for downloads.</p>'
+                document.addAnnotation(annotation)
 
 
 class PLOSALMVisualiser(utopia.document.Visualiser):

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libcrackle library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
@@ -2922,7 +2922,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                     // check if blocks are eligible to merge
                     if (blk != blk1 &&
                         blk->rot == blk1->rot &&
-                        (fabs(fontSize1 - fontSize0) < maxBlockFontSizeDelta2) &&
+                        (abs(fontSize1 - fontSize0) < maxBlockFontSizeDelta2) &&
                         ((blk1->xMin >= blk->xMin &&
                           blk1->xMin <= blk->xMax) ||
                          (blk1->xMax >= blk->xMin &&
@@ -3629,7 +3629,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
                                   double xMax, double yMax) {
     GString *s;
     UnicodeMap *uMap;
-    GBool isUnicode;
+    //GBool isUnicode;
     CrackleTextBlock *blk;
     CrackleTextLine *line;
     CrackleTextLineFrag *frags;
@@ -3652,7 +3652,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
     if (!(uMap = globalParams->getTextEncoding())) {
         return s;
     }
-    isUnicode = uMap->isUnicode();
+    //isUnicode = uMap->isUnicode();
     spaceLen = uMap->mapUnicode(0x20, space, sizeof(space));
     eolLen = 0; // make gcc happy
     switch (globalParams->getTextEOL()) {
@@ -4417,9 +4417,8 @@ void CrackleTextOutputDev::endString(GfxState *state) {
 }
 
 void CrackleTextOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
-                                     int width, int height,
-                                     GfxImageColorMap *colorMap,
-                                     int *maskColors, GBool inlineImg)
+                                     int width, int height, GfxImageColorMap *colorMap,
+                                     int *maskColors, GBool inlineImg, GBool interpolate)
 {
     int c;
     size_t size;
@@ -4473,13 +4472,18 @@ void CrackleTextOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
 
         str->close();
 
-    } else if (str->getKind() == strDCT && colorMap->getNumPixelComps() == 3 && !inlineImg) {
+    } else if (str->getKind() == strDCT && colorMap->getNumPixelComps() == 3
+	       && !inlineImg) {
 
         type=Image::JPEG;
 
         vector<char> buffer;
 
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+	str = str->getNextStream();
+#else
         str = ((DCTStream *)str)->getRawStream();
+#endif
         str->reset();
 
         while ( (c= str->getChar()) != EOF ) {

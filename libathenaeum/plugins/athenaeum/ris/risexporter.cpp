@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 #include "risexporter.h"
 
-#include <athenaeum/abstractbibliographiccollection.h>
+#include <athenaeum/abstractbibliography.h>
 
 #include <QList>
 #include <QString>
@@ -58,23 +58,23 @@ bool RISExporter::doExport(const QModelIndexList & indexList, const QString & fi
     types["newspaper article"] = "NEWS";
 
     // Mapping
-    typedef QPair< QString, AbstractBibliographicCollection::Roles > Mapping;
+    typedef QPair< QString, AbstractBibliography::Roles > Mapping;
     QVector< Mapping > translation;
-    translation << Mapping("T1", AbstractBibliographicCollection::TitleRole);
-    translation << Mapping("ST", AbstractBibliographicCollection::SubtitleRole);
-    translation << Mapping("AB", AbstractBibliographicCollection::AbstractRole);
-    translation << Mapping("LI", AbstractBibliographicCollection::UrlRole);
-    translation << Mapping("UR", AbstractBibliographicCollection::DocumentUriRole);
-    translation << Mapping("VL", AbstractBibliographicCollection::VolumeRole);
-    translation << Mapping("IS", AbstractBibliographicCollection::IssueRole);
-    translation << Mapping("PY", AbstractBibliographicCollection::YearRole);
-    translation << Mapping("PG", AbstractBibliographicCollection::PageFromRole);
-    translation << Mapping("EP", AbstractBibliographicCollection::PageToRole);
-    translation << Mapping("T2", AbstractBibliographicCollection::PublicationTitleRole);
-    translation << Mapping("SP", AbstractBibliographicCollection::PublisherRole);
+    translation << Mapping("T1", AbstractBibliography::TitleRole);
+    translation << Mapping("ST", AbstractBibliography::SubtitleRole);
+    translation << Mapping("AB", AbstractBibliography::AbstractRole);
+    translation << Mapping("LI", AbstractBibliography::UrlRole);
+    translation << Mapping("UR", AbstractBibliography::DocumentUriRole);
+    translation << Mapping("VL", AbstractBibliography::VolumeRole);
+    translation << Mapping("IS", AbstractBibliography::IssueRole);
+    translation << Mapping("PY", AbstractBibliography::YearRole);
+    translation << Mapping("PG", AbstractBibliography::PageFromRole);
+    translation << Mapping("EP", AbstractBibliography::PageToRole);
+    translation << Mapping("T2", AbstractBibliography::PublicationTitleRole);
+    translation << Mapping("SP", AbstractBibliography::PublisherRole);
 
     foreach (const QModelIndex & index, indexList) {
-        QString type(index.data(AbstractBibliographicCollection::TypeRole).toString());
+        QString type(index.data(AbstractBibliography::TypeRole).toString());
         if (types.contains(type)) {
             risData.append("TY" + separator + types[type]);
         } else {
@@ -90,12 +90,12 @@ bool RISExporter::doExport(const QModelIndexList & indexList, const QString & fi
         }
 
         // Authors
-        foreach (const QString & author, index.data(AbstractBibliographicCollection::AuthorsRole).toStringList()) {
+        foreach (const QString & author, index.data(AbstractBibliography::AuthorsRole).toStringList()) {
             risData.append("AU" + separator + author);
         }
 
         // Keywords
-        foreach (const QString & kw, index.data(AbstractBibliographicCollection::KeywordsRole).toStringList()) {
+        foreach (const QString & kw, index.data(AbstractBibliography::KeywordsRole).toStringList()) {
             risData.append("KW" + separator + kw);
         }
 
@@ -103,7 +103,7 @@ bool RISExporter::doExport(const QModelIndexList & indexList, const QString & fi
         QMap< QString, QString > identifiers;
         identifiers["doi"] = "DO";
         // FIXME More RIS codes for identifiers!
-        QMapIterator< QString, QVariant > id_iter(index.data(AbstractBibliographicCollection::IdentifiersRole).toMap());
+        QMapIterator< QString, QVariant > id_iter(index.data(AbstractBibliography::IdentifiersRole).toMap());
         while (id_iter.hasNext()) {
             id_iter.next();
             if (identifiers.contains(id_iter.key())) {

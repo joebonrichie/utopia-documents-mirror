@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -56,7 +56,8 @@ void TableFactory::activate(Spine::DocumentHandle document, Spine::AnnotationSet
 
 bool TableFactory::canActivate(Spine::DocumentHandle document, Spine::AnnotationHandle annotation) const
 {
-    return annotation->getFirstProperty("concept") == "Table" ||
+    return (annotation->getFirstProperty("concept") == "Table" &&
+            !annotation->hasProperty("property:horizontalBoundaries")) ||
            annotation->getFirstProperty("concept") == "ElsevierTable";
 }
 
@@ -74,7 +75,6 @@ void TableFactory::processSelection(Spine::DocumentHandle document, Spine::Curso
 {
     Spine::AreaSet areas = document->areaSelection();
     // Do stuff to the area(s)
-    qDebug() << "TABLES ROOLZ";
 }
 
 QList< boost::shared_ptr< Papyro::SelectionProcessor > > TableFactory::selectionProcessors(Spine::DocumentHandle document, Spine::CursorHandle cursor)

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ namespace Utopia
     // Hash a pointer...
     unsigned long hashOf(Node* node_)
     {
-        return ((unsigned long) node_) >> 4;
+        return ((unsigned long long) node_) >> 4;
     }
 
     class ListNode
@@ -57,8 +57,8 @@ namespace Utopia
         unsigned long hash() const;
 
         // Data members
-        struct ListNode* next;
-        struct ListNode* prev;
+        ListNode* next;
+        ListNode* prev;
         Node* data;
     };
 

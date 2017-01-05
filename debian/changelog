@@ -1,8 +1,51 @@
-utopia-documents (2.4.4-1) UNRELEASED; urgency=medium
+utopia-documents (3.0.0-1) unstable; urgency=medium
 
   * New upstream release.
+  * Use poppler for pdf rendering instead of embedded xpdf.
+  * Use WebGL for molecule rendering instead of OpenGL plugin. (Closes: #812823)
+  * Switch to Qt5. (Closes: #774704, #816813)
+  * Support SWIG3. (Closes: #804807)
+  * Change OpenSSL usage to support latest version. (Closes: #828588)
 
- -- The Utopia Project <info@utopiadocs.com>  Mon, 01 Sep 2014 10:57:42 +0100
+ -- James Marsh <debian@jamesmarsh.net>  Tue, 20 Dec 2016 11:38:12 +0000
+
+utopia-documents (2.4.4-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+
+  [ Steve Langasek ]
+  * debian/patches/boost1.58-qt4moc-compatibility.patch: compatibility
+    with boost 1.58.
+  * Add missing build-dependency on libqt4-opengl-dev. (Closes: #798079)
+
+  [ James Marsh ]
+  * debian/patches/remove-utopia-update-check.diff: Disable check for new
+    upstream releases on startup.
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Wed, 14 Oct 2015 13:49:39 +0200
+
+utopia-documents (2.4.4-2) unstable; urgency=medium
+
+  * Updated copyright file to include additional licenses.
+  * Fixed path specifications in copyright file.
+  * Reordered build-depends alternatives to satisfy build servers.
+  * Added remove_incorrect_copyright_headers.diff to remove incorrectly applied
+    copyright headers.
+  * Added remove_unused_timeoutsocket.diff to remove unused python module that
+    used a BSD advertising clause license.
+  * Added remove_xpdf_vms_files.diff to remove unused VMS code that used a
+    BSD advertising clause license.
+  * Patches accepted upstream.
+  * Re-upload to Debian proper (Closes: #760487)
+
+ -- James Marsh <debian@jamesmarsh.net>  Tue, 21 Oct 2014 18:57:45 +0100
+
+utopia-documents (2.4.4-1) neurodebian; urgency=medium
+
+  * New upstream release.
+  * Initial upload to Debian proper - REJECTED.
+
+ -- James Marsh <debian@jamesmarsh.net>  Thu, 04 Sep 2014 10:25:11 -0400
 
 utopia-documents (2.4.3-1) UNRELEASED; urgency=medium
 

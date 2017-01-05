@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libcrackle library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
@@ -35,7 +35,6 @@
 #include <crackle/PDFTextWordCollection.h>
 #include <crackle/PDFTextCharacterCollection.h>
 #include <crackle/CrackleTextOutputDev.h>
-#include <crackle/PDFFontCollection.h>
 #include <crackle/ImageCollection.h>
 #include <crackle/xpdfapi.h>
 #include <spine/fingerprint.h>
@@ -345,9 +344,43 @@ std::string Crackle::PDFDocument::_addAnchor( Object *obj, std::string name)
     return result;
 }
 
+static Spine::BoundingBox rotateRect(const Spine::BoundingBox & rect, int rotation, double pageWidth, double pageHeight)
+{
+    Spine::BoundingBox rotated;
+    switch (rotation) {
+    case 0:
+        rotated.x1 = rect.x1;
+        rotated.y1 = pageHeight - rect.y2;
+        rotated.x2 = rect.x2;
+        rotated.y2 = pageHeight - rect.y1;
+        break;
+    case 90:
+        rotated.x1 = rect.y1;
+        rotated.y1 = rect.x1;
+        rotated.x2 = rect.y2;
+        rotated.y2 = rect.x2;
+        break;
+    case 180:
+        rotated.x1 = pageWidth - rect.x2;
+        rotated.y1 = rect.y1;
+        rotated.x2 = pageWidth - rect.x1;
+        rotated.y2 = rect.y2;
+        break;
+    case 270:
+        rotated.x1 = pageWidth - rect.y2;
+        rotated.y1 = pageHeight - rect.x2;
+        rotated.x2 = pageWidth - rect.y1;
+        rotated.y2 = pageHeight - rect.x1;
+        break;
+    default:
+        break;
+    }
+    return rotated;
+}
+
 std::string Crackle::PDFDocument::_addAnchor(LinkDest * dest, std::string name)
 {
-    int page;
+    size_t page;
     ostringstream anchorname;
 
     if (dest && dest->isOk()) {
@@ -376,13 +409,21 @@ std::string Crackle::PDFDocument::_addAnchor(LinkDest * dest, std::string name)
         }
 
         const PDFPage &pdfpage((*this)[page-1]);
-        Spine::BoundingBox area(pdfpage.boundingBox());
+        Spine::BoundingBox pageArea(pdfpage.boundingBox());
+        double pageWidth = pageArea.x2;
+        double pageHeight = pageArea.y2;
+        Spine::BoundingBox destArea(Spine::BoundingBox(dest->getLeft(),
+                                                       dest->getTop(),
+                                                       dest->getRight(),
+                                                       dest->getBottom()));
+        destArea = rotateRect(destArea, pdfpage.rotation(), pageWidth, pageHeight);
 
         // be sure to convert y coordinate!
+        Spine::BoundingBox area(pageArea);
         switch(dest->getKind()) {
         case destXYZ:
-            area.x1=dest->getLeft();
-            area.y1=area.y2-dest->getTop();
+            area.x1=destArea.x1;
+            area.y1=destArea.y1;
             break;
         case destFit:
         case destFitB:
@@ -390,17 +431,17 @@ std::string Crackle::PDFDocument::_addAnchor(LinkDest * dest, std::string name)
             break;
         case destFitH:
         case destFitBH:
-            area.y1=area.y2-dest->getTop();
+            area.y1=destArea.y1;
             break;
         case destFitV:
         case destFitBV:
-            area.x1=dest->getLeft();
+            area.x1=destArea.x1;
             break;
         case destFitR:
-            area.x1=dest->getLeft();
-            area.y1=area.y2-dest->getTop();
-            area.x2=dest->getRight();
-            area.y2=area.y2-dest->getBottom();
+            area.x1=destArea.x1;
+            area.y1=destArea.y1;
+            area.x2=destArea.x2;
+            area.y2=destArea.y2;
         default:
             // uh - fit page by default
             break;
@@ -443,7 +484,7 @@ void Crackle::PDFDocument::_updateNameTree(Object *tree)
 
         // root or intermediate node - process children
         if (tree->dictLookup("Kids", &kids)->isArray()) {
-            for (size_t i = 0; i < kids.arrayGetLength(); ++i) {
+            for (int i = 0; i < kids.arrayGetLength(); ++i) {
                 if (kids.arrayGet(i, &kid)->isDict()) {
                     _updateNameTree(&kid);
                 }
@@ -460,7 +501,7 @@ void Crackle::PDFDocument::_extractOutline(GList *items, string prefix, UnicodeM
 {
     char buf[8];
 
-    for (size_t i = 0; i < items->getLength(); ++i) {
+    for (int i = 0; i < items->getLength(); ++i) {
         OutlineItem *item = (OutlineItem *)items->get(i);
         string title;
         for (int j = 0; j < item->getTitleLength(); ++j) {
@@ -528,28 +569,31 @@ void Crackle::PDFDocument::_extractLinks()
 {
     Catalog *catalog= xpdfDoc()->getCatalog();
 
-    for (int page=0; page<size(); ++page) {
+    for (size_t page=0; page<size(); ++page) {
 
         const PDFPage &pdfpage((*this)[page]);
 
         // get annotations
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+        Links *links=new Links(catalog->getPage(page+1)->getAnnots());
+#else // XPDF
         Object annotsObj;
         Links *links=new Links(catalog->getPage(page+1)->getAnnots(&annotsObj), catalog->getBaseURI());
         annotsObj.free();
+#endif
 
-        for (size_t i(0); i<links->getNumLinks(); ++i) {
+        for (int i(0); i<links->getNumLinks(); ++i) {
 
             Link *link=links->getLink(i);
 
-            Spine::BoundingBox area(pdfpage.boundingBox());
+            Spine::BoundingBox pageArea(pdfpage.boundingBox());
 
             double x1, y1, x2, y2;
             link->getRect(&x1, &y1, &x2, &y2);
-
-            area.x1=x1;
-            area.y1=area.y2-y2;
-            area.x2=x2;
-            area.y2=area.y2-y1;
+            Spine::BoundingBox linkArea(rotateRect(Spine::BoundingBox(x1, y1, x2, y2),
+                                                   pdfpage.rotation(),
+                                                   pageArea.x2,
+                                                   pageArea.y2));
 
             LinkAction *action(link->getAction());
 
@@ -577,7 +621,7 @@ void Crackle::PDFDocument::_extractLinks()
                         ann->setProperty("concept", "Hyperlink");
                         ann->setProperty("property:webpageUrl", "#");
                         ann->setProperty("property:destinationAnchorName", anchor);
-                        ann->addArea(Area(page+1, 0, area));
+                        ann->addArea(Area(page+1, 0, linkArea));
 
                         this->addAnnotation(ann);
                     }
@@ -593,7 +637,7 @@ void Crackle::PDFDocument::_extractLinks()
                     AnnotationHandle ann(new Annotation());
                     ann->setProperty("concept", "Hyperlink");
                     ann->setProperty("property:webpageUrl", gstring2UnicodeString(uri));
-                    ann->addArea(Area(page+1, 0, area));
+                    ann->addArea(Area(page+1, 0, linkArea));
 
                     this->addAnnotation(ann);
                 }
@@ -603,13 +647,30 @@ void Crackle::PDFDocument::_extractLinks()
 
 
     }
-
 }
 
 void Crackle::PDFDocument::_updateAnnotations()
 {
-
     Catalog *catalog(_doc->getCatalog());
+
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+
+    // extract anchors from name tree
+    Object catDict;
+    _doc->getXRef()->getCatalog(&catDict);
+    if (catDict.isDict()) {
+      Object obj;
+      if (catDict.dictLookup("Names", &obj)->isDict()) {
+        Object nameTree;
+        obj.dictLookup("Dests", &nameTree);
+        _updateNameTree(&nameTree);
+        nameTree.free();
+      }
+      obj.free();
+    }
+    catDict.free();
+
+#else // XPDF
 
     // extract anchors from name tree
     Object *nameTree=catalog->getNameTree();
@@ -617,10 +678,12 @@ void Crackle::PDFDocument::_updateAnnotations()
         _updateNameTree(nameTree);
     }
 
+#endif
+
     // extract anchors from named destination dict
     Object *dests=catalog->getDests();
     if (dests && dests->isDict()) {
-        for (size_t i=0; i< dests->dictGetLength(); ++i) {
+        for (int i=0; i< dests->dictGetLength(); ++i) {
             string namestring(dests->dictGetKey(i));
             Object obj;
             dests->dictGetVal(i, &obj);
@@ -727,12 +790,7 @@ void Crackle::PDFDocument::_initialise()
 
         ::globalParams = &::CrackleGlobalParams; // new GlobalParams();
         //::globalParams->setTextEncoding("UTF-8");
-        ::globalParams->setTextEncoding("UTF-16");
-        ::globalParams->setTextKeepTinyChars(gFalse);
-        ::globalParams->setEnableFreeType("yes");
-        ::globalParams->setAntialias("yes");
-        ::globalParams->setVectorAntialias("yes");
-
+        ::globalParams->setTextEncoding((char *) "UTF-16");
         ::globalParams->setupBaseFonts(0);
 
         const char *verbose=getenv("PDF_VERBOSE");
@@ -758,12 +816,37 @@ void Crackle::PDFDocument::_open(BaseStream *stream_)
         paperColour[1] = 255;
         paperColour[2] = 255;
 
-        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gTrue));
-        _renderDevice->startDoc(_doc->getXRef());
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+        // defaults setup anti aliasing for screen
+        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue));
 
+  #ifdef HAVE_POPPLER_SPLASH_SET_FONT_ANTIALIAS
+        // newer versions of poppler no longer sets font anti-aliasing in constructor
+        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue));
+        _printDevice->setFontAntialias(gFalse);
+  #else
         _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gFalse));
+        // original
+  #endif
+
+  #ifdef HAVE_POPPLER_SPLASH_SET_VECTOR_ANTIALIAS
+        _printDevice->setVectorAntialias(gFalse);
+  #endif
+
+#else // XPDF
+        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gTrue));
+        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gFalse));
+#endif
+
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+        _renderDevice->startDoc(_doc.get());
+        _printDevice->startDoc(_doc.get());
+#else // XPDF
+        _renderDevice->startDoc(_doc->getXRef());
         _printDevice->startDoc(_doc->getXRef());
-} else {
+#endif
+
+    } else {
         _crackle_errorcode=errOpenFile;
     }
 }
@@ -901,40 +984,6 @@ Crackle::PDFDocument::operator[](int idx_)
     }
 
     return(*(_pageMap[idx_]));
-}
-
-/****************************************************************************/
-
-const PDFFontCollection&
-Crackle::PDFDocument::fonts(bool count_)
-{
-    if(!this->_fonts) {
-        this->_fonts=boost::shared_ptr<PDFFontCollection> (new PDFFontCollection(_doc.get()));
-    }
-
-    PDFFontCollection &result( *(this->_fonts) );
-
-    if(count_ && !_fonts_counted) {
-
-        PDFFontCollection::const_iterator fontiter;
-
-        for(size_t p=0; p< this->size(); ++p) {
-            const PDFPage &page((*this)[p]);
-
-            for(fontiter=page.fonts().begin(); fontiter!= page.fonts().end(); ++fontiter) {
-                PDFFontCollection::iterator fontinstance(result.find(fontiter->first));
-
-                if(fontinstance!=result.end()) {
-                    fontinstance->second.updateSizes(fontiter->second.sizes());
-                } else {
-                    result.insert(*fontiter);
-                }
-            }
-        }
-        _fonts_counted=true;
-    }
-
-    return result;
 }
 
 /****************************************************************************/

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,7 +32,11 @@
 #ifndef PAPYRO_PAPYROTAB_H
 #define PAPYRO_PAPYROTAB_H
 
-#include <spine/Document.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Document.h>
+#endif
+
+#include <papyro/citation.h>
 
 #include <QList>
 #include <QString>
@@ -68,6 +72,12 @@ namespace Papyro
         Q_PROPERTY(qreal progress
                    READ progress
                    NOTIFY progressChanged)
+        Q_PROPERTY(bool starred
+                   READ isStarred
+                   NOTIFY starredChanged)
+        Q_PROPERTY(bool known
+                   READ isKnown
+                   NOTIFY knownChanged)
         Q_PROPERTY(PapyroTab::State state
                    READ state
                    NOTIFY stateChanged)
@@ -87,6 +97,7 @@ namespace Papyro
         };
 
         enum State {
+            UninitialisedState,
             EmptyState,
             DownloadingState,
             DownloadingErrorState,
@@ -102,20 +113,28 @@ namespace Papyro
         QAction * action(ActionType actionType) const;
         SelectionProcessorAction * activeSelectionProcessorAction() const;
         Utopia::Bus * bus() const;
+        Athenaeum::CitationHandle citation() const;
         void clearActiveSelectionProcessorAction();
         void clear();
         Spine::DocumentHandle document();
         DocumentView * documentView() const;
         QString error() const;
         bool isEmpty() const;
+        bool isKnown() const;
+        bool isStarred() const;
         QNetworkAccessManager * networkAccessManager() const;
-        void open(Spine::DocumentHandle document, const QVariantMap & params = QVariantMap());
-        void open(QIODevice * io, const QVariantMap & params = QVariantMap());
-        void open(const QString & filename, const QVariantMap & params = QVariantMap());
-        void open(const QUrl & url, const QVariantMap & params = QVariantMap());
+        void open(Spine::DocumentHandle document, const QVariantMap & params = QVariantMap(), Athenaeum::CitationHandle citation = Athenaeum::CitationHandle());
+        void open(QIODevice * io, const QVariantMap & params = QVariantMap(), Athenaeum::CitationHandle citation = Athenaeum::CitationHandle());
+        void open(const QString & filename, const QVariantMap & params = QVariantMap(), Athenaeum::CitationHandle citation = Athenaeum::CitationHandle());
+        void open(const QUrl & url, const QVariantMap & params = QVariantMap(), Athenaeum::CitationHandle citation = Athenaeum::CitationHandle());
+        //void open(const QVariantMap & citation, const QVariantMap & params = QVariantMap());
+        void open(Athenaeum::CitationHandle citation, const QVariantMap & params = QVariantMap());
         qreal progress() const;
         void setActiveSelectionProcessorAction(SelectionProcessorAction * processorAction = 0);
+        void setCitation(Athenaeum::CitationHandle citation);
+        void setKnown(bool known);
         void setSelectionProcessorActions(const QList< SelectionProcessorAction * > & processorActions);
+        void setStarred(bool starrred);
         void setTitle(const QString & title);
         State state() const;
         QString title() const;
@@ -123,10 +142,14 @@ namespace Papyro
         QUrl url() const;
 
     signals:
+        void citationsActivated(const QVariantList & citation, const QString & target);
         void closeRequested();
         void contextMenuAboutToShow(QMenu * menu);
+        void citationChanged();
         void documentChanged();
         void errorChanged(const QString & error);
+        void knownChanged(bool known);
+        void starredChanged(bool starred);
         void loadingChanged(bool loading);
         void progressChanged(qreal progress);
         void stateChanged(PapyroTab::State state);
@@ -135,17 +158,21 @@ namespace Papyro
         void urlRequested(const QUrl & url, const QString & target);
 
     public slots:
+        void addToLibrary();
         void copySelectedText();
         void exploreSelection();
         void publishChanges();
         void quickSearch();
         void quickSearchNext();
         void quickSearchPrevious();
+        void removeFromLibrary();
         void requestUrl(const QUrl & url, const QString & target = QString());
+        void star();
+        void unstar();
+        void visualiseAnnotations(const Spine::AnnotationSet & annotations);
 
     protected:
         void closeEvent(QCloseEvent * event);
-        void paintEvent(QPaintEvent * event);
         void resizeEvent(QResizeEvent * event);
         void setProgress(qreal progress);
         void setUrl(const QUrl & url);

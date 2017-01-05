@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,15 +29,12 @@
  *  
  *****************************************************************************/
 
-#include <utopia2/qt/configurator.h>
+#ifndef UTOPIA_QT_PLUGINSPREFERENCESPANE_H
+#define UTOPIA_QT_PLUGINSPREFERENCESPANE_H
+
 #include <utopia2/qt/preferencespane.h>
 
-#include <QList>
-
-class QListWidget;
-class QWebPage;
-class QWebView;
-
+class PluginsPreferencesPanePrivate;
 class PluginsPreferencesPane : public Utopia::PreferencesPane
 {
     Q_OBJECT
@@ -46,24 +43,19 @@ public:
     PluginsPreferencesPane(QWidget * parent = 0, Qt::WindowFlags f = 0);
 
     bool apply();
-    Utopia::Configurator * configuratorAt(int idx);
     void discard();
     QIcon icon() const;
     bool isValid() const;
+    void show(const QVariant & params = QVariant());
     QString title() const;
     int weight() const;
 
 protected slots:
+    void onContentsChanged();
     void onListWidgetCurrentRowChanged(int);
-    void onWebPageContentsChanged();
-    void onWebPageLinkClicked(const QUrl &);
 
 protected:
-    QList< QPair< Utopia::Configurator *, QWebPage * > > _configurators;
-    QListWidget * _listWidget;
-    int _previousPluginIndex;
-    QWebView * _webView;
-
-    void load(int idx);
-    void save(int idx);
+    PluginsPreferencesPanePrivate * d;
 };
+
+#endif // UTOPIA_QT_PLUGINSPREFERENCESPANE_H

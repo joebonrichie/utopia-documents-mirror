@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -43,31 +43,6 @@ set(SOURCES
     user.cpp
   )
 
-set(HEADERS
-    config.h
-    cJSON.h
-    credentialmanager.h
-  )
-
-set(MOC_HEADERS
-    authagent.h
-    authagent_p.h
-    service.h
-    service_p.h
-    servicemanager.h
-    servicemanager_p.h
-    servicemanagermodel.h
-    servicemanagermodel_p.h
-    servicemanagerfilterproxymodel.h
-    servicemanagernotifier.h
-    servicemanagernotifier_p.h
-    user.h
-    user_p.h
-  )
-
-set(FORMS
-  )
-
 include_directories(
   ${PROJECT_BINARY_DIR}
   ${Boost_INCLUDE_DIR}
@@ -75,17 +50,14 @@ include_directories(
   ${utopia2_INCLUDE_DIR}
   )
 
-QT4_WRAP_UI(UI_SOURCES ${FORMS})
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} )
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
-
 if(WIN32)
 	add_definitions(-DBUILD_LIBUTOPIA_AUTH=1)
 endif()
 
-add_utopia_library( ${PROJECT_NAME} SHARED ${SOURCES} ${MOC_SOURCES} ${UI_SOURCES} ${RES_SOURCES})
+add_utopia_library( ${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} utopia2 ${QT_LIBRARIES} utf8 ${Boost_LIBRARIES} ${QJSON_LIBRARIES} ${qjson_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} utopia2 utf8 ${Boost_LIBRARIES})
+qt5_use_modules(${PROJECT_NAME} Network Xml)
 
 install_utopia_library(${PROJECT_NAME} "${COMPONENT}")
 

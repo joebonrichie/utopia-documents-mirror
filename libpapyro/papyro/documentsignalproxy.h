@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,10 +32,13 @@
 #ifndef DOCUMENTSIGNALPROXY_H
 #define DOCUMENTSIGNALPROXY_H
 
-#include <spine/Annotation.h>
-#include <spine/Area.h>
-#include <spine/Document.h>
-#include <spine/TextSelection.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#  include <spine/Area.h>
+#  include <spine/Document.h>
+#  include <spine/TextSelection.h>
+#endif
+
 #include <string>
 #include <QObject>
 
@@ -51,6 +54,7 @@ namespace Papyro
         DocumentSignalProxy(Spine::DocumentHandle document, QObject * parent = 0);
         ~DocumentSignalProxy();
 
+        Spine::DocumentHandle document() const;
         void setDocument(Spine::DocumentHandle document);
 
     public:
@@ -59,6 +63,8 @@ namespace Papyro
         void onTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added);
 
     signals:
+        void documentChanged();
+
         void annotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added);
         void areaSelectionChanged(const std::string & name, const Spine::AreaSet & areas, bool added);
         void textSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added);

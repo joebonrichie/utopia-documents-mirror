@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,17 +33,10 @@
 add_subdirectory( scripts )
 add_subdirectory( spine )
 add_subdirectory( utopia )
+add_subdirectory( utopiabridge )
+add_subdirectory( utopialib )
 
 project(utopia2-python)
-
-if(UTOPIA_BUILD_DOCUMENTS)
-  add_definitions(-DUTOPIA_BUILD_DOCUMENTS=1)
-  set(extra_papyro_libraries papyro spine ${Boost_LIBRARIES} utf8)
-endif()
-if(UTOPIA_BUILD_LIBRARY)
-  add_definitions(-DUTOPIA_BUILD_LIBRARY=1)
-  set(extra_athenaeum_libraries athenaeum spine ${Boost_LIBRARIES} utf8)
-endif()
 
 set(SOURCES
     conversion.cpp
@@ -64,6 +57,13 @@ if(NOT USE_SYSTEM_Python OR WIN32)
   add_definitions(-DREMAP_BUNDLED_PYTHON=1)
 endif()
 add_definitions("-DPYTHON_VERSION=\"${PYTHON_VERSION}\"")
+
+if(UTOPIA_BUILD_DOCUMENTS)
+  add_definitions(-DUTOPIA_BUILD_DOCUMENTS=1)
+endif()
+if(UTOPIA_BUILD_LIBRARY)
+  add_definitions(-DUTOPIA_BUILD_LIBRARY=1)
+endif()
 
 SET(SWIG_RUNTIME "${PROJECT_BINARY_DIR}/swigruntime.h")
 ADD_CUSTOM_COMMAND(
@@ -96,6 +96,10 @@ install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_
 
 add_utopia_plugin(${PROJECT_NAME} MODULE ${SWIG_RUNTIME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt ${PYTHON_LIBRARY} ${extra_papyro_libraries} ${extra_athenaeum_libraries})
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt ${PYTHON_LIBRARY})
+
+if(UTOPIA_BUILD_DOCUMENTS)
+  target_link_libraries(${PROJECT_NAME} papyro spine ${Boost_LIBRARIES} utf8)
+endif()
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

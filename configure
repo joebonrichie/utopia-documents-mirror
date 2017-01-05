@@ -35,13 +35,14 @@ usage () {
         --json                 - generate json project output
         --debug                - configure for debug build
         --release              - configure for release build
+        --variant <name>       - configure for variant
 
 EOF
     exit 1
 }
 
 
-
+VARIANTS=()
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -68,11 +69,15 @@ do
         -j|--json)
             UTOPIA_EXTRA_CMAKE_OPTS="-DCMAKE_EXPORT_COMPILE_COMMANDS=on ${UTOPIA_EXTRA_CMAKE_OPTS}"
             ;;
-            -g|--debug)
+        -g|--debug)
             TYPE="Debug"
             ;;
         -r|--release)
             TYPE="Release"
+            ;;
+        -v|--variant)
+            shift
+            VARIANTS+=("$1")
             ;;
     esac
     shift
@@ -122,11 +127,26 @@ if [ ! -e "$DEP/dependencies.cmake" -o ! -e "$DEP/CMakeCache.txt" ]; then
         case $yn in
             Yes)
                 cd "$DEP"
+                UTOPIA_VARIANT_CMAKE_OPTS=""
+                for VARIANT in "${VARIANTS[@]}"; do
+                    VARIANT_FILE="CMakeConfig/configurations/variant-$VARIANT.txt"
+                    if [ -e "$VARIANT_FILE" ]; then
+                        UTOPIA_VARIANT_CMAKE_OPTS='$UTOPIA_VARIANT_CMAKE_OPTS -C "$VARIANT_FILE"'
+                    fi
+                done
+
                 cmake -D "CMAKE_BUILD_TYPE:STRING=$TYPE" \
                     -C "CMakeConfig/configurations/$PLAT.txt" \
                     -C "CMakeConfig/configurations/common.txt" \
+                    -D "UTOPIA_CONFIGURED_PLATFORM:STRING=$PLAT" \
+                    $UTOPIA_VARIANT_CMAKE_OPTS \
 		    -G "$GEN" . || exit 1
-                make || exit 1
+
+                if [[ "$GEN" == "Ninja" ]]; then
+                    ninja || exit 1
+                else
+                    make || exit 1
+                fi
                 break
                 ;;
             No)
@@ -138,7 +158,20 @@ fi
 
 cd "$DEST"
 
-cmake ${UTOPIA_EXTRA_CMAKE_OPTS} -D "UTOPIA_DEPENDENCIES_DIR:STRING=$DEP" -D "CMAKE_BUILD_TYPE:STRING=$TYPE" -C "$ROOT/CMakeConfig/configurations/$PLAT.txt" -C "$ROOT/CMakeConfig/configurations/common.txt" -G "$GEN" "$ROOT"
+UTOPIA_VARIANT_CMAKE_OPTS=""
+for VARIANT in "${VARIANTS[@]}"; do
+    VARIANT_FILE="$ROOT/CMakeConfig/configurations/variant-$VARIANT.txt"
+    if [ -e "$VARIANT_FILE" ]; then
+        UTOPIA_VARIANT_CMAKE_OPTS="$UTOPIA_VARIANT_CMAKE_OPTS -C $VARIANT_FILE"
+    fi
+done
+
+cmake ${UTOPIA_EXTRA_CMAKE_OPTS} -D "UTOPIA_DEPENDENCIES_DIR:STRING=$DEP" \
+    -D "CMAKE_BUILD_TYPE:STRING=$TYPE" \
+    -C "$ROOT/CMakeConfig/configurations/$PLAT.txt" \
+    -C "$ROOT/CMakeConfig/configurations/common.txt" \
+    -D "UTOPIA_CONFIGURED_PLATFORM:STRING=$PLAT" \
+    $UTOPIA_VARIANT_CMAKE_OPTS -G "$GEN" "$ROOT"
 
 echo "=============================================================================="
 echo

@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 ###############################################################################
 
 import datetime
+import json
 import kend.client
 import kend.model
 import utopia.library
@@ -38,6 +39,14 @@ from lxml import etree
 
 class KendRemoteQuery(utopia.library.RemoteQuery):
     """Search the kend server for articles matching the search criteria"""
+
+    id_name_map = {
+        'doi': 'doi',
+        'pmid': 'pubmed',
+        'pmcid': 'pmc',
+        'arxivid': 'arxiv',
+        'pii': 'pii',
+    }
 
     def fetch(self, query, offset, limit):
         # Get the date range to search in
@@ -88,15 +97,18 @@ class KendRemoteQuery(utopia.library.RemoteQuery):
                         for k, vs in metadata.iteritems():
                             vs.sort(key=lambda e: e[1])
                             v = vs[-1][0]
-                            if k in ('doi', 'pmid', 'pmcid', 'arxivid', 'pii'):
+                            if k in self.id_name_map:
                                 info.setdefault('identifiers', {})
-                                info['identifiers'][k] = v
+                                info['identifiers'][self.id_name_map.get(k)] = v
+                            elif k == 'identifiers':
+                                info.setdefault('identifiers', {})
+                                if v.startswith('json:'):
+                                    v = v[5:]
+                                info['identifiers'].update(json.loads(v))
                             else:
                                 info[k] = v
-                        print info
                         if 'authors' in info:
                             info['authors'] = info['authors'].split('; ')
-                        print info
                         results.append(info)
 
                 # Store history information

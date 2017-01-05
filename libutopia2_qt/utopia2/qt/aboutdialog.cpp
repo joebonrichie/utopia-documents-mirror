@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -36,19 +36,17 @@
 
 #include <QDebug>
 #include <QLabel>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 namespace Utopia
 {
-    AboutDialog::AboutDialog(QWidget * parent) : QDialog(parent)
+    AboutDialog::AboutDialog(QWidget * parent)
+        : QDialog(parent)
     {
-        resize(350, 300);
         setContentsMargins(0, 0, 0, 0);
-        setAttribute(Qt::WA_MacAlwaysShowToolWindow);
+        //setAttribute(Qt::WA_MacAlwaysShowToolWindow);
         setWindowTitle("Utopia Documents");
-
-        QVBoxLayout * layout = new QVBoxLayout(this);
-        _centralWidget = new QWidget;
 
         QLabel * icon = new QLabel;
         icon->setAlignment(Qt::AlignCenter);
@@ -60,13 +58,20 @@ namespace Utopia
         label->setOpenExternalLinks(true);
         label->setTextFormat(Qt::RichText);
         label->setText(QString("Version %1<br/><br/>Copyright &copy; 2008-" UTOPIA_CURRENT_YEAR "<br/>Lost Island Labs<br/><br/><a style=\"color: #008; link: '#008'; text: '#008';\" href='http://utopiadocs.com/redirect.php?to=acknowledgements'>Acknowledgements</a>").arg(Utopia::versionString()));
-        QVBoxLayout * iconLayout = new QVBoxLayout;
-        iconLayout->addSpacing(10);
-        iconLayout->addWidget(icon, Qt::AlignCenter);
-        iconLayout->addWidget(label, Qt::AlignCenter);
 
-        _centralWidget->setLayout(iconLayout);
-        layout->addWidget(_centralWidget);
+        QPushButton * button = new QPushButton("Close");
+        connect(button, SIGNAL(pressed()), this, SLOT(accept()));
+
+        QVBoxLayout * layout = new QVBoxLayout(this);
+        layout->addWidget(icon, Qt::AlignCenter);
+        layout->addWidget(label, Qt::AlignCenter);
+        QHBoxLayout * buttonLayout = new QHBoxLayout;
+        buttonLayout->addStretch(1);
+        buttonLayout->addWidget(button);
+        buttonLayout->addStretch(1);
+        layout->addLayout(buttonLayout);
+
+        setMinimumWidth(256);
     }
 
 } // namespace Utopia

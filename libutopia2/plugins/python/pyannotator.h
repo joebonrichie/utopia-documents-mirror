@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,7 +35,6 @@
 #include <papyro/utils.h>
 #include <spine/spineapi.h>
 #include <spine/spineapi_internal.h>
-#include <utopia2/configuration.h>
 #include <utopia2/busagent.h>
 
 #include <boost/python.hpp>
@@ -102,19 +101,6 @@ public:
 
         // Ensure the extension object instantiated correctly, then tailor this object
         if (extensionObject()) {
-            // Get UUID
-            if (PyObject * uuidret = PyObject_CallMethod(extensionObject(), (char *) "uuid", NULL)) {
-                _uuid = PyString_AsString(uuidret);
-                Py_DECREF(uuidret);
-
-                // Use boost::python to attach a method to the extension instance
-                python::scope outer(python::object(python::handle<>(python::borrowed(extensionObject()))));
-                python::def("get_config", python::make_function(bind(&PyAnnotator::get_config, this, _1, python::object()), python::default_call_policies(), mpl::vector< python::object, python::object >()));
-                python::def("get_config", python::make_function(bind(&PyAnnotator::get_config, this, _1, _2), python::default_call_policies(), mpl::vector< python::object, python::object, python::object >()));
-                python::def("set_config", python::make_function(bind(&PyAnnotator::set_config, this, _1, _2), python::default_call_policies(), mpl::vector< void, python::object, python::object >()));
-                python::def("del_config", python::make_function(bind(&PyAnnotator::del_config, this, _1), python::default_call_policies(), mpl::vector< void, python::object >()));
-            }
-
             // Get BusId
             if (PyObject * busidret = PyObject_CallMethod(extensionObject(), (char *) "busId", NULL)) {
                 _busId = PyString_AsString(busidret);
@@ -262,6 +248,12 @@ public:
         return success;
     }
 
+    // Ensure the extension is cancelled
+    void cancel()
+    {
+        PyExtension::cancel();
+    }
+
     bool canHandleEvent(const QString & event)
     {
         foreach (const QString & candidate, handleableEvents()) {
@@ -282,6 +274,8 @@ public:
 
     bool handleEvent(const QString & event, Spine::DocumentHandle document, const QVariantMap & kwargs)
     {
+        makeCancellable();
+
         // Only attempt events we've registered
         if (_handleableEventNames.contains(event)) {
             QString name(event_name_to_method_name(event));
@@ -332,7 +326,7 @@ public:
             /* Invoke method on extension */
             PyObject * callable = PyObject_GetAttrString(extensionObject(), "on_explore_event");
             if (callable == 0) {
-                PyObject * callable = PyObject_GetAttrString(extensionObject(), "lookup");
+                callable = PyObject_GetAttrString(extensionObject(), "lookup");
             }
             if (callable) {
                 ret = PyObject_Call(callable, pyargs, pykwargs);
@@ -407,8 +401,8 @@ public:
     QString busId() const
     {
         if (_busId.isEmpty()) {
-            QString uuid = QString::fromStdString(_uuid);
-            return uuid.mid(1, uuid.size()-2);
+            QString uuidstr = QString::fromStdString(uuid());
+            return uuidstr.mid(1, uuidstr.size()-2);
         } else {
             return _busId;
         }
@@ -431,51 +425,12 @@ public:
 
 
 
-    //**** Configuration methods ****//
-
-    QUuid configurationId() const
-    {
-        return _uuid.c_str();
-    }
-
-    void del_config(python::object key)
-    {
-        // Del value
-        configuration()->del(convert(key).toString());
-    }
-
-    python::object get_config(python::object key, python::object def = python::object())
-    {
-        // Resolve key
-        python::object value(def);
-        PyObject * valueObj = convert(configuration()->get(convert(key).toString()));
-        if (valueObj != Py_None) {
-            value = python::object(python::handle<>(valueObj));
-        }
-        return value;
-    }
-
-    void set_config(python::object key, python::object value)
-    {
-        // Set value
-        configuration()->set(convert(key).toString(), convert(value));
-    }
-
-
-
-
-    std::string uuid()
-    {
-        return _uuid;
-    }
-
     std::string title()
     {
         return extensionDocString();
     }
 
 protected:
-    std::string _uuid;
     QString _busId;
 
     QStringList _handleableEvents;

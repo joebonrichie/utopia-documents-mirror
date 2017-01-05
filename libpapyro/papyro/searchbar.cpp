@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@
  *****************************************************************************/
 
 #include <papyro/searchbar.h>
+#include <utopia2/qt/hidpi.h>
 
 #include <QAction>
 #include <QShowEvent>
@@ -43,8 +44,8 @@ namespace Papyro
     {
         setFloatable(false);
         setMovable(false);
-        setIconSize(QSize(20, 20));
-
+        setIconSize(QSize(20, 20) * Utopia::hiDPIScaling());
+		
         _resultsLabel = new QLabel("");
         QFont font(_resultsLabel->font());
         font.setPointSizeF(font.pointSizeF() * 0.8);
@@ -56,33 +57,35 @@ namespace Papyro
 
         _searchLineEdit = new QLineEdit;
         _searchLineEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
-        _searchLineEdit->setMaximumWidth(240);
-        _searchLineEdit->setMinimumWidth(240);
+        _searchLineEdit->setMaximumWidth(240 * Utopia::hiDPIScaling());
+        _searchLineEdit->setMinimumWidth(240 * Utopia::hiDPIScaling());
 
         {
-            addAction(QPixmap(":/icons/remove.png").scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation),
+            addAction(QPixmap(":/icons/remove.png").scaled(16 * Utopia::hiDPIScaling(), 16 * Utopia::hiDPIScaling(), Qt::KeepAspectRatio, Qt::SmoothTransformation),
                       "Close Search Bar", this, SLOT(hide()))->setShortcut(QKeySequence(Qt::Key_Escape));
 
             addWidget(_resultsLabel);
 
-            _previousAction = addAction(QIcon(":/icons/previous.png"), "Find Previous", this, SIGNAL(previous()));
+            _previousAction = addAction(QPixmap(":/icons/previous.png").scaled(16 * Utopia::hiDPIScaling(), 16 * Utopia::hiDPIScaling(), Qt::KeepAspectRatio, Qt::SmoothTransformation),
+										"Find Previous", this, SIGNAL(previous()));
             _previousAction->setShortcut(QKeySequence::FindPrevious);
             _previousAction->setEnabled(false);
-            widgetForAction(_previousAction)->setFixedSize(QSize(16, 16));
+            widgetForAction(_previousAction)->setFixedSize(QSize(16 * Utopia::hiDPIScaling(), 16 * Utopia::hiDPIScaling()));
 
-            _nextAction = addAction(QIcon(":/icons/next.png"), "Find Next", this, SIGNAL(next()));
+            _nextAction = addAction(QPixmap(":/icons/next.png").scaled(16 * Utopia::hiDPIScaling(), 16 * Utopia::hiDPIScaling(), Qt::KeepAspectRatio, Qt::SmoothTransformation),
+									"Find Next", this, SIGNAL(next()));
             _nextAction->setShortcut(QKeySequence::FindPrevious);
             _nextAction->setEnabled(false);
-            widgetForAction(_nextAction)->setFixedSize(QSize(16, 16));
+            widgetForAction(_nextAction)->setFixedSize(QSize(16 * Utopia::hiDPIScaling(), 16 * Utopia::hiDPIScaling()));
 
             QWidget * sp1 = new QWidget;
-            sp1->resize(6, 6);
+            sp1->resize(6 * Utopia::hiDPIScaling(), 6 * Utopia::hiDPIScaling());
             addWidget(sp1);
 
             addWidget(_searchLineEdit);
 
             QWidget * sp2 = new QWidget;
-            sp2->resize(6, 6);
+            sp2->resize(6 * Utopia::hiDPIScaling(), 6 * Utopia::hiDPIScaling());
             addWidget(sp2);
         }
 

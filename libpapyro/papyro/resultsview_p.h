@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,11 +32,14 @@
 #ifndef PAPYRO_RESULTSVIEW_P_H
 #define PAPYRO_RESULTSVIEW_P_H
 
+#include <papyro/resolver.h>
 #include <papyro/resultitem.h>
 #include <papyro/cslengine.h>
 #include <utopia2/busagent.h>
 
+#include <QEventLoop>
 #include <QMap>
+#include <QMutex>
 #include <QObject>
 #include <QQueue>
 #include <QTimer>
@@ -87,7 +90,7 @@ namespace Papyro
         int weight() const;
 
     signals:
-        void insertContent(QWebElement element, const QString & content);
+        void insertContent(QWebElement element, const QVariant & content);
 
     public slots:
         void toggleContent();
@@ -115,7 +118,39 @@ namespace Papyro
 
 
 
-    class ResultsViewControl : public QObject
+
+    class MetadataResolutionFuture : public QObject
+    {
+        Q_OBJECT
+        Q_PROPERTY(bool ready READ isReady);
+        Q_PROPERTY(QVariantMap results READ results);
+
+    public:
+        MetadataResolutionFuture(const QVariantMap & metadata, const QString & purpose);
+
+        bool isReady() const;
+        QVariantMap results() const;
+
+        Q_SCRIPTABLE void doom();
+        Q_SCRIPTABLE void lock();
+        Q_SCRIPTABLE void unlock();
+
+    signals:
+        void completed(const QVariantMap & metadata);
+
+    protected:
+        bool _ready;
+        QMutex _mutex;
+        QVariantMap _metadata;
+
+    protected slots:
+        void onResolverRunnableCompleted(Athenaeum::CitationHandle citation);
+    };
+
+
+
+
+    class ResultsViewControl : public QObject, public Utopia::BusAgent
     {
         Q_OBJECT
 
@@ -125,18 +160,25 @@ namespace Papyro
         Q_SCRIPTABLE QVariantMap availableCitationStyles();
         Q_SCRIPTABLE QString defaultCitationStyle();
         Q_SCRIPTABLE QString formatCitation(const QVariantMap & metadata, const QString & style = QString());
+        Q_SCRIPTABLE QObject * resolveMetadata(const QVariantMap & metadata, const QString & purpose);
 
     public slots:
+        void activateCitation(const QVariantMap & citation, const QString & target);
+        void activateCitations(const QVariantList & citation, const QString & target);
         void activateLink(const QString & href, const QString & target);
         void activateSource(QObject * obj);
+        void onLoadComplete();
+        void searchRemote(const QString & term);
 
     signals:
+        void citationsActivated(const QVariantList & citation, const QString & target);
         void linkClicked(const QUrl & href, const QString & target);
         void resultAdded(QObject * result);
 
     protected:
         ResultsViewPrivate * d;
     };
+
 
 
 
@@ -148,20 +190,25 @@ namespace Papyro
     public:
         ResultsViewPrivate(ResultsView * sidebar);
 
-        ResultsView * sidebar;
+        ResultsView * view;
         ResultsViewControl * control;
         QList< ResultItemControl * > results;
+        QStringList classes;
 
         QQueue< ResultItem * > resultQueue;
         QTimer resultQueueTimer;
 
         boost::shared_ptr< CSLEngine > cslengine;
 
+        bool ready;
+        QEventLoop wait;
+
     public slots:
         void setupJavaScriptWindowObject();
         void addResult();
 
     signals:
+        void citationsActivated(const QVariantList & citation, const QString & target);
         void linkClicked(const QUrl & href, const QString & target);
         void runningChanged(bool running);
         void resultAdded(QObject * result);

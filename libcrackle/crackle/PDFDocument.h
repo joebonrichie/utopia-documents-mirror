@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libcrackle library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
@@ -33,7 +33,6 @@
 #include <spine/Document.h>
 #include <spine/Cursor.h>
 #include <crackle/PDFPage.h>
-#include <crackle/PDFFontCollection.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -43,6 +42,12 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 #include <boost/thread.hpp>
+
+#ifdef UTOPIA_SPINE_BACKEND_POPPLER
+#ifndef GList
+#define GList GooList
+#endif
+#endif
 
 class BaseStream;
 class Object;
@@ -247,9 +252,6 @@ namespace Crackle
         std::time_t creationDate();
         std::time_t modificationDate();
 
-        // counting font occurences requires processing all the pages
-        const PDFFontCollection& fonts(bool count_=true);
-
         boost::shared_ptr<Spine::Cursor> newCursor(int page_=1);
 
         Spine::DocumentHandle clone();
@@ -288,8 +290,6 @@ namespace Crackle
         boost::shared_ptr<CrackleTextOutputDev>  _textDevice;
         boost::shared_ptr<SplashOutputDev> _renderDevice;
         boost::shared_ptr<SplashOutputDev> _printDevice;
-
-        mutable boost::shared_ptr<PDFFontCollection> _fonts;
 
         int _crackle_errorcode;
         mutable bool _fonts_counted;

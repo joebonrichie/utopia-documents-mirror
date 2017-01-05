@@ -62,8 +62,8 @@ fi
 
 ./configure \
     --disable-dependency-tracking \
-    --enable-static=yes --enable-shared=no \
-    --prefix="${PREFIX}/build" \
+    --enable-static=no --enable-shared=yes \
+    --prefix="${PREFIX}" \
     --libdir="$PREFIX/lib" --includedir="$PREFIX/include" \
     --with-zlib="$PREFIX" \
     --without-bzip2

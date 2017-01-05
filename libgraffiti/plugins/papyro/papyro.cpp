@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@
  *****************************************************************************/
 
 #include "graffitipanefactory.h"
+#include "tablify.h"
 
 #include <utopia2/extension.h>
 #include <utopia2/extensionlibrary.h>
@@ -49,4 +50,6 @@ extern "C" const char * utopia_description()
 extern "C" void utopia_registerExtensions()
 {
     UTOPIA_REGISTER_EXTENSION(GraffitiPaneFactory);
+    UTOPIA_REGISTER_TYPED_EXTENSION(Papyro::SelectionProcessorFactory, Tablify);
+    UTOPIA_REGISTER_TYPED_EXTENSION(Papyro::AnnotationProcessor, Tablify);
 }

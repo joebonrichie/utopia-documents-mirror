@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libspine library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libspine library is free software: you can redistribute it and/or

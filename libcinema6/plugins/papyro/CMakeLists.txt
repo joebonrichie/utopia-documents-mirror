@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,10 +35,6 @@ set(SOURCES
   papyro.cpp
   )
 
-set(MOC_HEADERS
-  cinemapanefactory.h
-  )
-
 include_directories(
   ${Boost_INCLUDE_DIR}
   ${utf8_INCLUDE_DIR}
@@ -50,10 +46,11 @@ include_directories(
   ${QT_INCLUDE_DIR}
   )
 
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} )
+qt5_wrap_cpp(SOURCES cinemapanefactory.h)
 
-add_utopia_plugin( ${PROJECT_NAME} MODULE ${SOURCES} ${MOC_SOURCES})
+add_utopia_plugin( ${PROJECT_NAME} MODULE ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt papyro spine cinema6 ${QT_LIBRARIES} )
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt papyro spine cinema6)
+qt5_use_modules(${PROJECT_NAME} Network)
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

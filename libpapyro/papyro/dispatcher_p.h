@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,11 +34,12 @@
 
 #include <papyro/config.h>
 
-#include <papyro/annotator.h>
-#include <spine/Annotation.h>
-#include <spine/Document.h>
-
-#include <boost/shared_ptr.hpp>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <papyro/annotator.h>
+#  include <spine/Annotation.h>
+#  include <spine/Document.h>
+#  include <boost/shared_ptr.hpp>
+#endif
 
 #include <QMutex>
 #include <QQueue>
@@ -64,21 +65,24 @@ namespace Papyro
                        const QStringList & terms);
         ~DispatchEngine();
 
+        void cancel();
         void run();
         void detach();
         bool detached() const;
 
     signals:
         void annotationFound(Spine::AnnotationHandle annotation);
+        void cancellationRequested();
         void finished();
 
     private:
+        DispatcherPrivate * d;
+
         mutable QMutex mutex;
         QQueue< QString > queue;
         QThreadPool threadPool;
         bool cancelled;
 
-        DispatcherPrivate * d;
         Spine::DocumentHandle document;
 
         Dispatcher * dispatcher();

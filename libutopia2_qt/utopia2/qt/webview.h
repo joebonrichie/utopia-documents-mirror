@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,19 +32,39 @@
 #ifndef UTOPIA_WEBVIEW_H
 #define UTOPIA_WEBVIEW_H
 
+#include <utopia2/networkaccessmanager.h>
+
+#include <QObject>
+#include <QString>
+#include <QWebPage>
 #include <QWebView>
+#include <QUrl>
 
 namespace Utopia
 {
 
-    class WebPage;
+    class WebPage : public QWebPage, NetworkAccessManagerMixin
+    {
+        Q_OBJECT
+
+    public:
+        WebPage(QObject * parent = 0);
+        ~WebPage();
+
+        QString userAgentForUrl(const QUrl & url) const;
+    };
+
+
 
     class WebView : public QWebView
     {
+        Q_OBJECT
+
     public:
         WebView(QWidget * parent = 0);
         ~WebView();
 
+        void setPage(WebPage * page);
         QString userAgentForUrl(const QUrl & url);
 
     protected:
@@ -54,6 +74,9 @@ namespace Utopia
         void contextMenuEvent(QContextMenuEvent * e);
         void focusOutEvent(QFocusEvent * e);
         void hideEvent(QHideEvent * e);
+
+    protected slots:
+        void onLoadFinished(bool);
     };
 
 }

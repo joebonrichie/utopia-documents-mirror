@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libspine library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libspine library is free software: you can redistribute it and/or
@@ -264,7 +264,6 @@ namespace Spine
                 // Set up output variables and dynamic offset
                 int ovector_length = (substring_count + 1) * 3;
                 int ovector[ovector_length];
-                int rc = 0;
                 int offset = 0;
 
                 // Continue searching until complete

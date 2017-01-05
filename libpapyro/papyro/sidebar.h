@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 
 #include <QFrame>
 #include <QUrl>
+#include <QVariant>
 
 namespace Utopia
 {
@@ -43,6 +44,7 @@ namespace Utopia
 namespace Papyro
 {
 
+    class DocumentSignalProxy;
     class ResultsView;
 
     class SidebarPrivate;
@@ -58,11 +60,14 @@ namespace Papyro
 
         ResultsView * documentWideView() const;
         ResultsView * resultsView() const;
-        void setSearchTerm(const QString & term);
+        void setDocumentSignalProxy(DocumentSignalProxy * documentSignalProxy);
         void setMode(SidebarMode mode);
+        void setSearchTerm(const QString & term);
         Utopia::WebView * webView() const;
+        QSize sizeHint() const;
 
     signals:
+        void citationsActivated(const QVariantList & citation, const QString & target);
         void selectionChanged();
         void urlRequested(const QUrl & url, const QString & target);
 

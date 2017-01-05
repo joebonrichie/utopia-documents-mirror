@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,9 +33,16 @@
 #define PAPYRO_SIDEBAR_P_H
 
 #include <utopia2/networkaccessmanager.h>
+#include <papyro/bibliography.h>
+#include <papyro/articleview.h>
+#include <papyro/documentsignalproxy.h>
 
 #include <QObject>
 
+class QComboBox;
+class QFrame;
+class QLabel;
+class QStackedLayout;
 class QUrl;
 
 namespace Utopia
@@ -70,13 +77,22 @@ namespace Papyro
 
         Utopia::SlideLayout * slideLayout;
 
+        QLabel * headerLabel;
         QWidget * resultsViewWidget;
         ResultsView * resultsView;
         Utopia::ElidedLabel * searchTermLabel;
+        QFrame * documentWideFrame;
         ResultsView * documentWideView;
         Utopia::WebView * webView;
         Utopia::Spinner * resultsViewSpinner;
+        QLabel * listLabel;
+        QComboBox * listComboBox;
         bool expectingMore;
+
+        DocumentSignalProxy * documentSignalProxy;
+        QMap< QString, Athenaeum::Bibliography * > citationLists;
+        QStackedLayout * documentWideStackedLayout;
+        Athenaeum::ArticleView * citationListView;
 
         void updateSpinner();
 
@@ -86,7 +102,10 @@ namespace Papyro
     public slots:
         void linkClicked(const QUrl & href, const QString & target = QString());
         void linkClickedFinished();
+        void onHeaderLabelLinkActivated(const QString & link);
         void onResultsViewRunningChanged(bool running);
+        void onListComboBoxCurrentIndexChanged(int index);
+        void onDocumentAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added);
     };
 
 }

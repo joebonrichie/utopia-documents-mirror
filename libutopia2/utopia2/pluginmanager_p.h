@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 
 #include <utopia2/plugin.h>
 
+#include <QFileInfo>
 #include <QMap>
 #include <QObject>
 #include <QPair>
@@ -54,7 +55,7 @@ namespace Utopia
         PluginManager * manager;
 
         QMap< QUuid, Plugin * > pluginsByUuid;
-        QMap< QPair< Plugin::PluginBase, QString >, Plugin * > pluginsByPath;
+        QMap< QString, Plugin * > pluginsByPath;
 
         void load();
         void save();

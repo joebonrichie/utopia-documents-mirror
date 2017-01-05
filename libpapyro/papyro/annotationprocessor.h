@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,8 +35,10 @@
 #include <papyro/config.h>
 
 #include <papyro/abstractprocessor.h>
-#include <spine/Annotation.h>
-#include <spine/Document.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#  include <spine/Document.h>
+#endif
 #include <utopia2/extension.h>
 
 #include <QIcon>
@@ -60,8 +62,10 @@ namespace Papyro
         virtual void activate(Spine::DocumentHandle document, Spine::AnnotationSet annotations, const QPoint & globalPos = QPoint()) = 0;
         virtual QList< Spine::AnnotationSet > canActivate(Spine::DocumentHandle document, Spine::AnnotationSet annotations) const;
         virtual bool canActivate(Spine::DocumentHandle document, Spine::AnnotationHandle annotation) const { return false; }
+        using AbstractProcessor::icon;
         virtual QIcon icon(Spine::DocumentHandle document, Spine::AnnotationSet annotations) const;
         virtual QIcon icon(Spine::DocumentHandle document, Spine::AnnotationHandle annotation) const { return QIcon(); }
+        using AbstractProcessor::title;
         virtual QString title(Spine::DocumentHandle document, Spine::AnnotationSet annotations) const;
         virtual QString title(Spine::DocumentHandle document, Spine::AnnotationHandle annotation) const { return QString("Unnamed"); }
 

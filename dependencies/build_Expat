@@ -62,7 +62,7 @@ fi
 
 ./configure \
     --disable-dependency-tracking \
-    --enable-static=yes --enable-shared=no \
+    --enable-static=no --enable-shared=yes \
     --prefix="${PREFIX}/build" \
     --libdir="$PREFIX/lib" --includedir="$PREFIX/include"
 

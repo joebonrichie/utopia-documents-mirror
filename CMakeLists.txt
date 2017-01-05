@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,27 +31,54 @@
 
 ### Versioning and general setup ##################################################################
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
 project( Utopia )
 
-#cmake_policy(SET CMP0017 OLD)
-cmake_policy(VERSION 2.6)
+cmake_policy(VERSION 2.8)
+
+if(POLICY CMP0020)
+  cmake_policy(SET CMP0020 OLD)
+endif(POLICY CMP0020)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
+endif(POLICY CMP0043)
+if(POLICY CMP0046)
+  cmake_policy(SET CMP0046 OLD)
+endif(POLICY CMP0046)
 
 # Utopia versioning
-set(VERSION_MAJOR "2")
-set(VERSION_MINOR "4")
-set(VERSION_PATCH "4")
+set(VERSION_MAJOR "3")
+set(VERSION_MINOR "0")
+set(VERSION_PATCH "0")
+
+# Extra checks
+set(HARDENED_FLAGS "-fstack-protector -Wformat -Wformat-security -Wall -Wno-unused-local-typedef")
+if(NOT WIN32)
+  set(HARDENED_FLAGS "-fstack-protector ${HARDENED_FLAGS}")
+endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HARDENED_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HARDENED_FLAGS}")
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	add_definitions(-DUTOPIA_BUILD_DEBUG=1)
+  add_definitions(-DUTOPIA_BUILD_DEBUG=1)
 else()
-	add_definitions(-DQT_NO_DEBUG_OUTPUT=1 -DQT_NO_WARNING_OUTPUT=1)
+  add_definitions(-DQT_NO_DEBUG_OUTPUT=1 -DQT_NO_WARNING_OUTPUT=1)
+  add_definitions(-D_FORTIFY_SOURCE=2) # Harden the code
 endif()
 
 if(WIN32)
-	add_definitions(-D_UNICODE=1)
+  add_definitions(-D_UNICODE=1)
 endif()
 
+if(UTOPIA_PACKAGE_MANAGED)
+  add_definitions(-DUTOPIA_PACKAGE_MANAGED=1)
+endif()
+
+set(CMAKE_MACOSX_RPATH ON)
+
+# select pdf backend
+set(UTOPIA_LIBSPINE_PDF_BACKEND "poppler" CACHE STRING "Spine PDF backend")
+set_property(CACHE UTOPIA_LIBSPINE_PDF_BACKEND PROPERTY STRINGS "xpdf" "poppler")
 
 ### Dependency information ########################################################################
 
@@ -63,11 +90,7 @@ include(GetYear)
 
 get_current_year(UTOPIA_CURRENT_YEAR)
 
-IF(WIN32)
-  SET(PYTHON_VERSION "2.6")
-ELSE()
-  SET(PYTHON_VERSION "2.7")
-ENDIF()
+SET(PYTHON_VERSION "2.7")
 STRING(REPLACE "." "" PYTHON_VERSION_UNDOTTED "${PYTHON_VERSION}")
 
 # prefer our static libraries
@@ -75,10 +98,10 @@ set(UTOPIA_DEPENDENCIES_DIR "${CMAKE_SOURCE_DIR}/dependencies" CACHE STRING "Lib
 list(INSERT CMAKE_MODULE_PATH 0 ${UTOPIA_DEPENDENCIES_DIR}/share/apps/cmake/modules)
 include(${UTOPIA_DEPENDENCIES_DIR}/dependencies.cmake)
 list(INSERT CMAKE_PREFIX_PATH 0 "${UTOPIA_DEPENDENCIES_DIR}")
+include_directories(${UTOPIA_DEPENDENCIES_DIR}/include)
 if(WIN32)
-    list(INSERT CMAKE_PREFIX_PATH 0 ${UTOPIA_DEPENDENCIES_DIR}/Qt)
     list(INSERT CMAKE_PREFIX_PATH 0 ${UTOPIA_DEPENDENCIES_DIR}/bin)
-    list(INSERT CMAKE_PREFIX_PATH 0 "c:/Python${PYTHON_VERSION_UNDOTTED}/")
+    list(INSERT CMAKE_PREFIX_PATH 0 "/mingw32/lib/python${PYTHON_VERSION}/")
     # ensure explicit template instantiations are exported on Windows!
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--enable-auto-import")
@@ -90,9 +113,6 @@ endif()
 # PCRE
 find_package( PCRE REQUIRED )
 
-# QJSON
-find_package( QJSON REQUIRED )
-
 # OpenGL
 find_package( OpenGL REQUIRED )
 
@@ -100,37 +120,32 @@ find_package( OpenGL REQUIRED )
 find_package( OpenSSL REQUIRED )
 
 # GLEW
-find_package( GLEW REQUIRED )
+#find_package( GLEW REQUIRED )
 
 # QGLViewer
-find_package( QGLViewer REQUIRED )
+#find_package( QGLViewer REQUIRED )
 
-# FIXME: Do we need this?
-if(WIN32)
-    set(QT_USE_QTMAIN TRUE)
-endif(WIN32)
+# Qt5
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network Gui Concurrent OpenGL Svg WebKitWidgets WebKit Xml PrintSupport Script)
 
-# Qt4
-find_package( Qt4 REQUIRED )
-    set(QT_USE_QTNETWORK 1)
-    set(QT_USE_QTOPENGL 1)
-    set(QT_USE_QTXML 1)
-    set(QT_USE_QTSVG 1)
-    set(QT_USE_QTWEBKIT 1)
-    set(QT_USE_QTSCRIPT 1)
-    set(QT_USE_QTDESIGNER 0)
-    set(QT_USE_QTUITOOLS 0)
-    set(QT_USE_QTHELP 0)
-include(${QT_USE_FILE})
-
+if("${UTOPIA_LIBSPINE_PDF_BACKEND}" STREQUAL "xpdf")
+  add_definitions(-DUTOPIA_SPINE_BACKEND_XPDF=1)
+elseif("${UTOPIA_LIBSPINE_PDF_BACKEND}" STREQUAL "poppler")
+  add_definitions(-DUTOPIA_SPINE_BACKEND_POPPLER=1)
+  find_package( Poppler REQUIRED )
+else()
+  message( FATAL_ERROR "No PDF backend selected." )
+endif()
 
 if(APPLE)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         set(CMAKE_OSX_ARCHITECTURES "x86_64"
             CACHE STRING "Build architectures for OSX" FORCE)
-        set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
+        set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
             CACHE STRING "isysroot used for universal binary support" FORCE)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.8
+        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7
             CACHE STRING "-mmacosx-version-min flag used for universal binary support" FORCE)
     endif()
 endif()
@@ -171,14 +186,16 @@ find_package(ZLIB REQUIRED)
 FIND_PACKAGE(Freetype REQUIRED)
 list(APPEND FREETYPE_LIBRARIES ${ZLIB_LIBRARIES})
 
+if("${UTOPIA_LIBSPINE_PDF_BACKEND}" STREQUAL "poppler")
+    FIND_PACKAGE(FontConfig REQUIRED)
+    FIND_PACKAGE(Poppler REQUIRED)
+endif()
+
 # Graphviz
 ###FIND_PACKAGE(Graphviz REQUIRED)
 
 # Expat
 FIND_PACKAGE(EXPAT REQUIRED)
-
-# Raptor
-FIND_PACKAGE(Raptor REQUIRED)
 
 # Python
 SET(_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK})
@@ -276,12 +293,13 @@ set(PYTHON_LIB_ROOT)
 set(PYTHON_DLL_ROOT)
 if(WIN32)
   set(PYTHON_INCLUDE_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}/Include")
-  set(PYTHON_BIN_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}")
-  set(PYTHON_LIB_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}/Lib")
-  set(PYTHON_DLL_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}/DLLs")
+  set(PYTHON_BIN_ROOT "c:/msys32/mingw32/bin")
+  set(PYTHON_LIB_ROOT "c:/msys32/mingw32/lib/python${PYTHON_VERSION}")
+  set(PYTHON_DLL_ROOT "${PYTHON_BIN_ROOT}/DLLs")
 elseif(NOT USE_SYSTEM_Python)
-  set(PYTHON_INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/dependencies/include/python${PYTHON_VERSION}")
-  set(PYTHON_LIB_ROOT "${CMAKE_SOURCE_DIR}/dependencies/lib/python${PYTHON_VERSION}")
+  set(PYTHON_INCLUDE_ROOT "${UTOPIA_DEPENDENCIES_DIR}/include/python${PYTHON_VERSION}")
+  set(PYTHON_LIB_ROOT "${UTOPIA_DEPENDENCIES_DIR}/lib/python${PYTHON_VERSION}")
+  set(PYTHON_BIN_ROOT "${UTOPIA_DEPENDENCIES_DIR}")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${BIN_INSTALL_DIR})
@@ -312,7 +330,6 @@ endif()
 
 set(COMPONENT "Core")
 add_subdirectory( libutf8 )
-add_subdirectory( libgtl )
 add_subdirectory( libutopia2 )
 add_subdirectory( libutopia2_qt )
 add_subdirectory( data )
@@ -342,10 +359,11 @@ if(UTOPIA_BUILD_LIBRARY)
   add_subdirectory( libathenaeum )
 endif()
 
-OPTION(UTOPIA_BUILD_MOLECULES "Build Utopia Molecules" ON)
+OPTION(UTOPIA_BUILD_MOLECULES "Build Utopia Molecules" OFF)
 CMAKE_DEPENDENT_OPTION(UTOPIA_BUILD_MOLVIEW "Build Molecule Viewer" OFF "UTOPIA_BUILD_MOLECULES" OFF)
 if(UTOPIA_BUILD_MOLECULES)
   set(COMPONENT "Molecules")
+  add_subdirectory( libgtl )
   add_subdirectory( libambrosia )
   if(UTOPIA_BUILD_MOLVIEW)
     add_subdirectory( ambrosia )
@@ -375,54 +393,32 @@ OPTION(UTOPIA_BUILD_PERSISTENCE "Build Persistence Components" ON)
 # Include Qt plugins #########################################################
 ##############################################################################
 
-set(QT_PLUGINS_DEBUG "")
-if(NOT USE_SYSTEM_Qt)
+if(WIN32 OR NOT USE_SYSTEM_Qt)
   # Install needed Qt plugins by copying directories from the qt installation
-  if(WIN32)
-    set(QT_PLUGINS_DEBUG_WILDCARD "*[a-ce-z]d4")
-  elseif(APPLE)
-    set(QT_PLUGINS_DEBUG_WILDCARD "*_debug")
-  endif()
-
-  file(GLOB_RECURSE QT_PLUGINS
-    RELATIVE "${QT_PLUGINS_DIR}"
-    "${QT_PLUGINS_DIR}/imageformats/*${CMAKE_SHARED_LIBRARY_SUFFIX}"
-    "${QT_PLUGINS_DIR}/iconengines/*${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  file(GLOB_RECURSE QT_PLUGINS_DEBUG
-    RELATIVE "${QT_PLUGINS_DIR}"
-    "${QT_PLUGINS_DIR}/imageformats/${QT_PLUGINS_DEBUG_WILDCARD}${CMAKE_SHARED_LIBRARY_SUFFIX}"
-    "${QT_PLUGINS_DIR}/iconengines/${QT_PLUGINS_DEBUG_WILDCARD}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(QT_PLUGINS ${QT_PLUGINS_DEBUG})
-  else()
-    list(REMOVE_ITEM QT_PLUGINS ${QT_PLUGINS_DEBUG})
-  endif()
-  foreach(QT_PLUGIN ${QT_PLUGINS})
-    configure_file("${QT_PLUGINS_DIR}/${QT_PLUGIN}" "${CMAKE_BINARY_DIR}/${PLUGIN_INSTALL_DIR}/${QT_PLUGIN}" COPYONLY)
+  foreach(QT5_PLUGIN ${Qt5Core_PLUGINS}
+                     ${Qt5Widgets_PLUGINS}
+                     ${Qt5Network_PLUGINS}
+                     ${Qt5Gui_PLUGINS}
+                     ${Qt5Concurrent_PLUGINS}
+                     ${Qt5OpenGL_PLUGINS}
+                     ${Qt5Svg_PLUGINS}
+                     ${Qt5WebKitWidgets_PLUGINS}
+                     ${Qt5WebKit_PLUGINS}
+                     ${Qt5Xml_PLUGINS}
+                     ${Qt5PrintSupport_PLUGINS}
+                     ${Qt5Script_PLUGINS})
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+      get_target_property(_loc ${QT5_PLUGIN} LOCATION_Debug)
+    else()
+      get_target_property(_loc ${QT5_PLUGIN} LOCATION_Release)
+    endif()
+    get_filename_component(QT5_PLUGIN_NAME "${_loc}" NAME)
+    get_filename_component(_plugin_dir "${_loc}" DIRECTORY)
+    get_filename_component(QT5_PLUGIN_REL_DIR "${_plugin_dir}" NAME)
+    set(QT5_PLUGIN_REL_PATH "${QT5_PLUGIN_REL_DIR}/${QT5_PLUGIN_NAME}")
+    configure_file("${_loc}" "${CMAKE_BINARY_DIR}/${PLUGIN_INSTALL_DIR}/${QT5_PLUGIN_REL_PATH}" COPYONLY)
+    install(FILES "${CMAKE_BINARY_DIR}/${PLUGIN_INSTALL_DIR}/${QT5_PLUGIN_REL_PATH}" DESTINATION "${PLUGIN_INSTALL_DIR}/${QT5_PLUGIN_REL_DIR}" COMPONENT Core)
   endforeach()
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/${PLUGIN_INSTALL_DIR}/imageformats" "${CMAKE_BINARY_DIR}/${PLUGIN_INSTALL_DIR}/iconengines"
-    DESTINATION "${PLUGIN_INSTALL_DIR}"
-    COMPONENT Core)
-endif()
-##############################################################################
-# Include required Win32 DLLs ################################################
-##############################################################################
-
-if(WIN32)
-#  install(FILES "${UTOPIA_DEPENDENCIES_DIR}/bin/libt1-5.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-#  install(FILES "${UTOPIA_DEPENDENCIES_DIR}/lib/QGLViewer2.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-#  install(FILES "c:/MinGW/bin/mingwm10.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-#  foreach(QT_LIB Core Gui Xml Network OpenGL Svg)
-#    install(FILES "${QT_LIBRARY_DIR}/Qt${QT_LIB}4.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-#  endforeach()
-
-  install(FILES "c:/Windows/System32/msvcrt.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-  install(FILES "c:/Windows/System32/Python${PYTHON_VERSION_UNDOTTED}.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-  install(FILES "${CMAKE_SOURCE_DIR}/packaging/win/vcredist_x86.exe" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-  foreach(SSL_LIB libeay32 ssleay32)
-    install(FILES "${UTOPIA_DEPENDENCIES_DIR}/bin/${SSL_LIB}.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
-  endforeach()
-
 endif()
 
 ##############################################################################
@@ -495,10 +491,6 @@ elseif(WIN32)
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.utopiadocs.com\\\\")
   SET(CPACK_NSIS_CONTACT "info@utopiadocs.com")
   SET(CPACK_NSIS_MODIFY_PATH OFF)
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-      ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\" /q:a'
-      Delete '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\"'
-      ")
 elseif(UNIX)
   SET(CPACK_GENERATOR "DEB")
   SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libfreetype6, libgcc1, libgl1-mesa-glx, libglu1-mesa, libqt4-network, libqt4-opengl, libqt4-xml, libqtcore4, libqtgui4, libstdc++6, libt1-5, libx11-6, libxext6, zlib1g")
@@ -577,9 +569,42 @@ if(APPLE)
   endif()
 endif()
 
+if(WIN32)
+  if(EXISTS "${CMAKE_SOURCE_DIR}/packaging/win/package-win.sh.in")
+    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/packaging/win/package-win.sh.in" "${PROJECT_BINARY_DIR}/package-win.sh" @ONLY IMMEDIATE)
+  endif()
+endif()
+
 if(EXISTS "${CMAKE_SOURCE_DIR}/packaging/src/package-src.sh.in")
   CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/packaging/src/package-src.sh.in" "${PROJECT_BINARY_DIR}/package-src.sh" @ONLY IMMEDIATE)
 endif()
+
+##############################################################################
+# Include required Win32 DLLs ################################################
+##############################################################################
+
+if(WIN32)
+#  install(FILES "${UTOPIA_DEPENDENCIES_DIR}/bin/libt1-5.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+#  install(FILES "${UTOPIA_DEPENDENCIES_DIR}/lib/QGLViewer2.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+#  install(FILES "c:/MinGW/bin/mingwm10.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+#  foreach(QT_LIB Core Gui Xml Network OpenGL Svg)
+#    install(FILES "${QT_LIBRARY_DIR}/Qt${QT_LIB}4.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+#  endforeach()
+
+  #install(FILES "c:/Windows/System32/msvcrt.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+  #install(FILES "c:/Windows/System32/Python${PYTHON_VERSION_UNDOTTED}.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+  #install(FILES "${CMAKE_SOURCE_DIR}/packaging/win/vcredist_x86.exe" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+  #file(GLOB files "${UTOPIA_DEPENDENCIES_DIR}/bin/*eay*")
+  #foreach(SSL_LIB ${files})
+  #  install(FILES "${SSL_LIB}" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+  #endforeach()
+
+  set(QT_BINARY_DIR "c:/Qt/Qt5.5.1/5.5/mingw492_32/bin")
+  install(FILES "${QT_BINARY_DIR}/libEGL.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+  install(FILES "${QT_BINARY_DIR}/libGLESv2.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+  install(FILES "${QT_BINARY_DIR}/opengl32sw.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
+endif()
+
 
 if(WIN32 OR APPLE)
   set(UTOPIA_SUPPORT_LIBRARY_DIR BundleSupportLibraries)
@@ -596,5 +621,4 @@ if(WIN32 OR APPLE)
   install(DIRECTORY "${PROJECT_BINARY_DIR}/${UTOPIA_SUPPORT_LIBRARY_DIR}/" DESTINATION "${LIB_INSTALL_DIR}" COMPONENT "Core")
 
   add_custom_command(TARGET post-build COMMAND ${CMAKE_COMMAND} -P ${OSX_MAKE_STANDALONE_BUNDLE_CMAKE_SCRIPT})
-  add_dependencies(post-build preinstall)
 endif()

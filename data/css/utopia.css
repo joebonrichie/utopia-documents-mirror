@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -78,21 +78,18 @@ Utopia--Comment QLabel
 {
   background-color: rgb(120, 120, 120);
   color: rgb(255, 255, 255);
-  font-size: 10pt;
 }
 
 Utopia--Comment QLabel#name
 {
   color: rgb(200, 200, 200);
   font-weight: bold;
-  font-size: 9pt;
 }
 
 Utopia--Comment QLabel#date
 {
   color: rgb(200, 200, 200);
   font-weight: bold;
-  font-size: 9pt;
 }
 
 Utopia--Comment Kend--UserLabel
@@ -138,7 +135,6 @@ Utopia--Comment #report:hover
 Utopia--CommentEditor QTextEdit
 {
   color: rgb(255, 255, 255);
-  font-size: 12pt;
 }
 
 Utopia--Conversation,
@@ -150,7 +146,6 @@ Utopia--Conversation #conversationArea
 Utopia--FieldEditor
 {
   color: #eee;
-  font-size: 10px;
 }
 
 Utopia--BubbleDialogOld QLabel,
@@ -161,7 +156,6 @@ Utopia--BubbleDialog QLabel
 Utopia--BubbleDialogOld QLabel#messagePositive,
 Utopia--BubbleDialog QLabel#messagePositive
 {
-  font: 10px;
   color: rgb(200, 200, 200);
 }
 
@@ -178,7 +172,6 @@ Utopia--ThoughtBubble
 Utopia--Tearout QLabel
 {
   color: #000;
-  font: 10px;
   font-family: serif;
 }
 
@@ -215,7 +208,6 @@ QStatusBar QAbstractButton
 
 QStatusBar QLabel
 {
-  font-size: 10px;
   padding-left: 10;
   color: #333;
 }
@@ -237,28 +229,24 @@ FieldEditor#inuse
 
 Utopia--MessageLabel#positive
 {
-  font: 10px;
   color: rgb(200, 200, 200);
   background-color: none;
 }
 
 Utopia--MessageLabel#negative
 {
-  font: 10px;
   color: red;
   background-color: none;
 }
 
 Utopia--MessageLabel#warning
 {
-  font: 10px;
   color: red;
   background-color: none;
 }
 
 Utopia--MessageLabel#message
 {
-  font: 10px;
   color: rgb(200, 200, 200);
   background-color: none;
 }
@@ -335,7 +323,6 @@ Utopia--Conversation QPushButton:pressed
 
 Utopia--Conversation QPushButton
 {
-    font-size: 10pt;
 }
 
 Utopia--Conversation QStatusBar QPushButton
@@ -358,13 +345,11 @@ Utopia--Conversation QCheckBox:disabled
 
 Kend--ServiceControl QLabel#nameLabel
 {
-  font-weight: bold;
 }
 
 QLabel#errorLabel
 {
   font-style: italic;
-  font-size: 10pt;
   color: #ff0000;
 }
 
@@ -373,13 +358,11 @@ QLabel#verticalGroupLabel
     background: #4444ff;
     color: #ffffff;
     border-radius: 3px;
-    font-size: 14pt;
 }
 
 Kend--ServiceControl QLabel#accountLabel
 {
   font-style: italic;
-  font-size: 10pt;
   color: #666666;
 }
 
@@ -399,20 +382,13 @@ Kend--AccountsPreferencesPane QToolButton#removeServiceButton {
 
 Kend--NewAccountDialog QLabel#errorLabel {
   color: red;
-  font-size: 80%;
-}
-
-Kend--AccountInfoPanel * {
-  font-size: 12px;
 }
 
 QLabel#disclaimer {
   font-style: italic;
-  font-size: 11px;
 }
 
 Kend--AccountInfoPanel QLabel[class=link] {
-  font-size: 11px;
   font-style: italic;
   color: #444488;
 }

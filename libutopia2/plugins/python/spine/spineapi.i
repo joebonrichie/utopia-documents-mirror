@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -94,6 +94,45 @@
 
 %}
 
+
+
+
+%constant int DefaultSearchOptions=Spine_DefaultSearchOptions;
+%constant int RegExp=Spine_RegExp;
+%constant int IgnoreCase=Spine_IgnoreCase;
+%constant int WholeWordsOnly=Spine_WholeWordsOnly;
+
+%constant int DefaultView=SpineDocument_ViewDefault;
+%constant int OutlineView=SpineDocument_ViewOutlines;
+%constant int ThumbnailView=SpineDocument_ViewThumbs;
+%constant int FullScreen=SpineDocument_ViewFullScreen;
+%constant int OCView=SpineDocument_ViewOC;
+%constant int AttachView=SpineDocument_ViewAttach;
+
+%constant int DefaultLayout=SpineDocument_LayoutDefault;
+%constant int SinglePageLayout=SpineDocument_LayoutSinglePage;
+%constant int OneColumnLayout=SpineDocument_LayoutOneColumn;
+%constant int TwoColumnLeftLayout=SpineDocument_LayoutTwoColumnLeft;
+%constant int TwoColumnRightLayout=SpineDocument_LayoutTwoColumnRight;
+%constant int TwoPageLeftLayout=SpineDocument_LayoutTwoPageLeft;
+%constant int TwoPageRightLayout=SpineDocument_LayoutTwoPageRight;
+
+%constant int DoNotIterate= SpineCursor_DoNotIterate;
+%constant int UntilEndOfWord= SpineCursor_WithinWord;
+%constant int UntilEndOfLine= SpineCursor_WithinLine;
+%constant int UntilEndOfBlock= SpineCursor_WithinBlock;
+%constant int UntilEndOfRegion= SpineCursor_WithinRegion;
+%constant int UntilEndOfPage= SpineCursor_WithinPage;
+%constant int UntilEndOfDocument= SpineCursor_WithinDocument;
+
+%constant int NullImage=Spine_NullImage;
+%constant int RGBImage=Spine_RGBImage;
+%constant int JPEGImage=Spine_JPEGImage;
+%constant int BitmapImage=Spine_BitmapImage;
+
+
+
+
 %exception
 {
     Py_BEGIN_ALLOW_THREADS
@@ -121,7 +160,6 @@
 
 %typemap(in) SpineString
 {
-    $1=0;
     if(PyUnicode_Check($input)) {
         PyObject *tempstring=PyUnicode_AsUTF8String($input);
         const char *utf8= PyString_AsString(tempstring);
@@ -136,6 +174,11 @@
         PyErr_SetString(PyExc_ValueError,"Need a string or unicode argument");
         SWIG_fail;
     }
+}
+
+%typemap(arginit) SpineString
+{
+    $1 = 0;
 }
 
 %typemap(freearg) SpineString
@@ -163,7 +206,6 @@
 
 %typemap(in) SpineBuffer
 {
-    $1=0;
     if(PyString_Check($input)) {
         const char *data= PyString_AsString($input);
         size_t length=PyString_Size($input);
@@ -172,6 +214,11 @@
         PyErr_SetString(PyExc_ValueError,"Need a string argument");
         SWIG_fail;
     }
+}
+
+%typemap(arginit) SpineBuffer
+{
+    $1 = 0;
 }
 
 %typemap(freearg) SpineBuffer
@@ -269,6 +316,11 @@
     }
 }
 
+%typemap(arginit) SpineMap
+{
+    $1 = 0;
+}
+
 %typemap(newfree) SpineMap
 {
     delete_SpineMap(&$1, 0);
@@ -281,13 +333,18 @@
 {
     int i;
     if($1) {
-        $result=PySet_New(0);
+        $result=PyList_New(0);
         for(i=0; i < $1->length; ++i) {
             PyObject *val=PyUnicode_DecodeUTF8(($1->values[i])->utf8, ($1->values[i])->length, 0);
-            PySet_Add($result, val);
+            PyList_Append($result, val);
             Py_XDECREF(val);
         }
     }
+}
+
+%typemap(arginit) SpineSet
+{
+    $1 = 0;
 }
 
 %typemap(newfree) SpineSet
@@ -321,6 +378,11 @@
     }
 }
 
+
+%typemap(arginit) SpineTextExtentList
+{
+    $1 = 0;
+}
 
 %typemap(newfree) SpineTextExtentList
 {
@@ -382,6 +444,11 @@
     }
 }
 
+%typemap(arginit) SpineAnnotationList
+{
+    $1 = 0;
+}
+
 %typemap(freearg) SpineAnnotationList
 {
     delete_SpineAnnotationList(&$1, 0);
@@ -418,10 +485,51 @@
     }
 }
 
+%typemap(arginit) SpineAreaList
+{
+    $1 = 0;
+}
+
 %typemap(newfree) SpineAreaList
 {
     delete_SpineAreaList(&$1, 0);
 }
+
+
+
+
+%constant int DefaultSearchOptions=Spine_DefaultSearchOptions;
+%constant int RegExp=Spine_RegExp;
+%constant int IgnoreCase=Spine_IgnoreCase;
+%constant int WholeWordsOnly=Spine_WholeWordsOnly;
+
+%constant int DefaultView=SpineDocument_ViewDefault;
+%constant int OutlineView=SpineDocument_ViewOutlines;
+%constant int ThumbnailView=SpineDocument_ViewThumbs;
+%constant int FullScreen=SpineDocument_ViewFullScreen;
+%constant int OCView=SpineDocument_ViewOC;
+%constant int AttachView=SpineDocument_ViewAttach;
+
+%constant int DefaultLayout=SpineDocument_LayoutDefault;
+%constant int SinglePageLayout=SpineDocument_LayoutSinglePage;
+%constant int OneColumnLayout=SpineDocument_LayoutOneColumn;
+%constant int TwoColumnLeftLayout=SpineDocument_LayoutTwoColumnLeft;
+%constant int TwoColumnRightLayout=SpineDocument_LayoutTwoColumnRight;
+%constant int TwoPageLeftLayout=SpineDocument_LayoutTwoPageLeft;
+%constant int TwoPageRightLayout=SpineDocument_LayoutTwoPageRight;
+
+%constant int DoNotIterate= SpineCursor_DoNotIterate;
+%constant int UntilEndOfWord= SpineCursor_WithinWord;
+%constant int UntilEndOfLine= SpineCursor_WithinLine;
+%constant int UntilEndOfBlock= SpineCursor_WithinBlock;
+%constant int UntilEndOfRegion= SpineCursor_WithinRegion;
+%constant int UntilEndOfPage= SpineCursor_WithinPage;
+%constant int UntilEndOfDocument= SpineCursor_WithinDocument;
+
+%constant int NullImage=Spine_NullImage;
+%constant int RGBImage=Spine_RGBImage;
+%constant int JPEGImage=Spine_JPEGImage;
+%constant int BitmapImage=Spine_BitmapImage;
 
 
 
@@ -519,32 +627,10 @@
 
 %exception {
     $action
-        if(check_exception(arg1->_err)) {
-            return 0;
-        }
+    if(check_exception(arg1->_err)) SWIG_fail;
 }
 
 %extend Document {
-
-    %constant int DefaultSearchOptions=Spine_DefaultSearchOptions;
-    %constant int RegExp=Spine_RegExp;
-    %constant int IgnoreCase=Spine_IgnoreCase;
-    %constant int WholeWordsOnly=Spine_WholeWordsOnly;
-
-    %constant int DefaultView=SpineDocument_ViewDefault;
-    %constant int OutlineView=SpineDocument_ViewOutlines;
-    %constant int ThumbnailView=SpineDocument_ViewThumbs;
-    %constant int FullScreen=SpineDocument_ViewFullScreen;
-    %constant int OCView=SpineDocument_ViewOC;
-    %constant int AttachView=SpineDocument_ViewAttach;
-
-    %constant int DefaultLayout=SpineDocument_LayoutDefault;
-    %constant int SinglePageLayout=SpineDocument_LayoutSinglePage;
-    %constant int OneColumnLayout=SpineDocument_LayoutOneColumn;
-    %constant int TwoColumnLeftLayout=SpineDocument_LayoutTwoColumnLeft;
-    %constant int TwoColumnRightLayout=SpineDocument_LayoutTwoColumnRight;
-    %constant int TwoPageLeftLayout=SpineDocument_LayoutTwoPageLeft;
-    %constant int TwoPageRightLayout=SpineDocument_LayoutTwoPageRight;
 
     int valid() {
         int result= SpineDocument_valid($self->_doc, &$self->_err);
@@ -804,14 +890,6 @@
 }
 
 %extend Cursor {
-
-    %constant int DoNotIterate= SpineCursor_DoNotIterate;
-    %constant int UntilEndOfWord= SpineCursor_WithinWord;
-    %constant int UntilEndOfLine= SpineCursor_WithinLine;
-    %constant int UntilEndOfBlock= SpineCursor_WithinBlock;
-    %constant int UntilEndOfRegion= SpineCursor_WithinRegion;
-    %constant int UntilEndOfPage= SpineCursor_WithinPage;
-    %constant int UntilEndOfDocument= SpineCursor_WithinDocument;
 
     struct Cursor copy() {
         struct Cursor c;
@@ -1284,11 +1362,6 @@
 
 %extend Image
 {
-
-    %constant int NullImage=Spine_NullImage;
-    %constant int RGBImage=Spine_RGBImage;
-    %constant int JPEGImage=Spine_JPEGImage;
-    %constant int BitmapImage=Spine_BitmapImage;
 
     PyObject * size()
     {

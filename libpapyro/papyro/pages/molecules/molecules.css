@@ -1,0 +1,182 @@
+.molecule-viewer {
+    position: relative;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-style: solid;
+    border-color: #d0e8ff;
+    border-width: 1px 0;
+    width: 100%;
+    height: 300px;
+    background-image: url(qrc:/pages/molecules/watermark.png);
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+.molecule-viewer canvas {
+    border: none !important;
+    width: 100%;
+    height: 100%;
+}
+.molecule-viewer > .hud {
+    position: absolute;
+    overflow: hidden;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    pointer-events: none;
+}
+.molecule-viewer > .hud .loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    margin-right: -50%;
+    text-align: center;
+}
+.molecule-viewer > .hud .loading .spinner {
+    margin: 0 auto;
+    width: 32px;
+    height: 32px;
+}
+.molecule-viewer > .hud .error {
+    color: red;
+}
+.molecule-viewer > .hud .error a:before {
+    content: '[';
+    color: black;
+}
+.molecule-viewer > .hud .error a:after {
+    content: ']';
+    color: black;
+}
+.molecule-viewer > .hud > * {
+    pointer-events: auto;
+}
+.molecule-viewer > .hud .lower {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url(qrc:/pages/molecules/settings.png);
+    background-size: 28px;
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
+    transition: 0.2s background-position;
+    height: 28px;
+}
+.molecule-viewer > .hud .lower:hover {
+    background-position: 100% 200%;
+}
+.molecule-viewer > .hud .lower .controls {
+    background-color: rgba(235, 245, 255, 1.0);
+    border-top: 1px solid #d0e8ff;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 4px 2px;
+    text-align: center;
+    transition: 0.3s all;
+    -webkit-transform: translateX(100%);
+    line-height: 0;
+    transition-delay: 0.4s;
+}
+.molecule-viewer > .hud .lower:hover .controls {
+    -webkit-transform: translateX(0);
+    transition-delay: 0;
+}
+.molecule-viewer > .hud form {
+    display: inline-block;
+    margin: 1px 0.5em;
+    border: 1px solid d0e8ff;
+}
+.molecule-viewer > .hud form input {
+    display: none;
+}
+.molecule-viewer > .hud form label:not(:first-of-type) {
+    border-left: 1px solid d0e8ff;
+}
+.molecule-viewer > .hud form input + label {
+    display: inline-block;
+    width: 32px;
+    height: 28px;
+    background-size: 300% 900%;
+    background-image: url(qrc:/pages/molecules/molecules.png);
+    background-position-x: -200%;
+    text-indent: -9999px;
+    position: relative;
+}
+.molecule-viewer > .hud form input[type="radio"]:not(:checked) + label,
+.molecule-viewer > .hud form input[type="checkbox"] + label {
+    cursor: pointer;
+}
+.molecule-viewer > .hud form input[name="color"] + label {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    background-size: 300% 700%;
+    background-image: url(qrc:/pages/molecules/colours.png);
+}
+.molecule-viewer > .hud form input + label:hover,
+.molecule-viewer > .hud form input:checked + label {
+    background-position-x: 0;
+}
+.molecule-viewer > .hud form input:checked + label:after {
+    content: ' ';
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    left: -1px;
+    right: -1px;
+    border: 1px solid #4078bf;
+    z-index: 1;
+}
+.molecule-viewer > .hud form input[name='repr']:nth-of-type(1) + label {
+    background-position-y: 0;
+}
+.molecule-viewer > .hud form input[name='repr']:nth-of-type(2) + label {
+    background-position-y: -100%;
+}
+.molecule-viewer > .hud form input[name='repr']:nth-of-type(3) + label {
+    background-position-y: -200%;
+}
+.molecule-viewer > .hud form input[name='repr']:nth-of-type(4) + label {
+    background-position-y: -300%;
+}
+.molecule-viewer > .hud form input[name='chain']:nth-of-type(1) + label {
+    background-position-y: -400%;
+}
+.molecule-viewer > .hud form input[name='chain']:nth-of-type(2) + label {
+    background-position-y: -500%;
+}
+.molecule-viewer > .hud form input[name='chain']:nth-of-type(3) + label {
+    background-position-y: -600%;
+}
+.molecule-viewer > .hud form input[name='chain']:nth-of-type(4) + label {
+    background-position-y: -700%;
+}
+.molecule-viewer > .hud form input[name='water'] + label {
+    background-position-y: -800%;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(1) + label {
+    background-position-y: 0;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(2) + label {
+    background-position-y: -100%;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(3) + label {
+    background-position-y: -200%;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(4) + label {
+    background-position-y: -300%;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(5) + label {
+    background-position-y: -400%;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(6) + label {
+    background-position-y: -500%;
+}
+.molecule-viewer > .hud form input[name='color']:nth-of-type(7) + label {
+    background-position-y: -600%;
+}

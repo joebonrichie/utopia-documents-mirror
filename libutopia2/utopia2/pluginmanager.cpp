@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -63,10 +63,7 @@ namespace Utopia
     PluginManagerPrivate::PluginManagerPrivate(PluginManager * manager)
         : QObject(manager), manager(manager)
     {
-        qRegisterMetaType< Utopia::Plugin::PluginBase >("PluginBase");
-        qRegisterMetaTypeStreamOperators< int >("PluginBase");
-
-        // Load saved plugin descriptions
+        // Load saved plugin descriptions FIXME
         load();
     }
 
@@ -107,7 +104,7 @@ namespace Utopia
                 conf.endGroup();
 
                 pluginsByUuid[plugin->uuid()] = plugin;
-                pluginsByPath[qMakePair(plugin->base(), plugin->relativePath())] = plugin;
+                pluginsByPath[plugin->fileInfo().absoluteFilePath()] = plugin;
             }
         }
     }
@@ -147,9 +144,9 @@ namespace Utopia
                     }
                     conf.endGroup();
 
-                    if (!pluginsByUuid.contains(plugin->uuid()) && !pluginsByPath.contains(qMakePair(plugin->base(), plugin->relativePath()))) {
+                    if (!pluginsByUuid.contains(plugin->uuid()) && !pluginsByPath.contains(plugin->fileInfo().absoluteFilePath())) {
                         pluginsByUuid[plugin->uuid()] = plugin;
-                        pluginsByPath[qMakePair(plugin->base(), plugin->relativePath())] = plugin;
+                        pluginsByPath[plugin->fileInfo().absoluteFilePath()] = plugin;
                     } else {
                         // For security reasons, delete this plugin
                         // FIXME and the conflicting one?
@@ -183,7 +180,7 @@ namespace Utopia
     {
         QStringList paths;
         foreach (Plugin * plugin, d->pluginsByPath.values()) {
-            paths.append(plugin->absolutePath());
+            paths.append(plugin->path());
         }
         return paths;
     }
@@ -198,16 +195,16 @@ namespace Utopia
         return true;
     }
 
-    Plugin * PluginManager::resolve(Plugin::PluginBase base, const QString & relativePath)
+    Plugin * PluginManager::resolve(const QFileInfo & fileInfo)
     {
         // Return matching plugin
-        Plugin * plugin = d->pluginsByPath.value(qMakePair(base, relativePath), 0);
+        Plugin * plugin = d->pluginsByPath.value(fileInfo.absoluteFilePath(), 0);
 
         if (!plugin) {
             // Or create a new plugin, if none match
-            plugin = new Plugin(base, relativePath, d);
+            plugin = new Plugin(fileInfo, d);
             d->pluginsByUuid[plugin->uuid()] = plugin;
-            d->pluginsByPath[qMakePair(plugin->base(), plugin->relativePath())] = plugin;
+            d->pluginsByPath[plugin->fileInfo().absoluteFilePath()] = plugin;
         }
 
         return plugin;

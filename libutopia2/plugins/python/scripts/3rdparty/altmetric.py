@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@
 #? www: http://www.altmetric.com/
 #? urls: http://api.altmetric.com/ http://www.altmetric.com/
 
-import common.utils
+import utopialib.utils
 import json
 import socket
 import spineapi
@@ -48,7 +48,7 @@ class Altmetric(utopia.document.Annotator, utopia.document.Visualiser):
     key = '46a63bea7a7f245bf46fad25aced4d28'
 
     def on_ready_event(self, document):
-        doi = common.utils.metadata(document, 'doi')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
         if doi is not None:
             try:
                 # Check to see if the DOI is known
@@ -80,6 +80,10 @@ class Altmetric(utopia.document.Annotator, utopia.document.Visualiser):
 
         return '''
             <style>
+              #{0} {{
+                width: 64px;
+                margin: 1ex auto;
+              }}
               #{0} .citation .scorebox {{
                 float: none;
                 margin: 0px auto;
@@ -94,6 +98,7 @@ class Altmetric(utopia.document.Annotator, utopia.document.Visualiser):
               }}
               #{0} .citation .details h3 {{
                 margin-bottom: 10px;
+                font-style: normal;
               }}
               #{0} .citation .details small {{
                 display: block;
@@ -101,21 +106,30 @@ class Altmetric(utopia.document.Annotator, utopia.document.Visualiser):
                 color: #777;
               }}
               #{0} .citation .details .tq {{
-                border: solid 5px black;
-                -webkit-border-image: url(qrc:/images/border-rounded-box.png) 5 stretch stretch;
-                padding: 1px;
-                margin: 4px 0;
+                border: solid 1px #e0f0ff;
+                border-radius: 6px;
+                background-color: #f0f8ff;
+                margin: 0;
                 text-align: left;
                 color: inherit;
                 font-size: 0.9em;
                 opacity: 1;
                 width: 100%;
               }}
+              #{0} .citation .details .tq + .tq {{
+                margin-top: 8px;
+              }}
             </style>
-            <div id="{0}" class="altmetric" />
-        '''.format(id), '''
+            <div id="{0}" class="altmetric-embed" data-doi="{1}" data-badge-popover="bottom" data-badge-type="donut" />
+        '''.format(id, a['property:doi']), '''
             <script>
-            $('#{0}').altmetric({{api_version: self.api_version, doi: '{1}'}});
+
+                $('#{0}').on('DOMNodeInserted', function(e) {{
+                    var element = e.target;
+                    $(element).filter('a[target="_self"]').add('a[target="_self"]', element).off();
+                }});
+
+                _altmetric_embed_init();
             </script>
-        '''.format(id, a['property:doi'])
+        '''.format(id)
 

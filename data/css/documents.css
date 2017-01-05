@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -48,11 +48,6 @@ Papyro--PapyroTab Papyro--DocumentView {
     color: #eeeeee;
 }
 
-/* The lines between ares on the page */
-Papyro--PapyroTab QSplitterHandle {
-    color: #eeeeee;
-}
-
 /* Cosmetic line between the white pages and the blue background */
 #tab_bar_frame {
     border: 1px solid black;
@@ -63,7 +58,6 @@ Papyro--PapyroTab QSplitterHandle {
 #search_control_layer {
     padding-left: 48px;
 }
-
 
 
 /*
@@ -84,6 +78,23 @@ Papyro--Sliver QToolButton,
     min-height: 24px;
 }
 
+#resultsHeader {
+    background-color: #f8fbff;
+}
+
+#webpageHeader {
+    background-color: white;
+}
+
+#resultsHeader,
+#webpageHeader {
+    padding: 4px 2px;
+}
+
+QSplitter {
+    background: #f0f0f0;
+}
+
 
 
 
@@ -98,7 +109,7 @@ Papyro--PapyroWindow QScrollBar {
     border: 0px;
     padding: 0px;
     border-radius: 4px;
-    background-color: rgba(0, 0, 0, 3%);
+    background-color: rgba(0, 0, 0, 0%);
 }
 
 Utopia--BubbleWidget QScrollBar:vertical,
@@ -120,7 +131,7 @@ Papyro--PapyroWindow QScrollBar::handle {
     border: 0px;
     padding: 0px;
     border-radius: 4px;
-    background-color: rgba(0, 0, 0, 20%);
+    background-color: rgba(0, 0, 0, 15%);
 }
 
 Utopia--BubbleWidget QScrollBar::handle:hover,
@@ -172,8 +183,11 @@ Athenaeum--BibliographicSearchBox {
     border: 2px solid #506D9D;
     border-radius: 12px;
     height: 20px;
+    max-height: 20px;
+    min-height: 20px;
     padding: 0px 1px;
     background: white;
+    margin: 0px;
 }
 
 Athenaeum--BibliographicSearchBox QLineEdit {
@@ -195,8 +209,12 @@ Athenaeum--BibliographicSearchBox QToolButton::menu-indicator {
 
 Athenaeum--BibliographicSearchBox QToolButton#clearButton {
     margin: 0px 1px 0px 0px;
-    height: 18px;
-    width: 14px;
+    padding: 0px;
+    border: 0px;
+    height: 16px;
+    width: 16px;
+    max-height: 16px;
+    max-width: 16px;
 }
 
 Athenaeum--BibliographicSearchBox QToolButton#searchDomainButton {
@@ -213,11 +231,14 @@ Athenaeum--BibliographicSearchBox QToolButton#searchDomainButton {
 Papyro--PapyroWindow Athenaeum--ArticleView {
     background-color: transparent;
     alternate-background-color: transparent;
+    color: white;
 }
 
 Papyro--PapyroWindow Athenaeum--ArticleView Utopia--Spinner {
     padding: 4px;
 }
+
+Papyro--PapyroWindow Athenaeum--ArticleView::item {}
 
 Papyro--PapyroWindow Athenaeum--ArticleView::item:hover {
     background-color: rgba(255, 255, 255, 10);
@@ -240,6 +261,50 @@ Papyro--PapyroWindow Athenaeum--ArticleView QScrollBar::handle:pressed {
     background-color: rgb(255, 255, 255);
 }
 
+
+
+Papyro--Sidebar {
+    background-color: white;
+}
+
+Papyro--Sidebar Athenaeum--ArticleView {
+    color: black;
+}
+
+Papyro--Sidebar Athenaeum--ArticleView::item:hover {
+    background-color: rgba(0, 0, 150, 10);
+}
+
+Papyro--Sidebar Athenaeum--ArticleView::item:selected {
+    background-color: rgba(0, 0, 150, 50);
+}
+
+Papyro--Sidebar Athenaeum--ArticleView QScrollBar {
+    background-color: rgba(0, 0, 150, 3%);
+}
+
+Papyro--Sidebar Athenaeum--ArticleView QScrollBar::handle {
+    background-color: rgba(0, 0, 150, 20%);
+}
+
+Papyro--Sidebar Athenaeum--ArticleView QScrollBar::handle:hover,
+Papyro--Sidebar Athenaeum--ArticleView QScrollBar::handle:pressed {
+    background-color: rgb(0, 0, 150);
+}
+
+#citation_list_name,
+#citation_list_box {
+    font-weight: bold;
+}
+
+#citation_list_box {
+    padding: 8px 6px;
+}
+
+#citation_list_name {
+    margin: 6px 0;
+    color: black;
+}
 
 
 
@@ -269,6 +334,11 @@ Papyro--SearchBar
   background: rgba(64, 93, 141, 210);
 }
 
+Papyro--SearchBar QLabel
+{
+  margin-right: 6px;
+}
+
 #lookupBar
 {
   padding: 2px 2px 0px 6px;
@@ -287,7 +357,7 @@ Papyro--SearchBar
 Papyro--SearchBar QLineEdit
 {
   margin: 4px;
-  border: 1 inset gray;
+  border: 1px inset gray;
 }
 
 Papyro--Pager
@@ -323,7 +393,7 @@ Papyro--CitationPopup QLabel
 
 QWidget[uiRole="Banner"]
 {
-  padding: 4;
+  padding: 4px;
 }
 
 QFrame#highlightingModeOptionFrame {
@@ -350,20 +420,9 @@ Papyro--Sliver QLabel
   margin: 0;
 }
 
-
-
-Papyro--Sidebar QPushButton#back {
-  height: 20px;
-  border-image: url(:/images/back-button-bg.png) 2 2 2 14;
-  border-width: 2px 2px 2px 14px;
-  border-style: solid;
-  padding-left: 4px;
-  padding-right: 6px;
-  margin: 4px 2px;
-}
-
-Papyro--Sidebar QPushButton#back:pressed {
-  border-image: url(:/images/back-button-pressed-bg.png) 2 2 2 14;
+#document_wide_header {
+  background: #f8f8f8;
+  border-bottom: 1px solid #eee;
 }
 
 Papyro--Sidebar QLabel {
@@ -381,9 +440,9 @@ Papyro--Sidebar QLabel {
 }
 
 Papyro--Sidebar Utopia--Spinner {
-  margin: 4px 4px 4px 2px;
-  min-height: 24;
-  min-width: 24;
+  margin: 0 2px;
+  min-height: 18px;
+  min-width: 18px;
 }
 
 
@@ -398,7 +457,7 @@ Papyro--Sidebar Utopia--Spinner {
 {
     qproperty-bubbleBackground: #f6f6ff;
     qproperty-bubbleBorder: #667;
-    padding 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
 }
 
 #article_preview_bubble QTextEdit
@@ -416,13 +475,60 @@ Papyro--Sidebar Utopia--Spinner {
 #remote_search_label
 {
     margin: 0px;
-    padding: 8px 8px 8px 14px;
+    padding: 4px 8px 5px 8px;
 }
 
 #remote_search_label QLabel {
-    color: white;
+    color: rgba(255, 255, 255, 75%);
+    font-style: italic;
 }
 
+
+
+
+/* Library list */
+
+Papyro--PapyroWindow #search_label {
+    font-size: 10pt;
+    color: white;
+    padding: 0px;
+}
+
+Papyro--PapyroWindow #library_open_button {
+    margin: 0px;
+    padding: 0px;
+    width: 6px;
+}
+
+Papyro--PapyroWindow #library_layer {
+    padding: 10px 10px 10px 58px;
+    background-color: #304D7D;
+    background-color: qlineargradient( x1:0 y1:0, x2:1 y2:0, stop:0 #304D7D, stop:0.92 #304D7D, stop:1 #2E4A78);
+}
+
+Papyro--PapyroWindow Athenaeum--LibraryView {
+    background-color: transparent;
+    alternate-background-color: transparent;
+    color: white;
+    qproperty-dropColor: #96F2EE;
+}
+
+Papyro--PapyroWindow Athenaeum--LibraryView Utopia--Spinner {
+    padding: 4px;
+}
+
+Papyro--PapyroWindow Athenaeum--LibraryView QScrollBar {
+    background-color: rgba(255, 255, 255, 3%);
+}
+
+Papyro--PapyroWindow Athenaeum--LibraryView QScrollBar::handle {
+    background-color: rgba(255, 255, 255, 20%);
+}
+
+Papyro--PapyroWindow Athenaeum--LibraryView QScrollBar::handle:hover,
+Papyro--PapyroWindow Athenaeum--LibraryView QScrollBar::handle:pressed {
+    background-color: rgb(255, 255, 255);
+}
 
 
 
@@ -494,4 +600,23 @@ QTabBar::tab:only-one {
   border: 1px solid #667;
   border-radius: 6px;
   background: #f6f6ff;
+}
+
+
+
+
+#dropOverlay {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+#dropIntoLibrary > QFrame,
+#dropIntoDocument > QFrame {
+    border-width: 10px;
+    border-radius: 30px;
+    border-style: solid;
+}
+
+#dropIntoLibraryLabel,
+#dropIntoDocumentLabel {
+    font-size: 32px;
 }

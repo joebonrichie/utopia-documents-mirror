@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,9 +35,9 @@
 
 
 import base64
-import common.eutils
-import common.nlm
-import common.utils
+import utopialib.eutils
+import utopialib.nlm
+import utopialib.utils
 import re
 import spineapi
 import urllib
@@ -86,14 +86,10 @@ def fuzz(input, strict = False):
 class HighwireXHTML(utopia.document.Annotator):
     """Highwire-hosted XHTML parsing"""
 
-    keys = ('publication-title', 'publisher', 'issn', 'doi', 'pmid', 'pmcid', 'pii', 'authors', 'title',
-            'volume', 'issue', 'pages', 'pagefrom', 'pageto', 'abstract', 'keywords', 'year', 'month',
-            'abbreviations', 'label', 'url', 'type', 'html', 'displayText', 'unstructured')
-
     @utopia.document.buffer
     def on_ready_event(self, document):
 
-        doi = common.utils.metadata(document, 'doi')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
         if doi is not None:
             info = {}
 
@@ -148,7 +144,7 @@ class HighwireXHTML(utopia.document.Annotator):
                     if len(authors) > 0:
                         citation['authors'] = authors
                     citation['contexts'] = []
-                    citation['displayText'] = common.utils.format_citation(citation)
+                    citation['displayText'] = utopia.citation.format(citation)
 
                     info['citations'].append(citation)
                     info['citations_by_id'][citation['id']] = citation
@@ -288,7 +284,7 @@ class HighwireXHTML(utopia.document.Annotator):
                 parser = etree.XMLParser(ns_clean=True, recover=True, remove_blank_text=True, encoding='utf8')
                 pmids = dict(((citation['pmid'], citation['id']) for citation in info['citations'] if 'pmid' in citation and 'id' in citation))
                 if len(pmids) > 0:
-                    pubmed_abstracts = etree.fromstring(common.eutils.efetch(id=','.join(pmids.keys()), retmode='xml', rettype='abstract'), parser)
+                    pubmed_abstracts = etree.fromstring(utopialib.eutils.efetch(id=','.join(pmids.keys()), retmode='xml', rettype='abstract'), parser)
                     for idList in pubmed_abstracts.xpath('PubmedArticle/PubmedData/ArticleIdList'):
                         #print etree.tostring(idList)
                         pmid = idList.findtext('ArticleId[@IdType="pubmed"]')
@@ -316,22 +312,12 @@ class HighwireXHTML(utopia.document.Annotator):
                     '''.format(publisher, journalTitleSuffix)
 
                 # Create Metadata annotation
-                annotation = spineapi.Annotation()
-                annotation['concept'] = 'DocumentMetadata'
-                for k in self.keys:
-                    v = info.get(k)
-                    if v is not None:
-                        annotation['property:{0}'.format(k)] = v
+                annotation = utopialib.utils.citation_to_annotation(info.get('self', {}), 'DocumentMetadata')
                 document.addAnnotation(annotation, link['scratch'])
 
                 # Create Bibliography annotations
                 for citation in info.get('citations', []):
-                    annotation = spineapi.Annotation()
-                    annotation['concept'] = 'DocumentReference'
-                    for k in self.keys:
-                        v = citation.get(k)
-                        if v is not None:
-                            annotation['property:{0}'.format(k)] = v
+                    annotation = utopialib.utils.citation_to_annotation(citation)
                     document.addAnnotation(annotation, link['scratch'])
 
                 #######################################################################################
@@ -347,27 +333,16 @@ class HighwireXHTML(utopia.document.Annotator):
                         if len(matches) > 0:
                             try:
                                 annotation = spineapi.Annotation()
-                                annotation['concept'] = 'ForwardCitation'
-                                annotation['property:state'] = 'found'
-                                if 'title' in citation:
-                                    annotation['property:title'] = citation['title']
-                                if 'id' in citation:
-                                    annotation['property:bibid'] = citation['id']
+                                annotation = utopialib.utils.citation_to_annotation(citation, concept='ForwardCitation')
                                 if 'doi' in citation and citation['doi'].startswith('10.1371/'):
                                     citation['pdf'] = 'http://www.ploscompbiol.org/article/fetchObjectAttachment.action?uri={0}&representation=PDF'.format('info:doi/{0}'.format(citation['doi']))
                                 if 'pmcid' in citation:
                                     citation['pdf'] = 'http://www.ncbi.nlm.nih.gov/pmc/articles/{0}/pdf/'.format(citation['pmcid'])
-                                for k in ('displayText', 'label', 'pdf', 'pmid', 'pmc', 'pii', 'doi', 'first_author_surname', 'year', 'journal', 'volume', 'page_from'):
-                                    if k in citation:
-                                        annotation['property:{0}'.format(k)] = citation[k]
-                                #print annotation.get('property:label'), annotation.get('property:pdf')
                                 for match in matches:
                                     annotation.addExtent(match)
                                 document.addAnnotation(annotation, link['scratch'])
-                                #print citation
                             except:
                                 raise
-                                pass # FIXME
 
                 for id, table in info.get('tables', {}).iteritems():
                     if 'caption' in table and 'xml' in table:

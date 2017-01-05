@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -51,7 +51,6 @@ std::string _getNewAuthToken(const std::string & serverUri, const std::string & 
     if (serviceManager->count() == 1) {
         Kend::Service * service = serviceManager->serviceAt(0);
         if (service && service->isLoggedIn()) {
-            //qDebug() << "_getNewAuthToken" << service->authenticationToken() << QString::fromStdString(oldToken);
             if (service->authenticationToken() == QString::fromStdString(oldToken)) {
                 QEventLoop loop;
                 QObject::connect(service, SIGNAL(serviceStarted()), &loop, SLOT(quit()));
@@ -63,10 +62,10 @@ std::string _getNewAuthToken(const std::string & serverUri, const std::string & 
                     loop.exec();
                 }
                 if (service->isLoggedIn()) {
-                    return service->authenticationToken().toAscii().data();
+                    return service->authenticationToken().toUtf8().data();
                 }
             } else {
-                return service->authenticationToken().toAscii().data();
+                return service->authenticationToken().toUtf8().data();
             }
         }
     }
@@ -81,13 +80,13 @@ std::string _getServiceBaseUri(const std::string & resource)
         Kend::Service * service = serviceManager->serviceAt(0);
         if (service) {
             if (resource == "documents") {
-                return service->resourceUrl(Kend::Service::DocumentsResource).toString().toAscii().data();
+                return service->resourceUrl(Kend::Service::DocumentsResource).toString().toUtf8().data();
             } else if (resource == "annotations") {
-                return service->resourceUrl(Kend::Service::AnnotationsResource).toString().toAscii().data();
+                return service->resourceUrl(Kend::Service::AnnotationsResource).toString().toUtf8().data();
             } else if (resource == "authentication") {
-                return service->resourceUrl(Kend::Service::AnnotationsResource).toString().toAscii().data();
+                return service->resourceUrl(Kend::Service::AnnotationsResource).toString().toUtf8().data();
             } else if (resource == "definitions") {
-                return service->resourceUrl(Kend::Service::DefinitionsResource).toString().toAscii().data();
+                return service->resourceUrl(Kend::Service::DefinitionsResource).toString().toUtf8().data();
             }
         }
     }
@@ -107,8 +106,7 @@ std::string _getServiceBaseUri(const std::string & resource);
     Py_END_ALLOW_THREADS
 }
 
-%pythoncode
-{
+%pythoncode %{
     import threading
 
     class TokenGenerator:
@@ -136,4 +134,4 @@ std::string _getServiceBaseUri(const std::string & resource);
                 newToken = self.state['authToken']
                 self.state['lock'].release()
             return newToken
-}
+%}

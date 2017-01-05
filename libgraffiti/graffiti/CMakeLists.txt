@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,41 +31,33 @@
 
 set(SOURCES
   axis.cpp
+  cell.cpp
   entrydelegate.cpp
   graphicsFlipWidget.cpp
   graphswidget.cpp
   graphtableview.cpp
-  qtcolorpicker.cpp
+  grid.cpp
+  gridview.cpp
+  header.cpp
+  sections.cpp
   tablewidget.cpp
   view.cpp
-  )
-
-set(MOC_HEADERS
-  axis.h
-  graphicsFlipWidget.h
-  graphswidget.h
-  graphtableview.h
-  qtcolorpicker.h
-  qtcolorpicker_p.h
-  tablewidget.h
-  view.h
   )
 
 include_directories(
   ${utopia2_INCLUDE_DIR}
   ${utopia2_qt_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIR}
   )
 
-set(RESOURCES tableeditor.qrc)
-
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} )
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
+qt5_add_resources(SOURCES tableeditor.qrc)
 
 if(WIN32)
 	add_definitions(-DBUILD_LIBGRAFFITI=1)
 endif()
 
-add_utopia_library( ${PROJECT_NAME} SHARED ${SOURCES} ${MOC_SOURCES} ${RES_SOURCES})
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt ${QT_LIBRARIES})
+add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt)
+qt5_use_modules(${PROJECT_NAME} Widgets Xml)
 
 install_utopia_library(${PROJECT_NAME} "${COMPONENT}")

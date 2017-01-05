@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ class CollatedVisualiser(utopia.document.Visualiser):
         return a.get('concept') == 'Collated' and 'property:html' in a
 
     def visualise(self, a):
-        return a['property:html']
+        return a.getAllProperties('property:html')
 
 class ChEMBLVisualiser(utopia.document.Visualiser):
 
@@ -277,14 +277,19 @@ class PDBVisualiser(utopia.document.Visualiser):
         desc = annotation['property:name'][0:200]
         if len(desc) > 200:
             desc += '...'
+        pdbcode = None
+        if 'property:name' in annotation:
+            entry += u'<p>{0}</p>'.format(annotation['property:name'])
         if 'property:identifier' in annotation:
-            entry += u'<p>%s</p>' % ('PDB entry %s' % annotation['property:identifier'].upper()[-4:]).strip()
+            pdbcode = annotation['property:identifier'].upper()[-4:]
+            entry += u'<p>%s</p>' % ('PDB entry %s' % pdbcode).strip()
         if 'property:molecularDescription' in annotation:
             entry += u'<p>{0}</p>'.format(annotation['property:molecularDescription'])
-        if 'property:imageUrl' in annotation:
-            entry += u'<center><img src="%s" width="200" heighth="200" /></center>' % annotation['property:imageUrl']
+        if pdbcode is not None:
+            entry += u'<div class="molecule-viewer" data-id="pdb:{0}"></div>'.format(pdbcode)
+            entry += u'</div>'
         if 'property:webpageUrl' in annotation:
-            entry += u'<p><a href="%s">View RCSB web page...</a></p>' % annotation['property:webpageUrl']
+            entry += u'<p style="text-align:right"><a href="%s">View RCSB web page...</a></p>' % annotation['property:webpageUrl']
         return entry
 
 class BioLookupPDBAnnotator(utopia.document.Annotator):
@@ -308,7 +313,7 @@ class BioLookupPDBAnnotator(utopia.document.Annotator):
                     annotation['property:sourceDatabase'] = 'pdb'
                     entry = self.visualiser.visualisable(annotation) and self.visualiser.visualise(annotation) or ''
                     if len(entry) > 0:
-                        xhtml += u'<div class="expandable" title="{0}">{1}</div>'.format(annotation['property:name'], entry)
+                        xhtml += entry
 
         if len(xhtml) > 0:
             annotation = spineapi.Annotation()

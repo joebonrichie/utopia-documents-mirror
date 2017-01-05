@@ -1,0 +1,5 @@
+commit 8fe85e28948b541445fb183b293135050953166c
+Author: Tim te Beek <ttebeek@bio-prodict.nl>
+Date:   Mon Jul 25 16:22:48 2016 +0200
+
+    Send plain text when annotating document to bypass Zuul

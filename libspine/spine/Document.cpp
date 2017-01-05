@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libspine library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libspine library is free software: you can redistribute it and/or
@@ -141,7 +141,9 @@ namespace Spine
 
         map< string, AnnotationSet > annotations;
         map< string, AnnotationSet, compare_uri > annotationsById;
+        map< Annotation *, size_t > annotationsByIdRefCount;
         map< string, AnnotationSet, compare_uri > annotationsByParentId;
+        map< Annotation *, size_t > annotationsByParentIdRefCount;
         map< string, list< pair< AnnotationsChangedSignal, void * > > > annotationSubscribers;
         mutable boost::recursive_mutex annotationsMutex;
 
@@ -822,17 +824,8 @@ namespace Spine
     void Document::addAnnotation(AnnotationHandle ann_, const string & list)
     {
         AnnotationSet anns;
-        {
-            boost::lock_guard<boost::recursive_mutex> g(d->annotationsMutex);
-            ann_->setProperty("concrete", "1");
-            d->annotations[list].insert(ann_);
-            anns.insert(ann_);
-            d->annotationsById[ann_->getFirstProperty("id")].insert(ann_);
-            string parent(ann_->getFirstProperty("parent"));
-            //cerr << "+++++ addAnnotation " << list << " - " << parent << endl;
-            if (!parent.empty() && list.empty()) { d->annotationsByParentId[parent].insert(ann_); }
-        }
-        d->emitAnnotationsChanged(list, anns, true);
+        anns.insert(ann_);
+        addAnnotations(anns, list);
     }
 
     void Document::addAnnotations(const AnnotationSet & anns_, const string & list)
@@ -841,12 +834,31 @@ namespace Spine
             boost::lock_guard<boost::recursive_mutex> g(d->annotationsMutex);
             BOOST_FOREACH(AnnotationHandle ann_, anns_)
             {
-                ann_->setProperty("concrete", "1");
-                d->annotations[list].insert(ann_);
-                d->annotationsById[ann_->getFirstProperty("id")].insert(ann_);
+                // Get the annotation's IDs
+                string id = ann_->getFirstProperty("id");
                 string parent(ann_->getFirstProperty("parent"));
-                //cerr << "+++++ addAnnotation " << list << " - " << parent << endl;
-                if (!parent.empty() && list.empty()) { d->annotationsByParentId[parent].insert(ann_); }
+
+                // Add the annotation
+                if (d->annotations[list].insert(ann_).second) {
+                    // If this annotation hasn't been seen before, set its
+                    // reference count to 0 and make it concrete
+                    if (d->annotationsByIdRefCount.find(ann_.get()) == d->annotationsByIdRefCount.end()) {
+                        d->annotationsByIdRefCount[ann_.get()] = 0;
+                        ann_->setProperty("concrete", "1");
+                    }
+                    if (d->annotationsByParentIdRefCount.find(ann_.get()) == d->annotationsByParentIdRefCount.end()) {
+                        d->annotationsByParentIdRefCount[ann_.get()] = 0;
+                    }
+
+                    d->annotationsById[id].insert(ann_);
+                    d->annotationsByIdRefCount[ann_.get()] += 1;
+
+                    //cerr << "+++++ addAnnotation " << list << " - " << parent << endl;
+                    if (!parent.empty()) {
+                        d->annotationsByParentId[parent].insert(ann_);
+                        d->annotationsByParentIdRefCount[ann_.get()] += 1;
+                    }
+                }
             }
         }
         d->emitAnnotationsChanged(list, anns_, true);
@@ -855,17 +867,8 @@ namespace Spine
     void Document::removeAnnotation(AnnotationHandle ann_, const string & list)
     {
         AnnotationSet anns;
-        {
-            boost::lock_guard<boost::recursive_mutex> g(d->annotationsMutex);
-            ann_->setProperty("concrete", "0");
-            d->annotations[list].erase(ann_);
-            anns.insert(ann_);
-            d->annotationsById[ann_->getFirstProperty("id")].erase(ann_);
-            string parent(ann_->getFirstProperty("parent"));
-            //cerr << "+++++ removeAnnotation " << list << " - " << parent << endl;
-            if (!parent.empty() && list.empty()) { d->annotationsByParentId[parent].erase(ann_); }
-        }
-        d->emitAnnotationsChanged(list, anns, false);
+        anns.insert(ann_);
+        removeAnnotations(anns, list);
     }
 
     void Document::removeAnnotations(const AnnotationSet & anns_, const string & list)
@@ -874,12 +877,30 @@ namespace Spine
             boost::lock_guard<boost::recursive_mutex> g(d->annotationsMutex);
             BOOST_FOREACH(AnnotationHandle ann_, anns_)
             {
-                ann_->setProperty("concrete", "0");
-                d->annotations[list].erase(ann_);
-                d->annotationsById[ann_->getFirstProperty("id")].erase(ann_);
+                // Get the annotation's IDs
+                string id = ann_->getFirstProperty("id");
                 string parent(ann_->getFirstProperty("parent"));
-                //cerr << "+++++ removeAnnotation " << list << " - " << parent << endl;
-                if (!parent.empty() && list.empty()) { d->annotationsByParentId[parent].erase(ann_); }
+
+                // Remove the annotation
+                if (d->annotations[list].erase(ann_) > 0) {
+                    // Remove reference count if no longer needed, and make no longer
+                    // concrete
+                    d->annotationsByIdRefCount[ann_.get()] -= 1;
+                    if (d->annotationsByIdRefCount[ann_.get()] <= 0) {
+                        d->annotationsByIdRefCount.erase(ann_.get());
+                        d->annotationsById[id].erase(ann_);
+                        ann_->setProperty("concrete", "0");
+                    }
+
+                    //cerr << "+++++ removeAnnotation " << list << " - " << parent << endl;
+                    if (!parent.empty()) {
+                        d->annotationsByParentIdRefCount[ann_.get()] -= 1;
+                        if (d->annotationsByParentIdRefCount[ann_.get()] <= 0) {
+                            d->annotationsByParentIdRefCount.erase(ann_.get());
+                            d->annotationsByParentId[parent].erase(ann_);
+                        }
+                    }
+                }
             }
         }
         d->emitAnnotationsChanged(list, anns_, false);

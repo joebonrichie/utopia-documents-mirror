@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -133,7 +133,7 @@ namespace Utopia
     {
         QNetworkRequest request(req);
         if (!request.hasRawHeader("User-Agent")) {
-            const static QByteArray agentString(QString("Utopia/" + Utopia::versionString() + " Qt/" + QString(qVersion())).toAscii());
+            const static QByteArray agentString(QString("Utopia/" + Utopia::versionString() + " Qt/" + QString(qVersion())).toUtf8());
             request.setRawHeader("User-Agent", agentString);
         }
 
@@ -145,7 +145,7 @@ namespace Utopia
 
         QTimer * timer = new QTimer(reply);
         timer->setSingleShot(true);
-        timer->setInterval(8000);
+        timer->setInterval(20000);
         d->timeoutMapper->setMapping(timer, reply);
         connect(timer, SIGNAL(timeout()), d->timeoutMapper, SLOT(map()));
         connect(this, SIGNAL(stopTimers()), timer, SLOT(stop()));

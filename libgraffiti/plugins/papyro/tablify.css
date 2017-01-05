@@ -1,0 +1,87 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2016 Lost Island Labs
+ *           <info@utopiadocs.com>
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+Graffiti--Header {
+    background-color: rgba(50, 50, 100, 15%);
+    border-style: solid;
+}
+TablificationDialog Graffiti--Header, Graffiti--GridView {
+    qproperty-gridColor: #00f;
+    qproperty-cursorColor: #0f0;
+}
+TablificationDialog #gridPane QScrollBar::handle:horizontal {
+    min-width: 100px;
+}
+TablificationDialog #gridPane QScrollBar::handle:vertical {
+    min-height: 100px;
+}
+TablificationDialog #gridPane QScrollBar {
+    margin: 2px;
+    border: 0px;
+    padding: 0px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 50%);
+}
+TablificationDialog #gridPane QScrollBar:vertical {
+    width: 13px;
+}
+TablificationDialog #gridPane QScrollBar:horizontal {
+    height: 13px;
+}
+TablificationDialog #gridPane QScrollBar::handle {
+    margin: 0px;
+    border: 0px;
+    padding: 0px;
+    border-radius: 4px;
+}
+TablificationDialog #gridPane QScrollBar::handle,
+TablificationDialog #gridPane QScrollBar::handle {
+    background-color: rgba(255, 255, 255, 0%);
+}
+TablificationDialog #gridPane QScrollBar::handle:enabled {
+    background-color: rgba(0, 0, 0, 20%);
+}
+TablificationDialog #gridPane QScrollBar::handle:enabled:hover,
+TablificationDialog #gridPane QScrollBar::handle:enabled:pressed {
+    background-color: rgba(0, 0, 0, 50%);
+}
+TablificationDialog #gridPane QScrollBar::add-page,
+TablificationDialog #gridPane QScrollBar::sub-page,
+TablificationDialog #gridPane QScrollBar::add-line,
+TablificationDialog #gridPane QScrollBar::sub-line {
+    background: none;
+    width: 0px;
+    height: 0px;
+}
+
+TablificationDialog #tablePane QTableWidget {
+    gridline-color: #ccc;
+}

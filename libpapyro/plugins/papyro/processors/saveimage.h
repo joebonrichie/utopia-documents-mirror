@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,11 +31,46 @@
 
 #include <papyro/selectionprocessor.h>
 
+#include <QFrame>
+#include <QPropertyAnimation>
+#include <QWidget>
 
 namespace Papyro
 {
 
-    class ImagingProcessor : public SelectionProcessor
+    class ContextPreview : public QWidget
+    {
+        Q_OBJECT
+
+    public:
+        ContextPreview(QWidget * parent, const QPixmap & pixmap, const QVariantMap & params);
+        ~ContextPreview();
+
+    protected:
+        void enterEvent(QEvent * event);
+        void leaveEvent(QEvent * event);
+        void resizeEvent(QResizeEvent * event);
+
+    protected slots:
+        void onSaveContextButtonClicked();
+        void onShowContextButtonClicked();
+
+    signals:
+        void showPage(const QVariantMap & params);
+
+    private:
+        QPixmap pixmap;
+        QVariantMap params;
+        QPropertyAnimation slidingAnimation;
+        QFrame * sliver;
+        QColor sliverBackgroundColor;
+
+    }; // class ContextPreview
+
+
+
+
+    class SaveImageProcessor : public SelectionProcessor
     {
     public:
         int category() const;
@@ -43,7 +78,20 @@ namespace Papyro
         QString title() const;
         int weight() const;
 
-    }; // class ImagingProcessor
+    }; // class SaveImageProcessor
+
+
+
+
+    class PopOutImageProcessor : public SelectionProcessor
+    {
+    public:
+        int category() const;
+        void processSelection(Spine::DocumentHandle document, Spine::CursorHandle cursor, const QPoint & globalPos = QPoint());
+        QString title() const;
+        int weight() const;
+
+    }; // class PopOutImageProcessor
 
 
 

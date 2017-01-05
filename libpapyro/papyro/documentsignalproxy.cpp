@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -102,6 +102,53 @@ namespace Papyro
         setDocument(Spine::DocumentHandle());
     }
 
+    Spine::DocumentHandle DocumentSignalProxy::document() const
+    {
+        return _document;
+    }
+
+    void DocumentSignalProxy::onDeferredAnnotationsChanged(std::string name, Spine::AnnotationSet annotations, bool added)
+    {
+        if (_document) {
+            Q_EMIT annotationsChanged(name, annotations, added);
+        }
+    }
+
+    void DocumentSignalProxy::onDeferredAreaSelectionChanged(std::string name, Spine::AreaSet areas, bool added)
+    {
+        if (_document) {
+            Q_EMIT areaSelectionChanged(name, areas, added);
+        }
+    }
+
+    void DocumentSignalProxy::onDeferredTextSelectionChanged(std::string name, Spine::TextExtentSet extents, bool added)
+    {
+        if (_document) {
+            Q_EMIT textSelectionChanged(name, extents, added);
+        }
+    }
+
+    void DocumentSignalProxy::onAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added)
+    {
+        if (_document) {
+            Q_EMIT deferAnnotationsChanged(name, annotations, added);
+        }
+    }
+
+    void DocumentSignalProxy::onAreaSelectionChanged(const std::string & name, const Spine::AreaSet & areas, bool added)
+    {
+        if (_document) {
+            Q_EMIT deferAreaSelectionChanged(name, areas, added);
+        }
+    }
+
+    void DocumentSignalProxy::onTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added)
+    {
+        if (_document) {
+            Q_EMIT deferTextSelectionChanged(name, extents, added);
+        }
+    }
+
     void DocumentSignalProxy::setDocument(Spine::DocumentHandle document_)
     {
         if (_document) {
@@ -115,36 +162,7 @@ namespace Papyro
             _document->connectAnyAreaSelectionChanged(slot_areaSelectionChanged, this);
             _document->connectAnyTextSelectionChanged(slot_textSelectionChanged, this);
         }
-    }
-
-    void DocumentSignalProxy::onDeferredAnnotationsChanged(std::string name, Spine::AnnotationSet annotations, bool added)
-    {
-        Q_EMIT annotationsChanged(name, annotations, added);
-    }
-
-    void DocumentSignalProxy::onDeferredAreaSelectionChanged(std::string name, Spine::AreaSet areas, bool added)
-    {
-        Q_EMIT areaSelectionChanged(name, areas, added);
-    }
-
-    void DocumentSignalProxy::onDeferredTextSelectionChanged(std::string name, Spine::TextExtentSet extents, bool added)
-    {
-        Q_EMIT textSelectionChanged(name, extents, added);
-    }
-
-    void DocumentSignalProxy::onAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added)
-    {
-        Q_EMIT deferAnnotationsChanged(name, annotations, added);
-    }
-
-    void DocumentSignalProxy::onAreaSelectionChanged(const std::string & name, const Spine::AreaSet & areas, bool added)
-    {
-        Q_EMIT deferAreaSelectionChanged(name, areas, added);
-    }
-
-    void DocumentSignalProxy::onTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added)
-    {
-        Q_EMIT deferTextSelectionChanged(name, extents, added);
+        emit documentChanged();
     }
 
 }

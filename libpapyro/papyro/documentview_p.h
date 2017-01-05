@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -38,8 +38,11 @@
 #include <papyro/documentsignalproxy.h>
 #include <papyro/documentview.h>
 #include <papyro/pageview.h>
-#include <spine/Document.h>
-#include <boost/multi_array.hpp>
+
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Document.h>
+#  include <boost/multi_array.hpp>
+#endif
 
 #include <QMap>
 #include <QObject>
@@ -89,16 +92,24 @@ namespace Papyro
                            Qt::KeyboardModifiers modifiers,
                            int cardinality);
 
+        PageView * pageView;
         QPoint pos;
         QPointF pagePos;
         Qt::MouseButton button;
         Qt::MouseButtons buttons;
         Qt::KeyboardModifiers modifiers;
-        PageView * pageView;
         int cardinality;
 
         QPoint globalPos() const;
         operator bool() const;
+    };
+
+
+
+
+    enum {
+        GridChange      = 0x0001,
+        SizeChange      = 0x0002
     };
 
 
@@ -174,6 +185,9 @@ namespace Papyro
             int holdInterval;
             Spine::CursorHandle mouseTextCursor;
 
+            // Scrollbar interaction
+            bool updateOrigin;
+
             // Keyboard interaction
             bool isExposing;
         } interaction;
@@ -214,7 +228,7 @@ namespace Papyro
         QMap< PageView *, PageViewOverlay > pageViewOverlays;
 
         // Current state
-        size_t pageNumber;
+        int pageNumber;
         DocumentView::BindingMode bindingMode;
         DocumentView::PageFlow pageFlow;
         DocumentView::PageFlowDirection pageFlowDirection;
@@ -224,7 +238,7 @@ namespace Papyro
 
         // Search highlights
         std::vector< Spine::TextExtentHandle > spotlights;
-        int activeSpotlight;
+        size_t activeSpotlight;
 
         // Zooming members
         QMap< int, QAction * > zoomPercentages;
@@ -283,11 +297,10 @@ namespace Papyro
             int horizontalWhitespace;
             int verticalWhitespace;
 
-            int resizing;
             qreal horizontalOrigin;
-            QPoint horizontalOriginPageViewIndices;
+            QPoint horizontalOriginPageViewGridCoords;
             qreal verticalOrigin;
-            QPoint verticalOriginPageViewIndices;
+            QPoint verticalOriginPageViewGridCoords;
         } layout;
 
         // Outlines between pages
@@ -296,7 +309,7 @@ namespace Papyro
         void applyActiveAreaSelection();
         void applyActiveTextSelection();
         void clearPageViews();
-        void createHighlight(const Spine::Area * area, Spine::TextExtentHandle extent);
+        Spine::AnnotationHandle createHighlight(const Spine::Area * area, Spine::TextExtentHandle extent, bool store = true, bool persist = false);
         void createPageViews();
         void initialise();
         bool isMouseOverImage();
@@ -315,19 +328,29 @@ namespace Papyro
         void updateActiveAreaSelection();
         void updateActiveTextSelection();
         void updateAnnotationsUnderMouse(PageView * pageView, const QPointF & pagePos);
-        void updatePageViewLayout();     // calls updatePageViewZoom()
-        void updatePageViewZoom();       // calls updateViewport()
         void updateSavedSelection(const QSet< int > & changedPages);
-        void updateScrollBars();
-        void updateScrollBarsOld();
         void updateSelection(PageView * pageView);
-        void updateViewport();
         void updateZoomMenu();
+
+        // Layout engine
+        void layout_calculateGrid();
+        void layout_calculateWhitespace();
+        void layout_calculatePageViewPositions();
+        void layout_calculateHorizontalOrigin();
+        void layout_calculateVerticalOrigin();
+        void layout_updatePageViewSizes();
+        void layout_updatePageViewPositions();
+
+        void updatePageOutlines();
+        void updateScrollBars();
+        void updateScrollBarPolicies();
 
         // Deal with mouse interaction and overlay of annotations
         bool eventFilter(QObject * obj, QEvent * e);
 
     public slots:
+        void update_layout(int changed = GridChange);
+
         // Context menu action slots
         void onFitToHeight();
         void onFitToWidth();
@@ -346,7 +369,7 @@ namespace Papyro
         void onSelectionStarted();
         void onSelectionFinished();
 
-        //
+        // Scrollbar interaction
         void onHorizontalScrollBarValueChanged(int value);
         void onVerticalScrollBarValueChanged(int value);
 

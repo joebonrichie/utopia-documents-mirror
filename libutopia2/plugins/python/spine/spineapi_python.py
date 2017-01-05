@@ -1,41 +1,10 @@
-###############################################################################
-#   
-#    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
-#            <info@utopiadocs.com>
-#    
-#    Utopia Documents is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
-#    published by the Free Software Foundation.
-#    
-#    Utopia Documents is distributed in the hope that it will be useful, but
-#    WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-#    Public License for more details.
-#    
-#    In addition, as a special exception, the copyright holders give
-#    permission to link the code of portions of this program with the OpenSSL
-#    library under certain conditions as described in each individual source
-#    file, and distribute linked combinations including the two.
-#    
-#    You must obey the GNU General Public License in all respects for all of
-#    the code used other than OpenSSL. If you modify file(s) with this
-#    exception, you may extend this exception to your version of the file(s),
-#    but you are not obligated to do so. If you do not wish to do so, delete
-#    this exception statement from your version.
-#    
-#    You should have received a copy of the GNU General Public License
-#    along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
-#   
-###############################################################################
-
-%pythonappend Annotation::Annotation() {
+%pythonappend Annotation::Annotation() %{
     self.beginRegion()
-}
+%}
 
 
 %extend Image {
-    %pythoncode {
+    %pythoncode %{
         def toPILImage(self):
             from PIL import Image
             import StringIO
@@ -52,12 +21,12 @@
                 result= Image.open(StringIO.StringIO(self.data()))
 
             return result
-    }
+    %}
 }
 
 
 %extend Cursor {
-  %pythoncode {
+  %pythoncode %{
 
     def image(self):
         return self._image().toPILImage()
@@ -81,52 +50,52 @@
             self._advance_meth(self._cur, self._limit)
             return result
 
-    def pages(self, limit=_spineapi.UntilEndOfDocument):
+    def pages(self, limit=UntilEndOfDocument):
         return Cursor.CursorIterator(self, Cursor.advancePage, Cursor.pageValid, limit)
 
-    def regions(self, limit=_spineapi.UntilEndOfPage):
+    def regions(self, limit=UntilEndOfPage):
         return Cursor.CursorIterator(self, Cursor.advanceRegion, Cursor.regionValid, limit)
 
-    def blocks(self, limit=_spineapi.UntilEndOfRegion):
+    def blocks(self, limit=UntilEndOfRegion):
         return Cursor.CursorIterator(self, Cursor.advanceBlock, Cursor.blockValid, limit)
 
-    def lines(self, limit=_spineapi.UntilEndOfBlock):
+    def lines(self, limit=UntilEndOfBlock):
         return Cursor.CursorIterator(self, Cursor.advanceLine, Cursor.lineValid, limit)
 
-    def words(self, limit=_spineapi.UntilEndOfLine):
+    def words(self, limit=UntilEndOfLine):
         return Cursor.CursorIterator(self, Cursor.advanceWord, Cursor.wordValid, limit)
 
-    def characters(self, limit=_spineapi.UntilEndOfWord):
+    def characters(self, limit=UntilEndOfWord):
         return Cursor.CursorIterator(self, Cursor.advanceCharacter, Cursor.characterValid, limit)
 
-    def images(self, limit=_spineapi.UntilEndOfPage):
+    def images(self, limit=UntilEndOfPage):
         return Cursor.CursorIterator(self, Cursor.advanceImage, Cursor.imageValid, limit)
-  }
+  %}
 }
 
 
 %extend Document {
-  %pythoncode {
+  %pythoncode %{
 
-    def pages(self, limit=_spineapi.UntilEndOfDocument):
+    def pages(self, limit=UntilEndOfDocument):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advancePage, Cursor.pageValid, limit)
 
-    def regions(self, limit=_spineapi.UntilEndOfPage):
+    def regions(self, limit=UntilEndOfPage):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advanceRegion, Cursor.regionValid, limit)
 
-    def blocks(self, limit=_spineapi.UntilEndOfRegion):
+    def blocks(self, limit=UntilEndOfRegion):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advanceBlock, Cursor.blockValid, limit)
 
-    def lines(self, limit=_spineapi.UntilEndOfBlock):
+    def lines(self, limit=UntilEndOfBlock):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advanceLine, Cursor.lineValid, limit)
 
-    def words(self, limit=_spineapi.UntilEndOfLine):
+    def words(self, limit=UntilEndOfLine):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advanceWord, Cursor.wordValid, limit)
 
-    def characters(self, limit=_spineapi.UntilEndOfWord):
+    def characters(self, limit=UntilEndOfWord):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advanceCharacter, Cursor.characterValid, limit)
 
-    def images(self, limit=_spineapi.UntilEndOfDocument):
+    def images(self, limit=UntilEndOfDocument):
         return Cursor.CursorIterator(self.newCursor(), Cursor.advanceImage, Cursor.imageValid, limit)
 
     def render(self, page, resolution):
@@ -135,7 +104,7 @@
     def renderArea(self, area, resolution):
         return self._renderArea(area, resolution).toPILImage()
 
-    def search(self, regex, options=_spineapi.DefaultSearchOptions, start=None):
+    def search(self, regex, options=DefaultSearchOptions, start=None):
         if start is not None:
             return self._searchFrom(start, regex, options)
         else:
@@ -159,9 +128,9 @@
             else:
                 return input
 
-        #print (before, label, after)
+        # print (before, label, after)
         before, label, after = (fuzz(before), fuzz(label, strict = True), fuzz(after))
-        #print (before, label, after)
+        # print (before, label, after)
         regex = "%s.?(%s).?%s" % (before, label, after)
 
         # Now ignore whole matches, and get only the sub-string matches
@@ -198,7 +167,7 @@
         import spineapi
         link = spineapi.Annotation()
         link['session:volatile'] = '1'
-        link['concept'] = "AccumulatorListLink"
+        link['concept'] = 'AccumulatorListLink'
         link['scratch'] = self.newScratchId()
         link['type'] = accType
         if rank is not None:
@@ -229,11 +198,11 @@
         else:
             return self._removeScratchAnnotation(annotation, scratch)
 
-  }
+  %}
 }
 
 %extend Annotation {
-  %pythoncode {
+  %pythoncode %{
 
     def __len__(self):
         return len(self.properties())
@@ -254,8 +223,10 @@
             except KeyError:
                 # Ignore
                 pass
-            for i in value:
-                self.insertProperty(key, unicode(i))
+            for v in value:
+                if not isinstance(v, basestring):
+                    v = unicode(v)
+                self.insertProperty(key, v)
         else:
             self.insertProperty(key, unicode(value))
 
@@ -378,20 +349,20 @@
             # add text
             self.rich_content+= text
 
-  }
+  %}
 }
 
 %extend TextExtent {
-  %pythoncode {
+  %pythoncode %{
 
     def __unicode__(self):
         return self.text()
 
-    def search(self, regex, options=_spineapi.DefaultSearchOptions, start=None):
+    def search(self, regex, options=DefaultSearchOptions, start=None):
         if start is not None:
             return self._searchFrom(start, regex, options)
         else:
             return self._search(regex, options)
 
-  }
+  %}
 }

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,12 +35,18 @@
 #include <papyro/uimodifier.h>
 #include <papyro/documentview.h>
 #include <papyro/papyrotab.h>
-#include <athenaeum/abstractbibliographiccollection.h>
-#include <athenaeum/bibliographicsearchbox.h>
+#include <papyro/abstractbibliography.h>
+#include <papyro/bibliographicsearchbox.h>
+#include <papyro/citation.h>
 #include "utopia2/qt/abstractwindow_p.h"
+#include <utopia2/qt/actionproxy.h>
+#include <utopia2/qt/menuproxy.h>
+#include <utopia2/busagent.h>
 #include <utopia2/networkaccessmanager.h>
 
-#include <boost/shared_ptr.hpp>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <boost/shared_ptr.hpp>
+#endif
 
 #include <QModelIndex>
 #include <QObject>
@@ -54,7 +60,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QThreadPool>
-#include <QWeakPointer>
+#include <QPointer>
 #include <QWidget>
 #include <QUrl>
 
@@ -89,7 +95,9 @@ namespace Spine
 
 namespace Utopia
 {
+    class ActionProxy;
     class BubbleWidget;
+    class ElidedLabel;
     class FlowBrowser;
     class FlowBrowserModel;
     class HoldableButton;
@@ -109,7 +117,8 @@ namespace Athenaeum
     class ArticleView;
     class Exporter;
     class LibraryModel;
-    class RemoteQueryBibliographicModel;
+    class LibraryView;
+    class RemoteQueryBibliography;
     class Resolver;
     class SortFilterProxyModel;
 }
@@ -136,7 +145,7 @@ namespace Papyro
 
 
 
-    class PapyroWindowPrivate : public Utopia::AbstractWindowPrivate, public Utopia::NetworkAccessManagerMixin
+    class PapyroWindowPrivate : public Utopia::AbstractWindowPrivate, public Utopia::BusAgent, public Utopia::NetworkAccessManagerMixin
     {
         Q_OBJECT
 
@@ -158,20 +167,28 @@ namespace Papyro
         QAction * actionOpen;
         QAction * actionOpenUrl;
         QAction * actionOpenFromClipboard;
+        QAction * actionSaveToLibrary;
         QAction * actionSave;
         QAction * actionPrint;
         QAction * actionClose;
         QAction * actionQuit;
 
         QAction * actionCopy;
+        Utopia::ActionProxy * actionQuickSearch;
+        Utopia::ActionProxy * actionQuickSearchNext;
+        Utopia::ActionProxy * actionQuickSearchPrevious;
 
+        Utopia::MenuProxy * menuLayout;
+        Utopia::MenuProxy * menuZoom;
+        Utopia::ActionProxy * actionToggleSidebar;
+        Utopia::ActionProxy * actionToggleLookupBar;
+        Utopia::ActionProxy * actionTogglePager;
+        Utopia::ActionProxy * actionToggleImageBrowser;
         QAction * actionNextTab;
         QAction * actionPreviousTab;
         QAction * actionShowSearch;
         QAction * actionShowDocuments;
-#ifdef UTOPIA_BUILD_DEBUG
         QAction * actionShowLibrary;
-#endif
 
         QAction * actionShowHelp;
         QAction * actionShowAbout;
@@ -192,23 +209,30 @@ namespace Papyro
         TabBar * tabBar;
         QStackedLayout * tabLayout;
         Athenaeum::BibliographicSearchBox * searchBox;
+        QToolButton * libraryButton;
+        QLabel * searchLabel;
 
         // Remote searching / library
-        Athenaeum::LibraryModel * libraryModel;
+        boost::shared_ptr< Athenaeum::LibraryModel > libraryModel;
         Athenaeum::SortFilterProxyModel * filterProxyModel;
         Athenaeum::AggregatingProxyModel * aggregatingProxyModel;
         QMap< int, Athenaeum::AbstractFilter * > standardFilters;
+        Athenaeum::LibraryView * libraryView;
         Athenaeum::ArticleView * articleResultsView;
+        QAbstractItemModel * libraryContextModel;
+        QModelIndex libraryContextIndex;
         QMap< QString, Athenaeum::Exporter * > exporters;
         //QMap< int, QList< Athenaeum::Resolver * > > resolvers;
-        QList< Athenaeum::RemoteQueryBibliographicModel * > remoteSearches;
+        QList< Athenaeum::RemoteQueryBibliography * > remoteSearches;
         QFrame * remoteSearchLabelFrame;
-        QLabel * remoteSearchLabel;
+        Utopia::ElidedLabel * remoteSearchLabel;
+        QLabel * filterLabel;
         Utopia::Spinner * remoteSearchLabelSpinner;
         void removeRemoteSearch();
-        QWeakPointer< Utopia::BubbleWidget > articlePreviewBubble;
+        QPointer< Utopia::BubbleWidget > articlePreviewBubble;
         QModelIndex articlePreviewIndex;
         QTimer articlePreviewTimer;
+        void updateSearchFilterUI();
 
         QList< QUrl > checkForSupportedUrls(const QMimeData * mimeData);
 
@@ -239,13 +263,14 @@ namespace Papyro
         PapyroTab * newTab();
         PapyroTab * tabAt(int index);
         QList< PapyroTab * > tabs();
+        void addTabActions(PapyroTab * tab);
 
         // Layers
-        enum Layer { SearchLayer, SearchControlLayer, DocumentLayer, SliverLayer };
+        enum Layer { LibraryLayer, SearchLayer, SearchControlLayer, DocumentLayer, SliverLayer };
         QMap< Layer, QWidget * > layers;
         QParallelAnimationGroup layerAnimationGroup;
         QMap< Layer, QPropertyAnimation * > layerAnimations;
-        enum LayerState { DocumentState, SearchState };
+        enum LayerState { DocumentState, SearchState, LibraryState };
         QRect layerGeometry(Layer layer) const;
         QRect layerGeometryForState(Layer layer, LayerState layerState) const;
         LayerState toLayerState;
@@ -255,17 +280,26 @@ namespace Papyro
 
         // General UI / menus
         void initialise();
+        void setInitialGeometry();
         void rebuildMenus();
         PapyroTab * takeTab(int index);
         void updateTabVisibility();
 
+        QFrame * dropOverlay;
+        QFrame * dropIntoLibrary;
+        QFrame * dropIntoDocument;
+
+        QString busId() const { return "window"; }
+
     signals:
         void currentTabChanged();
+        void cancellationRequested(); // FIXME this doesn't do anything?
 
     public slots:
         void closeArticlePreview();
         void closeOtherTabs(int index);
         void closeTab(int index);
+        void copySelectedArticlesToLibrary();
         void copySelectedText();
         void deleteSelectedArticles();
         void exportArticleCitations(const QItemSelection & selection);
@@ -273,7 +307,10 @@ namespace Papyro
         void moveTabToNewWindow(int index);
         void onArticleActivated(const QModelIndex & index);
         void onArticlePreviewRequested(const QModelIndex & index);
+        void onArticleViewArticleActivated(const QModelIndex & index, bool newWindow);
+        void onArticleViewArticlesActivated(const QModelIndexList & indices, bool newWindow);
         void onArticleViewCustomContextMenuRequested(const QPoint & pos);
+        void onCitationsActivated(const QVariantList & citations, const QString & target);
         void onClipboardDataChanged();
         void onClose();
         void onCornerButtonClicked(bool checked);
@@ -281,6 +318,13 @@ namespace Papyro
         void onFilterRequested(const QString & text, Athenaeum::BibliographicSearchBox::SearchDomain searchDomain);
         void onHighlightingModeOptionsRequested();
         void onHighlightingModeOptionChosen();
+        void onLibraryCustomContextMenu(const QPoint &);
+        void onLibraryDelete();
+        void onLibraryExport();
+        void onLibraryNewCollection();
+        void onLibraryRename();
+        void onLibrarySelected(const QModelIndex &, const QModelIndex &);
+        void onLibraryToggled(bool checked);
         void onModeChange(int mode);
         void onModeChangeSelecting();
         void onModeChangeHighlighting();
@@ -288,28 +332,34 @@ namespace Papyro
         void onNewWindow();
         void onPrimaryToolButtonClicked(int idx);
         void onPrint();
-        void onRemoteSearchStateChanged(Athenaeum::AbstractBibliographicCollection::State state);
-        void onResolverRunnableCompleted(QModelIndex index, QVariantMap metadata);
-        void onSearchRequested(const QString & text, Athenaeum::BibliographicSearchBox::SearchDomain searchDomain);
+        void onRemoteSearchStateChanged(Athenaeum::AbstractBibliography::State state);
+        void onResolverRunnableCompleted(Athenaeum::CitationHandle citation);
+        void onSearchRequested(const QString & text, Athenaeum::BibliographicSearchBox::SearchDomain searchDomain = Athenaeum::BibliographicSearchBox::SearchAll);
         void onTabBarCustomContextMenuRequested(const QPoint & pos);
+        void onTabCitationChanged();
         void onTabContextMenu(QMenu * menu);
         void onTabDocumentChanged();
+        void onTabKnownChanged(bool);
         void onTabLayoutChanged();
         void onTabStateChanged(PapyroTab::State state);
         void onTabTitleChanged(const QString & title);
         void onTabUrlChanged(const QUrl & url);
         void onUrlRequested(const QUrl & url, const QString & target);
         void openSelectedArticles();
+        void openSelectedArticlesInNewWindow();
         void showDocuments();
-        void showLibrary();
+        void showLibrary(bool checked);
         void showSearch();
+        void toggleFavouriteActionName();
         void updateTabInfo();
 
     protected:
         bool eventFilter(QObject * obj, QEvent * event);
+        void receiveFromBus(const QString & sender, const QVariant & data);
     };
 
-
 }
+
+Q_DECLARE_METATYPE(QModelIndex);
 
 #endif // PAPYROWINDOW_P_H

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -53,6 +53,12 @@ namespace Utopia
         CachedItemPrivate(const Item & item, const QString & id, const QDateTime & accessed, const QDateTime & modified)
             : id(id), item(new Item(item)), accessed(accessed), modified(modified)
         {}
+        ~CachedItemPrivate()
+        {
+            if (item) {
+                delete item;
+            }
+        }
 
         QString id;
         Item * item;
@@ -93,6 +99,11 @@ namespace Utopia
         QString id() const
         {
             return d->id;
+        }
+
+        bool isValid() const
+        {
+            return d->item;
         }
 
         const Item & item() const

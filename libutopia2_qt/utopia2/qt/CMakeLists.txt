@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@ set(SOURCES
   aboutdialog.cpp
   abstractwidget.cpp
   abstractwindow.cpp
+  actionproxy.cpp
   closebutton.cpp
   combinedwidget.cpp
   configurator.cpp
@@ -45,10 +46,13 @@ set(SOURCES
   filefixerdialog.cpp
   fileformatdialog.cpp
   flowbrowser.cpp
+  hidpi.cpp
   holdablebutton.cpp
   imagecroppingdialog.cpp
   imagedropper.cpp
   imageformatmanager.cpp
+  menuproxy.cpp
+  imagepreview.cpp
   messagelabel.cpp
   parsercontextmodel.cpp
   preferencesdialog.cpp
@@ -72,58 +76,6 @@ set(SOURCES
   webview.cpp
   )
 
-set(HEADERS
-  abstractcommentdata.h
-  cache.h
-  cacheditem.h
-  roundedpixmap.h
-  slavemenu.h
-  webview.h
-  )
-
-set(MOC_HEADERS
-  aboutdialog.h
-  abstractwidget.h
-  abstractwindow.h
-  abstractwindow_p.h
-  bubble.h
-  closebutton.h
-  combinedwidget.h
-  elidedlabel.h
-  embeddedwidget.h
-  fieldeditor.h
-  filefixerdialog.h
-  fileformatdialog.h
-  flowbrowser.h
-  flowbrowser_p.h
-  holdablebutton.h
-  imagecroppingdialog.h
-  imagedropper.h
-  imageformatmanager.h
-  messagelabel.h
-  parsercontextmodel.h
-  progressdialog.h
-  preferencesdialog_p.h
-  preferencesdialog.h
-  preferencespane.h
-  raiseaction.h
-  shimmerwidget.h
-  slavesplitter_p.h
-  slavesplitter.h
-  slidelayout_p.h
-  slidelayout.h
-  speechbubble.h
-  spinner.h
-  splashscreen.h
-  tearout.h
-  thoughtbubble.h
-  thumbnailchooser.h
-  thumbnailpreview.h
-  uimanager_p.h
-  uimanager.h
-  updatewidget.h
-  )
-
 set(FORMS
   filefixerdialog.ui
   fileformatdialog.ui
@@ -139,36 +91,33 @@ include_directories(
   ${utopia2_INCLUDE_DIR}
   ${utopia2_qt_INCLUDE_DIR}
   ${Boost_INCLUDE_DIR}
-#  ${Graphviz_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   ${CMAKE_BINARY_DIR}
   )
 
-QT4_WRAP_UI(UI_SOURCES ${FORMS})
+# auto-moc misses bubble.h (probably because of templates)
+qt5_wrap_cpp(SOURCES bubble.h)
+qt5_wrap_ui(UI_SOURCES ${FORMS})
 
-set(RESOURCES utopia2_qt.qrc utopia2_qt_css.qrc)
-
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} )
-
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
+qt5_add_resources(SOURCES utopia2_qt.qrc utopia2_qt_css.qrc)
 
 if(WIN32)
 	add_definitions(-DBUILD_LIBUTOPIA_QT=1)
 endif()
 
-add_utopia_library( ${PROJECT_NAME} SHARED ${SOURCES} ${MOC_SOURCES} ${UI_SOURCES} ${RES_SOURCES})
+add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES} ${UI_SOURCES})
 
-#target_link_libraries(${PROJECT_NAME} utopia2 ${QT_LIBRARIES} ${Graphviz_LIBRARIES} ${Boost_LIBRARIES} ${EXPAT_LIBRARIES} ${OPENGL_LIBRARIES} ${Graphviz_GVC_LIBRARIES} ${Graphviz_CDT_LIBRARIES} ${Graphviz_DOT_LIBRARIES} ${Graphviz_GRAPH_LIBRARIES} ${Graphviz_PATHPLAN_LIBRARIES} ${ZLIB_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} utopia2 ${QT_LIBRARIES} ${Boost_LIBRARIES} ${EXPAT_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} utopia2 ${Boost_LIBRARIES} ${EXPAT_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES})
+qt5_use_modules(${PROJECT_NAME} WebKitWidgets Widgets Network OpenGL Svg Xml)
 
 install_utopia_library(${PROJECT_NAME} "${COMPONENT}")
 
 set(PROJECT_APPLE_NIB qt_menu.nib/classes.nib qt_menu.nib/info.nib qt_menu.nib/keyedobjects.nib)
 
 if(APPLE)
-  FOREACH(f ${PROJECT_APPLE_NIB})
+  foreach(f ${PROJECT_APPLE_NIB})
     configure_file(${f} ${CMAKE_BINARY_DIR}/${BUNDLE_CONTENTS_DIR}/Resources/${f} COPYONLY)
     install(DIRECTORY ${CMAKE_BINARY_DIR}/${BUNDLE_CONTENTS_DIR}/Resources/qt_menu.nib
             DESTINATION ${BUNDLE_CONTENTS_DIR}/Resources/ COMPONENT "${COMPONENT}")
-  ENDFOREACH()
+  endforeach()
 endif()

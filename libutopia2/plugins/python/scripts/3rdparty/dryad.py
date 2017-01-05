@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 #? urls: http://datadryad.org/ https://utopia.cs.man.ac.uk/
 
 
-import common.utils
+import utopialib.utils
 import json
 import re
 import socket
@@ -56,7 +56,7 @@ class Dryad(utopia.document.Annotator, utopia.document.Visualiser):
 
     def on_ready_event(self, document):
         #print "RUNNING DRYAD PLUGIN"
-        doi = common.utils.metadata(document, 'doi')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
 
         if doi is not None:
 
@@ -106,7 +106,7 @@ class Dryad(utopia.document.Annotator, utopia.document.Visualiser):
                           and also the data package:
                         </p>
                         <div class="box">{2}<br /><a href="http://dx.doi.org/{3}">doi:{3}</a></div>
-                    '''.format(articleCitation, doi, common.utils.format_citation(dataCitation), dataCitation['doi'])
+                    '''.format(articleCitation, doi, utopia.citation.format(dataCitation), dataCitation['doi'])
 
                     a = spineapi.Annotation()
                     a['concept'] = 'Dryad'

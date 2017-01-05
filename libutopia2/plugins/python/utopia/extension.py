@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,21 +29,21 @@
 #   
 ###############################################################################
 
-import os, sys, fnmatch, uuid, inspect
+import os, sys, fnmatch, uuid, inspect, traceback
 
 # Define metaclass for managing extensions
 class MetaExtension(type):
     __extensions = dict()
 
     def _typeName(cls):
-        return "%s.%s" % (cls.__module__, cls.__name__)
+        return '{}.{}'.format(cls.__module__, cls.__name__)
 
     def __init__(cls, name, bases, attrs):
         # Keep track of subclasses of Extension
         if not attrs.get('__module__', '').startswith('utopia.') and not cls.__name__.startswith('_'):
             cls.__extensions[cls._typeName()] = cls
             cls.__uuid__ = uuid.uuid4().urn
-            print '    Found', cls
+            print('    Found {}'.format(cls))
             # Give this class' module the name of its loaded plugin
             inspect.getmodule(cls).__dict__['__plugin__'] = inspect.stack()[-3][0].f_globals['__name__']
 
@@ -71,7 +71,7 @@ class Extension(object):
 
 # Clear up directory of cached Python plugins
 def cleanPluginDir(dir):
-    print 'Cleaning path:', dir
+    print('Cleaning path: {}'.format(dir))
     if os.path.isdir(dir):
         # Clear up dir
         for doomed in os.listdir(dir):
@@ -85,40 +85,55 @@ def _makeLoader(module_path):
                 path = os.path.join(module_path, data_path)
                 return open(path, 'r').read()
             except:
-                pass
+                traceback.print_exc()
     return Loader()
 
 # Load all extensions from a given plugin object
 def loadPlugin(path):
-    print "Loading extensions from:", path
     dir, p = os.path.split(path)
+    if fnmatch.fnmatch(p, '_*'): # bail if underscored
+        return
+    print('Loading extensions from: {}'.format(path))
     if os.path.isdir(path):
-        if fnmatch.fnmatch(p, '[!_]*.zip'):
+        if fnmatch.fnmatch(p, '*.zip'):
             try:
                 sys.path.append(os.path.join(dir, p, 'python'))
                 mod = __import__(os.path.splitext(p)[0])
                 mod.__file__ = path
                 mod.__loader__ = _makeLoader(path)
                 sys.path.pop()
-            except Exception, e:
-                print "Failed to load %s\n%s" % (p, e)
+            except Exception as e:
+                traceback.print_exc()
+                print('Failed to load {}\n{}'.format(p, e))
+
     else:
         # Attempt to load the plugin
-        if fnmatch.fnmatch(path, '[!_]*.py'):
+        if fnmatch.fnmatch(p, '*.py'):
             try:
                 sys.path.append(dir)
                 __import__(os.path.splitext(p)[0]).__file__ = path
                 sys.path.pop()
-            except Exception, e:
-                print "Failed to load %s\n%s" % (p, e)
-        elif fnmatch.fnmatch(p, '[!_]*.zip'):
+            except Exception as e:
+                traceback.print_exc()
+                print('Failed to load {}\n{}'.format(p, e))
+        elif fnmatch.fnmatch(p, '*.zip'):
             try:
                 sys.path.append(os.path.join(dir, p, 'python'))
                 __import__(os.path.splitext(p)[0]).__file__ = path
                 sys.path.pop()
-            except Exception, e:
-                print "Failed to load %s\n%s" % (p, e)
+            except Exception as e:
+                traceback.print_exc()
+                print('Failed to load {}\n{}'.format(p, e))
 
-
+# Load all plugins that can be found in the UTOPIA_PLUGIN_PATH env var
+if 'UTOPIA_PLUGIN_PATH' in os.environ:
+    for path in os.environ.get('UTOPIA_PLUGIN_PATH', '').split(os.pathsep):
+        path = path.strip()
+        print('--- {}'.format(path))
+        if os.path.isdir(path) and path[-4:] != '.zip':
+            for plugin in os.listdir():
+                loadPlugin(plugin)
+        else:
+            loadPlugin(path)
 
 __all__ = ['Extension', 'loadPlugin']

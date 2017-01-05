@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -245,19 +245,27 @@ namespace Utopia
     PreferencesDialog::~PreferencesDialog()
     {}
 
-    bool PreferencesDialog::focusPane(const QString & paneName)
+    bool PreferencesDialog::focusPane(const QString & paneName, const QVariant & params)
     {
+        bool success = false;
         if (d->stackedLayout && !paneName.isEmpty()) {
-            for (int i = 0; i < d->stackedLayout->count(); ++i) {
-                if (PreferencesPane * pane = qobject_cast< PreferencesPane * >(d->stackedLayout->widget(i))) {
-                    if (pane->title() == paneName) {
-                        d->stackedLayout->setCurrentIndex(i);
-                        return true;
+            foreach (QAction * action, d->toolBar->actions()) {
+                if (action->text().toLower() == paneName.toLower()) {
+                    action->trigger();
+                    success = true;
+                }
+            }
+            if (success) {
+                for (int i = 0; i < d->stackedLayout->count(); ++i) {
+                    if (PreferencesPane * pane = qobject_cast< PreferencesPane * >(d->stackedLayout->widget(i))) {
+                        if (pane->title().toLower() == paneName.toLower()) {
+                            pane->show(params);
+                        }
                     }
                 }
             }
         }
-        return false;
+        return success;
     }
 
     boost::shared_ptr< PreferencesDialog > PreferencesDialog::instance()

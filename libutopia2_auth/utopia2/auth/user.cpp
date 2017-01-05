@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,9 +37,11 @@
 
 #include <QBuffer>
 #include <QDomDocument>
+#include <QJsonDocument>
 #include <QNetworkReply>
 #include <QRegExp>
 #include <QTimer>
+#include <QUrlQuery>
 
 #include <QDebug>
 
@@ -58,7 +60,9 @@ namespace Kend
             QUrl authUrl(service->resourceUrl(Service::AuthenticationResource));
             if (authUrl.isValid()) {
                 authUrl.setPath(authUrl.path() + "/users");
-                authUrl.addQueryItem("user", id);
+                QUrlQuery query(authUrl.query());
+                query.addQueryItem("user", id);
+                authUrl.setQuery(query);
                 edit_uri = authUrl;
             }
 
@@ -233,11 +237,10 @@ namespace Kend
                 {
                     // FIXME deal with error
                     failed = true;
-                    bool ok;
                     QByteArray response(reply->readAll());
                     //qDebug() << "------" << reply->error();
                     //qDebug() << response;
-                    QVariantMap error = jsonParser.parse(response, &ok).toMap();
+                    QVariantMap error = QJsonDocument::fromJson(response).toVariant().toMap();
                     errorCode = error.value("error_code").toString();
                     errorString = error.value("error_string").toString();
                 }
@@ -300,7 +303,7 @@ namespace Kend
                     data.open(QIODevice::WriteOnly);
                     avatarOverlay.toImage().save(&data, "PNG");
                     data.close();
-                    infoStr += info_tpl.arg("avatar", QString::fromAscii(data.data().toBase64()));
+                    infoStr += info_tpl.arg("avatar", QString::fromUtf8(data.data().toBase64()));
                 }
 
                 QString userStr = user_tpl.arg(service->authenticationMethod(), infoStr);

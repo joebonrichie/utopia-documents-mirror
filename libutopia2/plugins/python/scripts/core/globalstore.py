@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,18 +34,19 @@
 #? urls: https://utopia.cs.manchester.ac.uk/
 
 
-import common.utils
+import utopialib.utils
 import kend.client
 import kend.converter
 import kend.converter.Annotation
 import kend.model
 import urllib
+import utopia
 import utopia.document
 
 
 # This has to be here, as for some reason it's not remembered when it's done through
-# boost::python during interpreter setp.
-utopia.proxyUrllib2()
+# boost::python during interpreter setup.
+utopia.bridge.proxyUrllib2()
 
 
 class GlobalStoreAnnotator(utopia.document.Annotator):
@@ -57,41 +58,13 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
     _persist_ = 'persist %s' % _context_
 
 
-    def _resolve(self, document):
-        # Start with evidence from fingerprinting
-        evidence = [kend.model.Evidence(type='fingerprint', data=f, srctype='document') for f in document.fingerprints()]
-
-        # Add scraped / resolved metadata
-        fields = {}
-        for key in ('doi', 'title', 'arxivid', 'pmid', 'pmcid', 'issn', 'pii'):
-            value = common.utils.metadata(document, key)
-            if value is not None:
-                fields[key] = value
-        for key, value in fields.iteritems():
-            evidence.append(kend.model.Evidence(type=key, data=value, srctype='algorithm', src='utopia/2.2.1'))
-
-        # Add page count
-        evidence.append(kend.model.Evidence(type='pagecount', data=document.numberOfPages(), srctype='document'))
-
-        documentref = kend.model.DocumentReference(evidence=evidence)
-        documentref = kend.client.Client().documents(documentref)
-
-        try:
-            return documentref.id, fields.get('doi')
-        except AttributeError:
-            pass
-
-        return None, None
-
-
-
-
-
     @utopia.document.buffer
     def on_ready_event(self, document):
-        document_id, doi = self._resolve(document)
+        document_id = utopialib.utils.metadata(document, 'identifiers[utopia]')
         if document_id is not None:
+
             kwargs = { 'document': document_id, 'context': self._context_ }
+            doi = utopialib.utils.metadata(document, 'identifiers[doi]')
             if doi is not None:
                 kwargs['doi'] = doi
             annotations = kend.client.Client().annotations(**kwargs)
@@ -110,7 +83,7 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
                                     link['property:sourceDescription'] = '<p>Made available by <a href="http://www.portlandpress.com/">Portland Press Limited</a> as part of the <a href="http://www.biochemj.org/bj/semantic_faq.htm">Semantic Biochemical Journal</a>.'
 
                                 # Modify Bibliography Entries
-                                if a.get('concept') == 'DocumentReference':
+                                if a.get('concept') == 'Citation':
                                     for keyTo, keyFrom in {
                                                 'property:title': 'property:articleTitle',
                                                 'property:authors': 'property:articleAuthors',
@@ -130,11 +103,10 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
                             document.addAnnotation(a)
 
 
-
     def on_persist_event(self, document):
         client = kend.client.Client()
 
-        document_id, doi = self._resolve(document)
+        document_id = utopialib.utils.metadata(document, 'identifiers[utopia]')
         if document_id is not None:
             for annotation in document.annotations('PersistQueue'):
                 if 'session:volatile' not in annotation:
@@ -166,6 +138,7 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
                         ka = kend.converter.Annotation.spineapi2kend(annotation, document_id)
                         client.deleteAnnotation(ka)
                     document.removeAnnotation(annotation, document.deletedItemsScratchId())
+                    document.removeAnnotation(annotation)
                 except:
                     raise
                     pass

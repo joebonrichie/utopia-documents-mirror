@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -135,30 +135,21 @@ endfunction(gp_item_default_embedded_path_override)
 # Compile list of application executables
 if(WIN32)
   file(GLOB APPS "@BIN_INSTALL_DIR@/Documents.exe")
-  #file(GLOB APPS "@BIN_INSTALL_DIR@/Library.exe")
 elseif(APPLE)
   file(GLOB APPS "@BIN_INSTALL_DIR@/Documents")
-  #file(GLOB APPS "@BIN_INSTALL_DIR@/Library")
-  #file(GLOB APPS "@BIN_INSTALL_DIR@/Sequences")
 endif()
 
 # Compile list of dynamically loaded plugins
-file(GLOB PLUGINS "@CMAKE_BINARY_DIR@/@PLUGIN_INSTALL_DIR@/*.*" "@CMAKE_BINARY_DIR@/@PLUGIN_INSTALL_DIR@/imageformats/*.*" "@CMAKE_BINARY_DIR@/@PLUGIN_INSTALL_DIR@/iconengines/*.*")
-
+file(GLOB_RECURSE PLUGINS "@CMAKE_BINARY_DIR@/@PLUGIN_INSTALL_DIR@/*.dylib"
+                          "@CMAKE_BINARY_DIR@/@PLUGIN_INSTALL_DIR@/*.so"
+                          "@CMAKE_BINARY_DIR@/@PLUGIN_INSTALL_DIR@/*.dll")
+						  
 # Compile list of python shared objects
-file(GLOB_RECURSE PYTHON_SHARED_OBJECTS "@PYTHON_INSTALL_DIR@/*.so" "@PYTHON_INSTALL_DIR@/*.pyd" "@PYTHON_INSTALL_DIR@/dlls/*.pyd")
+file(GLOB_RECURSE PYTHON_SHARED_OBJECTS "@PYTHON_INSTALL_DIR@/*.so"
+                                        "@PYTHON_INSTALL_DIR@/*.pyd")
 
 # Compile list of dependency directories
-set(DIRS "@QT_PLUGINS_DIR@/imageformats;@QT_PLUGINS_DIR@/iconengines")
-set(DIRS "${DIRS};@UTOPIA_DEPENDENCIES_DIR@/lib")
-if(WIN32)
-  set(DIRS "${DIRS};@UTOPIA_DEPENDENCIES_DIR@/Qt/bin")
-  #set(DIRS "${DIRS};@UTOPIA_DEPENDENCIES_DIR@/lib")
-  set(DIRS "${DIRS};@UTOPIA_DEPENDENCIES_DIR@/bin")
-  set(DIRS "${DIRS};@PYTHON_INSTALL_DIR@/dlls/")
-  set(DIRS "${DIRS};c:/OpenSSL-Win32/bin")
-  set(DIRS "${DIRS};c:/Python26")
-endif()
+set(DIRS "@UTOPIA_DEPENDENCIES_DIR@/lib;@UTOPIA_DEPENDENCIES_DIR@/bin")
 
 # Fix up bundle
 fixup_bundle("${APPS}" "${PLUGINS};${PYTHON_SHARED_OBJECTS}" "${DIRS}")
@@ -170,143 +161,3 @@ foreach(LIB ${SUPPORT_LIBS})
 endforeach()
 
 #execute_process(COMMAND @OSX_SET_PERMISSIONS_SCRIPT@)
-
-return()
-
-
-
-
-
-#-- Need this for link line stuff?
-if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0009 NEW)
-  cmake_policy(SET CMP0011 NEW)
-endif(COMMAND cmake_policy)
-
-# -- Run the BundleUtilities cmake code
-include(BundleUtilities)
-
-# copy_resolved_item_into_bundle
-#
-# Copy a resolved item into the bundle if necessary. Copy is not necessary if the resolved_item
-# is the same as the resolved_embedded_item.
-#
-function(copy_resolved_item_into_bundle resolved_item resolved_embedded_item)
-
-  if(NOT "${resolved_item}" STREQUAL "${resolved_embedded_item}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${resolved_item}" "${resolved_embedded_item}")
-    file(APPEND "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_FILE@" "${resolved_embedded_item};")
-  endif()
-
-endfunction(copy_resolved_item_into_bundle)
-
-# gp_item_default_embedded_path item default_embedded_path_var
-#
-# Return the path that others should refer to the item by when the item
-# is embedded inside a bundle.
-#
-# Override on a per-project basis by providing a project-specific
-# gp_item_default_embedded_path_override function.
-#
-function(gp_item_default_embedded_path_override item default_embedded_path_var)
-  #
-  # The assumption here is that all executables in the bundle will be
-  # in same-level-directories inside the bundle. The parent directory
-  # of an executable inside the bundle should be MacOS or a sibling of
-  # MacOS and all embedded paths returned from here will begin with
-  # "@loader_path/../" and will work from all executables in all
-  # such same-level-directories inside the bundle.
-  #
-
-  # By default, embed things right next to the main bundle executable:
-  #
-  set (install_name_prefix "@executable_path")
-
-  # -------------------------------------------------------------------
-  # If your application uses plugins then you should consider using the following
-  #  instead but will limit your deployment to OS X 10.4. There is also a patch
-  #  needed for CMake that as of Sept 30, 2008 has NOT been applied to CMake.
-  #  set (install_name_prefix "@loader_path")
-
-  set(path "${install_name_prefix}/../MacOS")
-
-  set(overridden 0)
-
-  # Embed .so files in the Plugins directory
-  #
-  if(item MATCHES "\\.so$")
-    set(path "${install_name_prefix}/../PlugIns")
-    set(overridden 1)
-  endif(item MATCHES "\\.so$")
-
-  # Embed .dylibs in the Libraries Directory
-  #
-  if(item MATCHES "\\.dylib$")
-    # put Qt image plugins in subdir
-    set(libs "@QT_PLUGINS_IMAGEFORMATS@")
-    list(FIND libs ${item} idx)
-    if(${idx} GREATER -1)
-      set(path "${install_name_prefix}/../Libraries/imageformats")
-    else()
-      set(libs "@QT_PLUGINS_GRAPHICSSYSTEMS@")
-      list(FIND libs ${item} idx)
-      if(${idx} GREATER -1)
-        set(path "${install_name_prefix}/../Libraries/graphicssystems")
-      else()
-        set(path "${install_name_prefix}/../Libraries")
-      endif()
-    endif()
-    set(overridden 1)
-  endif(item MATCHES "\\.dylib$")
-
-  # Embed frameworks in the embedded "Frameworks" directory (sibling of MacOS):
-  #
-  if(NOT overridden)
-    if(item MATCHES "[^/]+\\.framework/")
-      set(path "${install_name_prefix}/../Frameworks")
-      set(overridden 1)
-    endif(item MATCHES "[^/]+\\.framework/")
-  endif(NOT overridden)
-
-  set(${default_embedded_path_var} "${path}" PARENT_SCOPE)
-
-endfunction(gp_item_default_embedded_path_override)
-
-##############################################################################
-
-file(WRITE "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_FILE@" "")
-
-file(READ @UTOPIA_PLUGINS_FILE@ PluginList)
-
-list(APPEND PluginList @QT_PLUGINS_IMAGEFORMATS@)
-list(APPEND PluginList @QT_PLUGINS_ICONENGINES@)
-#list(APPEND PluginList @QT_PLUGINS_GRAPHICSSYSTEMS@)
-
-fixup_bundle("Utopia.app" "${PluginList}" "PlugIns")
-
-file(READ "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_FILE@" SUPPORT_LIBS)
-
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@")
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@/imageformats")
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@/iconengines")
-#execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@/graphicssystems")
-
-foreach(lib ${SUPPORT_LIBS})
- if(lib MATCHES imageformats)
-   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${lib}" "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@/imageformats")
- elseif(lib MATCHES iconengines)
-   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${lib}" "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@/iconengines")
- elseif(lib MATCHES graphicssystems)
-#   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${lib}" "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@/graphicssystems")
- else()
-   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${lib}" "@CMAKE_BINARY_DIR@/@UTOPIA_SUPPORT_LIBRARY_DIR@")
- endif()
-endforeach()
-
-execute_process(COMMAND @OSX_SET_PERMISSIONS_SCRIPT@)
-
-
-
-
-
-

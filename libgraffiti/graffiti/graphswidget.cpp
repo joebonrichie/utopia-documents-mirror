@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -175,7 +175,7 @@ namespace Graffiti
             QGraphicsSceneMouseEvent * sceneEvent = dynamic_cast< QGraphicsSceneMouseEvent * >(event);
             if (sceneEvent)
             {
-                QGraphicsItem * item = this->_scene->itemAt(sceneEvent->scenePos());
+                QGraphicsItem * item = this->_view->itemAt(this->_view->mapFromScene(sceneEvent->scenePos()));
                 if (item)
                 {
                     this->activate(item->toolTip());
@@ -288,10 +288,10 @@ namespace Graffiti
                 {
                     QModelIndex xindex= this->_model->index(row, xAxisColumn);
                     QString data = xindex.data().toString();
-                    if (data.contains("±"))
+                    if (data.contains(QChar(0x00B1)))
                     {
                         //qDebug() << "Got a plusminus";
-                        int index = data.indexOf("±");
+                        int index = data.indexOf(QChar(0x00B1));
                         data = data.left(index);
                         //qDebug() << "Stripped on create to " << data;
                     }
@@ -300,10 +300,10 @@ namespace Graffiti
 
                     QModelIndex yindex= this->_model->index(row, yAxisColumn);
                     data = yindex.data().toString();
-                    if (data.contains("±"))
+                    if (data.contains(QChar(0x00B1)))
                     {
                         //qDebug() << "Got a plusminus";
-                        int index = data.indexOf("±");
+                        int index = data.indexOf(QChar(0x00B1));
                         data = data.left(index);
                         //qDebug() << "Stripped on create to " << data;
                     }
@@ -509,7 +509,7 @@ namespace Graffiti
                 xaxislabel->setPos(((this->_xAxis->rect().bottomLeft().x() + this->_xAxis->rect().bottomRight().x()) / 2.0) - xtextRect.width() / 2.0, this->_xAxis->rect().bottom() + 20);
 
                 QGraphicsSimpleTextItem *yaxislabel = this->_view->scene()->addSimpleText(yAxisLabel);
-                yaxislabel->rotate(-90);
+                yaxislabel->setRotation(-90);
                 QRectF ytextRect = yaxislabel->boundingRect();
                 //              yaxislabel->setPos(this->_xAxis->rect().left() - 50, ((this->_yAxis->rect().topLeft().y() + this->_xAxis->rect().bottomLeft().y()) / 2.0) + ytextRect.width() / 2.0);
                 yaxislabel->setPos(yLabelMinDist - 20, ((this->_yAxis->rect().topLeft().y() + this->_xAxis->rect().bottomLeft().y()) / 2.0) + ytextRect.width() / 2.0);
@@ -604,7 +604,6 @@ namespace Graffiti
             {
                 this->_bubblePixmap= this->_view->scene()->addPixmap(QPixmap(":/images/graphbubble.png"));
                 this->_bubblePixmap->setZValue(1);
-                double bubbleWidth = this->_bubblePixmap->boundingRect().width();
                 this->_bubblePixmap->setPos(QPoint(this->_xAxis->resolve(this->_xData[i]),this->_yAxis->resolve(this->_yData[i]))-bubbleAdjust);
                 this->_bubblePixmap->setOpacity(0.9);
 

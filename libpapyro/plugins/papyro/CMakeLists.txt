@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,3 +33,4 @@ add_subdirectory( crackle )
 add_subdirectory( processors )
 add_subdirectory( reflect )
 add_subdirectory( tables )
+add_subdirectory( molecules )

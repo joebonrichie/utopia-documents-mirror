@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 #? urls: http://data.crossref.org/
 
 
-import common.utils
+import utopialib.utils
 import json
 import re
 import socket
@@ -72,8 +72,8 @@ class _CiteProc(utopia.document.Annotator, utopia.document.Visualiser):
 
     def on_ready_event(self, document):
         logger.debug('calling citeproc populate')
-        doi = common.utils.metadata(document, 'doi')
-        crossref_unixref = common.utils.metadata(document, 'raw_crossref_unixref')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
+        crossref_unixref = utopialib.utils.metadata(document, 'raw_crossref_unixref')
         # Only bother for those documents that returned a crossref document
         if doi is not None and crossref_unixref is not None:
             #load styles and locales here

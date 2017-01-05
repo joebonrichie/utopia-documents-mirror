@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -83,11 +83,11 @@ namespace Utopia
             return matches;
         }
 
-        QMenu * menuRecent() const;
-        QMenu * menuWindow() const;
+        QMenu * menuRecent(QWidget * parent = 0) const;
+        QMenu * menuWindow(QWidget * parent = 0) const;
         QMenu * menuWindowMaster() const;
         QActionGroup * menuWindowActionGroup() const;
-        QMenu * menuHelp() const;
+        QMenu * menuHelp(QWidget * parent = 0) const;
         QAction * actionPreferences() const;
 
     public slots:
@@ -95,7 +95,7 @@ namespace Utopia
         void libraryWasClosed();
         void onMessage(const QString & message);
         void relayRecentUrlActivation();
-        void showPreferences(const QString & paneName = QString());
+        void showPreferences(const QString & paneName = QString(), const QVariant & params = QVariant());
         int windowCount();
 
         void showAbout();

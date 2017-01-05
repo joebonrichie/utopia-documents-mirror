@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,18 +29,28 @@
 #   
 ###############################################################################
 
-
 set(SOURCES
+    abstractfilter.cpp
     abstractprocessor.cpp
+    aggregatingproxymodel.cpp
     annotationprocessor.cpp
     annotationprocessoraction.cpp
     annotationresultitem.cpp
     annotator.cpp
     annotatorrunnable.cpp
     annotatorrunnablepool.cpp
+    articledelegate.cpp
+    articleview.cpp
+    bibliographicmimedata.cpp
+    bibliographicsearchbox.cpp
+    bibliography.cpp
     capabilities.cpp
-    citationpopup.cpp
+    citation.cpp
     citationfinder.cpp
+    citationpopup.cpp
+    citations.cpp
+    cJSON.c
+    collection.cpp
     commentdata.cpp
     cslengine.cpp
     cslengineadapter.cpp
@@ -52,123 +62,87 @@ set(SOURCES
     documentview.cpp
     embeddedframe.cpp
     embeddedpanefactory.cpp
+    exporter.cpp
+    filters.cpp
+    importer.cpp
+    librarydelegate.cpp
+    librarymodel.cpp
+    libraryview.cpp
     overlayrenderer.cpp
     overlayrenderermapper.cpp
     pager.cpp
     pageview.cpp
     papyrotab.cpp
     papyrowindow.cpp
+    persistencemodel.cpp
     phraselookup.cpp
     playercontrols.cpp
-    progresslozenge.cpp
     printer.cpp
+    progresslozenge.cpp
     raisetabaction.cpp
+    remotequery.cpp
+    remotequerybibliography.cpp
+    resolver.cpp
+    resolverqueue.cpp
+    resolverrunnable.cpp
     resultitem.cpp
     resultsview.cpp
+    searchbar.cpp
     selectionprocessor.cpp
     selectionprocessoraction.cpp
-    searchbar.cpp
     sidebar.cpp
     sliver.cpp
+    sortfilterproxymodel.cpp
     tabbar.cpp
     uimodifier.cpp
     utils.cpp
     visualiser.cpp
     )
 
-set(MOC_HEADERS
-    annotationprocessoraction.h
-    annotationresultitem_p.h
-    annotatorrunnable.h
-    annotatorrunnablepool.h
-    annotatorrunnablepool_p.h
-    citationfinder_p.h
-    citationpopup_p.h
-    citationpopup.h
-    cslengine.h
-    dispatcher.h
-    dispatcher_p.h
-    documentmanager.h
-    documentmanager_p.h
-    documentsignalproxy.h
-    documentview.h
-    documentview_p.h
-    embeddedframe.h
-    embeddedframe_p.h
-    pager_p.h
-    pager.h
-    pageview.h
-    pageview_p.h
-    papyrotab.h
-    papyrotab_p.h
-    papyrowindow.h
-    papyrowindow_p.h
-    playercontrols.h
-    progresslozenge.h
-    printer.h
-    printer_p.h
-    raisetabaction.h
-    raisetabaction_p.h
-    resultitem.h
-    resultsview.h
-    resultsview_p.h
-    selectionprocessoraction.h
-    searchbar.h
-    sidebar_p.h
-    sidebar.h
-    sliver.h
-    sliver_p.h
-    tabbar.h
-    tabbar_p.h
-    visualiser_p.h
-    )
-
-set(FORMS
-    )
-
 include_directories(
-  ${PROJECT_BINARY_DIR}
-  ${utopia2_INCLUDE_DIR}
-  ${utopia2_auth_INCLUDE_DIR}
-  ${utopia2_qt_INCLUDE_DIR}
-  ${utopia2_auth_qt_INCLUDE_DIR}
-  ${graffiti_INCLUDE_DIR}
   ${athenaeum_INCLUDE_DIR}
-  ${utf8_INCLUDE_DIR}
-  ${PCRE_INCLUDE_DIR}
   ${Boost_INCLUDE_DIR}
-  ${spine_INCLUDE_DIR}
   ${CMAKE_BINARY_DIR}
+  ${graffiti_INCLUDE_DIR}
+  ${ICU_INCLUDE_DIR}
+  ${papyro_INCLUDE_DIR}
+  ${PCRE_INCLUDE_DIR}
+  ${PROJECT_BINARY_DIR}
+  ${spine_INCLUDE_DIR}
+  ${utf8_INCLUDE_DIR}
+  ${utopia2_auth_INCLUDE_DIR}
+  ${utopia2_auth_qt_INCLUDE_DIR}
+  ${utopia2_INCLUDE_DIR}
+  ${utopia2_qt_INCLUDE_DIR}
   )
 
-set(RESOURCES papyro.qrc papyro_pages.qrc cslengine.qrc ../../libathenaeum/athenaeum/athenaeum.qrc)
-
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED)
-QT4_WRAP_UI(UI_SOURCES ${FORMS})
-QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
+# -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+qt5_add_resources(SOURCES papyro.qrc papyro_pages.qrc cslengine.qrc ../../libathenaeum/athenaeum/athenaeum.qrc)
 
 if(WIN32)
-	add_definitions(-DBUILD_LIBPAPYRO=1)
+  add_definitions(-DBUILD_LIBPAPYRO=1)
+  add_definitions(-DBUILD_LIBATHENAEUM=1)
 endif()
 
 if(UTOPIA_BUILD_PERSISTENCE)
   add_definitions(-DBUILD_PERSISTENCE=1)
 endif()
 
-add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES} ${MOC_SOURCES} ${UI_SOURCES} ${RES_SOURCES})
+add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+  ${ICU_LIBRARIES}
+  ${PCRE_LIBRARIES}
+  athenaeum
+  graffiti
+  spine
+  utf8
   utopia2
   utopia2_auth
   utopia2_auth_qt
   utopia2_qt
-  athenaeum
-  ${QT_LIBRARIES}
-  spine
-  graffiti
-  utf8
-  ${PCRE_LIBRARIES}
 )
+qt5_use_modules(${PROJECT_NAME} Widgets Xml Script Network Svg Concurrent WebKitWidgets PrintSupport OpenGL)
 
 install_utopia_library(${PROJECT_NAME} "${COMPONENT}")
 

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -82,7 +82,7 @@ namespace Utopia
 
 
     ExtensionLibrary::ExtensionLibrary(Library * library, const QString & description)
-        : _library(library), _description(description)
+        : _description(description), _library(library)
     {
         ExtensionLibraryRegistry::registerExtensionLibrary(this);
     }
@@ -134,9 +134,9 @@ namespace Utopia
     {
         if (library) {
             // Only conforming libraries can be loaded as an ExtensionLibrary
-            apiVersionFn apiVersion = (apiVersionFn) (long) library->symbol("utopia_apiVersion");
-            descriptionFn description = (descriptionFn) (long) library->symbol("utopia_description");
-            registerExtensionsFn registerExtensions = (registerExtensionsFn) (long) library->symbol("utopia_registerExtensions");
+            apiVersionFn apiVersion = (apiVersionFn) (unsigned long long) library->symbol("utopia_apiVersion");
+            descriptionFn description = (descriptionFn) (unsigned long long) library->symbol("utopia_description");
+            registerExtensionsFn registerExtensions = (registerExtensionsFn) (unsigned long long) library->symbol("utopia_registerExtensions");
 
             // Silently fail if API is incorrect
             if (registerExtensions && description && apiVersion && std::strcmp(apiVersion(), UTOPIA_EXTENSION_LIBRARY_VERSION) == 0) {

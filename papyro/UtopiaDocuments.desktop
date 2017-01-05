@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Utopia Documents
 Comment=PDF Reader for Scientific Articles
-MimeType=application/pdf;x-scheme-handler/utopias;x-scheme-handler/utopia;
+MimeType=application/pdf;x-scheme-handler/utopias;x-scheme-handler/utopia;x-scheme-handler/utopiafile;
 Exec=/usr/bin/utopia-documents %U
 Type=Application
 Categories=Application;Office;Viewer;Education;

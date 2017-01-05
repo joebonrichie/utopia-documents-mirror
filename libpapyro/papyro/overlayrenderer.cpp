@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -40,10 +40,10 @@
 namespace
 {
 
-    static inline bool contains(const Spine::BoundingBox & bb, const QPointF & point, qreal grace = 0.0)
-    {
-        return Spine::BoundingBox(bb.x1 - grace, bb.y1 - grace, bb.x2 + grace, bb.y2 + grace).contains(point.x(), point.y());
-    }
+//     static inline bool contains(const Spine::BoundingBox & bb, const QPointF & point, qreal grace = 0.0)
+//     {
+//         return Spine::BoundingBox(bb.x1 - grace, bb.y1 - grace, bb.x2 + grace, bb.y2 + grace).contains(point.x(), point.y());
+//     }
 
     static inline bool overlapHorizontally(const QRectF & rect1, const QRectF & rect2, float grace = 0.0)
     {
@@ -76,32 +76,32 @@ namespace
         return rounded;
     }
 
-    static Spine::CursorHandle resolveCursor(Spine::CursorHandle cursor, const QPointF & point, qreal grace = 0.0)
-    {
-        if (cursor && cursor->word()) {
-            if (cursor->character()) { // Mouse over character
-                // If more than half-way into the character, adjust to include
-                if (contains(cursor->line()->boundingBox(), point, grace) &&
-                    point.x() >= (cursor->character()->boundingBox().x1 + cursor->character()->boundingBox().x2) / 2.0) {
-                    cursor->nextCharacter();
-                }
-            } else { // Mouse between characters
-                float spaceLeft = cursor->word()->boundingBox().x2;
-                float spaceRight = spaceLeft;
-                Spine::CursorHandle nextWord(cursor->clone()); nextWord->nextWord();
-                if (nextWord->word()) {
-                    spaceRight = nextWord->word()->boundingBox().x1;
-                }
-                float spaceMid = (spaceLeft + spaceRight) / 2.0;
-                // If more than half-way into the space, adjust to include
-                if (point.x() >= spaceMid) {
-                    cursor->nextCharacter(Spine::WithinLine);
-                }
-            }
-        }
-
-        return cursor;
-    }
+//     static Spine::CursorHandle resolveCursor(Spine::CursorHandle cursor, const QPointF & point, qreal grace = 0.0)
+//     {
+//         if (cursor && cursor->word()) {
+//             if (cursor->character()) { // Mouse over character
+//                 // If more than half-way into the character, adjust to include
+//                 if (contains(cursor->line()->boundingBox(), point, grace) &&
+//                     point.x() >= (cursor->character()->boundingBox().x1 + cursor->character()->boundingBox().x2) / 2.0) {
+//                     cursor->nextCharacter();
+//                 }
+//             } else { // Mouse between characters
+//                 float spaceLeft = cursor->word()->boundingBox().x2;
+//                 float spaceRight = spaceLeft;
+//                 Spine::CursorHandle nextWord(cursor->clone()); nextWord->nextWord();
+//                 if (nextWord->word()) {
+//                     spaceRight = nextWord->word()->boundingBox().x1;
+//                 }
+//                 float spaceMid = (spaceLeft + spaceRight) / 2.0;
+//                 // If more than half-way into the space, adjust to include
+//                 if (point.x() >= spaceMid) {
+//                     cursor->nextCharacter(Spine::WithinLine);
+//                 }
+//             }
+//         }
+//
+//         return cursor;
+//     }
 
     static QPainterPath roundyCorners(const QPolygonF & polygon, const qreal radius = 1.0)
     {
@@ -180,8 +180,8 @@ namespace
                 // Next calculate the radius of this corner
                 // The rounded corner cannot meet the edges a distance of more than half the
                 // available space along a side from the corner
-                qreal d1 = backwardsLength / 2.0;
-                qreal d2 = forwardsLength / 2.0;
+                //qreal d1 = backwardsLength / 2.0;
+                //qreal d2 = forwardsLength / 2.0;
                 qreal tan_half_angle = qTan(angle / 2.0);
 
                 // Centre of arc
@@ -481,27 +481,27 @@ namespace
         return paths;
     }
 
-    static QMap< int, QPainterPath > asPaths(const Spine::TextSelection & selection)
-    {
-        QMap< int, QPainterPath > paths;
-        foreach (const Spine::TextExtentHandle & extent, selection) {
-            QMap< int, QPainterPath > newPaths(asPaths(extent));
-            QMapIterator< int, QPainterPath > iter(newPaths);
-            while (iter.hasNext()) {
-                iter.next();
-                paths[iter.key()].addPath(iter.value());
-            }
-        }
-
-        // Clean up paths
-        QMutableMapIterator< int, QPainterPath > iter(paths);
-        while (iter.hasNext()) {
-            iter.next();
-            iter.value().setFillRule(Qt::WindingFill);
-            iter.value() = iter.value().simplified();
-        }
-        return paths;
-    }
+//     static QMap< int, QPainterPath > asPaths(const Spine::TextSelection & selection)
+//     {
+//         QMap< int, QPainterPath > paths;
+//         foreach (const Spine::TextExtentHandle & extent, selection) {
+//             QMap< int, QPainterPath > newPaths(asPaths(extent));
+//             QMapIterator< int, QPainterPath > iter(newPaths);
+//             while (iter.hasNext()) {
+//                 iter.next();
+//                 paths[iter.key()].addPath(iter.value());
+//             }
+//         }
+//
+//         // Clean up paths
+//         QMutableMapIterator< int, QPainterPath > iter(paths);
+//         while (iter.hasNext()) {
+//             iter.next();
+//             iter.value().setFillRule(Qt::WindingFill);
+//             iter.value() = iter.value().simplified();
+//         }
+//         return paths;
+//     }
 
 } // Anonymous namespace
 
@@ -511,7 +511,7 @@ namespace Papyro
 {
 
     OverlayRenderer::OverlayRenderer()
-        : _brush(QColor(255, 0, 0, 80)), _pen(Qt::NoPen), _compositionMode(QPainter::CompositionMode_Multiply)
+        : _pen(Qt::NoPen), _brush(QColor(255, 0, 0, 80)), _compositionMode(QPainter::CompositionMode_Multiply)
     {}
 
     OverlayRenderer::~OverlayRenderer()
@@ -796,7 +796,7 @@ namespace Papyro
         double logoSize(pageWidth / 30.0);
         QRectF logoRect(0, qMin(area.top(), center.y() - (logoSize / 2.0)), logoSize, logoSize);
         double logoMargin = logoSize / 2.0;
-        double logoPadding = 10;
+        //double logoPadding = 10;
         if (left) { logoRect.moveLeft(logoMargin); }
         else { logoRect.moveRight(pageWidth - logoMargin); }
 

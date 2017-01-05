@@ -1,0 +1,108 @@
+#! /bin/bash
+
+source "buildutils.sh"
+
+# PACKAGE ####################################################################
+
+PACKAGE=Poppler
+DEPENDENCIES="Jpeg FontConfig Freetype"
+
+# SETUP ######################################################################
+
+set -e
+cd `dirname "$0"`
+PREFIX=`pwd`
+
+if [ -e ".${PACKAGE}-BUILT" ]; then
+    exit 0
+fi
+
+# DEPENDENCIES ###############################################################
+
+build_deps $DEPENDENCIES
+
+# FETCH SOURCE ###############################################################
+
+mkdir -p build
+cd build
+
+PACKAGE_URL_REF="${PACKAGE}_URL"
+PACKAGE_URL="${!PACKAGE_URL_REF}"
+PACKAGE_DIR_REF="${PACKAGE}_DIR"
+PACKAGE_DIR="${!PACKAGE_DIR_REF}"
+PACKAGE_EXTRACT_REF="${PACKAGE}_EXTRACT"
+PACKAGE_EXTRACT="${!PACKAGE_EXTRACT_REF}"
+PACKAGE_FILENAME=`basename ${PACKAGE_URL}`
+
+if [ ! -e "${PACKAGE_FILENAME}" ]; then
+    echo "Fetching ${PACKAGE_URL} ..."
+    curl -L -O "${PACKAGE_URL}"
+fi
+
+echo "Extracting ${PACKAGE_FILENAME} ..."
+${PACKAGE_EXTRACT} "${PACKAGE_FILENAME}"
+
+echo "Building ${PACKAGE} ..."
+cd ${PACKAGE_DIR}
+
+# BUILD STEPS ###############################################################
+
+if [ x"${ARCH}" = x"Darwin" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+    export MACOSX_SYSROOT=$CMAKE_OSX_SYSROOT
+    MACOSX_ARCHFLAGS=""
+    for archflag in $CMAKE_OSX_ARCHITECTURES; do
+        MACOSX_ARCHFLAGS+="-arch $archflag "
+    done;
+    export MACOSX_ARCHFLAGS
+    export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
+    export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
+
+    export CFLAGS="-Wno-error=no-check-new $CFLAGS"
+    export CXXFLAGS="-Wno-error=no-check-new $CXXFLAGS"
+
+elif [ x"${ARCH}" = x"Windows" ]; then
+	export CFLAGS="-D_WIN32_WINNT=0x0500 $CFLAGS"
+	export CXXFLAGS="-D_WIN32_WINNT=0x0500 $CXXFLAGS"
+fi
+
+export FREETYPE_CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/freetype2 -I${PREFIX}/include/freetype2/freetype"
+export FREETYPE_LIBS="-L${PREFIX}/lib -lfreetype"
+export FONTCONFIG_CFLAGS="-I${PREFIX}/include"
+export FONTCONFIG_LIBS="-L${PREFIX}/lib -lfontconfig"
+export LIBJPEG_CFLAGS="-I${PREFIX}/include -L${PREFIX}/lib -ljpeg"
+
+./configure --prefix="${PREFIX}" \
+            --disable-silent-rules \
+            --disable-dependency-tracking \
+            --disable-static \
+            --enable-shared \
+            --enable-xpdf-headers \
+            --disable-libopenjpeg \
+            --disable-libtiff \
+            --disable-zlib \
+            --enable-libjpeg \
+            --disable-libpng \
+            --enable-splash-output \
+            --disable-cairo-output \
+            --disable-poppler-glib \
+            --enable-introspection=no \
+            --disable-gtk-doc \
+            --disable-poppler-qt4 \
+            --disable-poppler-qt5 \
+            --disable-poppler-cpp \
+            --disable-gtk-test \
+            --disable-utils \
+            --disable-cms
+
+find . -name "Makefile" | xargs -L 1 perl -pi -e 's/-fno-check-new//g'
+
+make -j3 install
+
+##############################################################################
+
+cd "${PREFIX}"
+touch ".${PACKAGE}-BUILT"
+
+##############################################################################

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -59,18 +59,41 @@ var Utopia = {
     defaultStyle: undefined,
 };
 
-function installStyle(code, description, style)
+function installStyle(code, name, style)
 {
+    // Find the title from the style JSON
+    function find(obj, name) {
+        if (obj !== null && typeof obj === 'object' && obj.children) {
+            var path = name.split('/');
+            name = path.shift();
+            if (name == 'text()') {
+                return obj.children.join(' ');
+            } else {
+                for (i = 0; i < obj.children.length; i += 1) {
+                    if (obj.children[i].name == name) {
+                        if (path.length > 0) {
+                            return find(obj.children[i], path.join('/'));
+                        } else {
+                            return obj.children[i];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Utopia.styles[code] = {
-        name: description,
+        code: code,
+        name: find(style, 'info/title/text()'),
         json: style,
     };
 }
 
-function installLocale(code, description, locale)
+function installLocale(code, name, locale)
 {
     Utopia.locales[code] = {
-        name: description,
+        code: code,
+        name: name,
         json: locale,
     };
 }
@@ -106,6 +129,17 @@ function convert_date(year, month, day)
     // From [2014, March, 12] to {date-parts: [[2014, 3, 12]]}
 }
 
+function get_case_insensitive(map, needle) {
+    var keys = Object.keys(map);
+    for (i = 0; i < keys.length; i += 1) {
+        var key = keys[i];
+        if (key.toLowerCase() == needle.toLowerCase()) {
+            return map[key];
+        }
+    }
+    return false;
+}
+
 function format(metadata, style, defaultStyle)
 {
     // Give the metadata an ID if it doesn't already have one
@@ -118,12 +152,11 @@ function format(metadata, style, defaultStyle)
     }
 
     // Resolve style
-    if (Utopia.styles[style]) {
-        style = Utopia.styles[style].json;
-    } else if (Utopia.styles[defaultStyle]) {
-        style = Utopia.styles[defaultStyle].json;
-    } else if (Utopia.styles['apa']) {
-        style = Utopia.styles['apa'].json;
+    found = get_case_insensitive(Utopia.styles, style) ||
+            get_case_insensitive(Utopia.styles, defaultStyle) ||
+            get_case_insensitive(Utopia.styles, 'apa');
+    if (found) {
+        style = found.json;
     }
 
     var sys = {
@@ -144,26 +177,21 @@ function format(metadata, style, defaultStyle)
 
     var citeproc = new CSL.Engine(sys, style, 'en-GB')
     citeproc.updateItems([metadata.id], true);
-    var bib;
-    if ("string" === typeof label) {
-        bib = citeproc.makeBibliography("CITATION_LABEL");
-    } else {
-        bib = citeproc.makeBibliography();
-    }
+    var bib = citeproc.makeBibliography("CITATION_LABEL");
     var formatted = bib[1][0];
 
     // Put label in place
     if ("string" === typeof label) {
         if (formatted.indexOf("CITATION_LABEL") == -1) {
-            formatted = 'CITATION_LABEL. ' + formatted;
+            formatted = 'CITATION_LABEL ' + formatted;
         }
-        formatted = formatted.replace('CITATION_LABEL', '<strong>' + label + '</strong>');
+        formatted = formatted.replace('CITATION_LABEL', '<strong>' + label.replace(/\.+$/g, '') + '</strong>');
     } else {
         formatted = formatted.replace(/[^a-zA-Z>]*CITATION_LABEL[^a-zA-Z<]*/, '');
     }
 
     // Swap divs for spans
-    formatted = formatted.replace('<div', '<span').replace('</div', '</span');
+    formatted = formatted.replace(/<div/g, '<span').replace(/<\/div/g, '</span');
 
     return formatted;
 }

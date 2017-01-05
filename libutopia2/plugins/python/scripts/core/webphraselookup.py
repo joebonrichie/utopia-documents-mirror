@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ def strip(input):
 class NCBIPhraseLookup(utopia.document.PhraseLookup):
     """7Search NCBI Databases"""
     def lookup(self, phrase):
-        return "http://www.ncbi.nlm.nih.gov/gquery/?term=%s" % urllib.quote(strip(phrase).encode('utf-8'))
+        return "https://www.ncbi.nlm.nih.gov/gquery/?term=%s" % urllib.quote(strip(phrase).encode('utf-8'))
 
 class QuertlePhraseLookup(utopia.document.PhraseLookup):
     """7Search Quertle"""

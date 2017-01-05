@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,11 +29,89 @@
  *  
  *****************************************************************************/
 
+html, body {
+    line-height: 120%;
+    -webkit-user-select: text;
+    overflow-x: hidden;
+    font-family: sans-serif;
+}
+
 * {
-    font-size: inherit;
+    -webkit-user-select: text;
+    -webkit-box-sizing: border-box;
+}
+
+html {
+    padding: 0px;
 }
 
 body {
-    background-color: %1;
-    font-size: %2pt;
+    overflow-y: auto;
+    height: 100%;
+    border: 1px solid #bbb;
+    padding: 5px;
 }
+
+table {
+    width: 100%;
+    padding: 1px 2px;
+}
+
+td, th {
+    padding: 1px 2px;
+}
+
+col.minimum {
+    width: 1%;
+}
+
+input[type="text"],
+input[type="password"] {
+    vertical-align: baseline;
+    width: 100%;
+    padding: 4px;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+p {
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
+}
+
+p:first-child {
+    margin-top: auto;
+}
+
+p:last-child {
+    margin-bottom: auto;
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+    background: inherit;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.20);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.03);
+    margin: 2px;
+}
+

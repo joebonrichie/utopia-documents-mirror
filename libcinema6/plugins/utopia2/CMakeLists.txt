@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -44,6 +44,6 @@ include_directories(
 
 add_utopia_plugin( ${PROJECT_NAME} MODULE ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt cinema6 ${QT_LIBRARIES} utf8 )
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt cinema6 utf8 )
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

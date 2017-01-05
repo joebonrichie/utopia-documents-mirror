@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 #include <QList>
 #include <QObject>
 #include <QPair>
+#include <QThreadPool>
 
 namespace Papyro
 {
@@ -74,6 +75,8 @@ namespace Papyro
 
         QList< QList< QPair< AnnotatorRunnable *, int > > > futureQueues;
         QList< SyncPointEmitter * > futureEmitters;
+        QThreadPool threadPool;
+
     }; // class AnnotatorRunnablePoolPrivate;
 
 } // namespace Papyro

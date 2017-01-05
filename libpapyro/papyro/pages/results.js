@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,14 +29,217 @@
  *  
  *****************************************************************************/
 
+(function ($) {
+  $.fn.oldReady = $.fn.ready;
+  $.fn.ready = function (fn) {
+    return $.fn.oldReady(function () {
+      try {
+        if (fn) fn.apply($,arguments);
+      } catch (e) {
+        console.log(e);
+      }
+    });
+  }
+})(jQuery);
 
-var papyro = {
+var utopia = {
+
+    searchRemote:
+        control.searchRemote,
 
     citation:
         {
+            ///////////////////////////////////////////////////////////////////
+            /// Internal methods
+
+            _resolveMetadata: function (metadata, purpose, fn) {
+                // Begin resolution
+                var future = control.resolveMetadata(metadata, purpose);
+                // Lock the future and test for completion
+                future.lock();
+                if (future.ready) {
+                    // If the results are already ready, simply pass them on
+                    // and delete the future
+                    fn(future.results);
+                    future.doom();
+                } else {
+                    future.completed.connect(function (results) {
+                        fn(results);
+                        future.doom();
+                    });
+                }
+                future.unlock();
+            },
+            _imbue: function () {
+                // Make sure it's not already imbued
+                var container = $(this);
+                if (container.data('status') != 'live') {
+                    // Get hold of data
+                    var citation = container.data('citation');
+                    var process = container.data('process');
+                    var callback = container.data('callback');
+                    var include_links = container.data('links');
+
+                    // Sort out data
+                    container.removeAttr('data-citation');
+                    container.removeAttr('data-process');
+                    container.removeData('process');
+                    container.data('status', 'live');
+
+                    // Generate internal structure
+                    var content = $('<span class="content"></span>').append(container.contents()).appendTo(container);
+                    var links = $('<span></span>').addClass('links').appendTo(container);
+
+                    function renderCitation(citation) {
+                        // Save the citation data for later use
+                        container.data('citation', citation);
+                        // Format and add content
+                        if (content.html() == '') {
+                            content.html(utopia.citation.format(citation));
+                        }
+                        // Include links
+                        if (include_links) {
+                            links.append(utopia.citation._renderLinks(citation));
+                        }
+                        // Execute callback if present
+                        if (callback) {
+                            callback(container);
+                        }
+                    }
+
+                    // Optionally process the citation before rendering it
+                    if (process) {
+                        function final_step (citation) {
+                            $('.auto-spinner', container).remove();
+                            renderCitation(citation);
+                        }
+                        var spinner = $('<span><span>').css({'display':'inline-block', 'vertical-align':'middle'}).addClass('auto-spinner').appendTo(container);
+                        //Spinners.create(container);
+                        //Spinners.play(container);
+                        utopia.citation.identify(citation, function (citation) {
+                            utopia.citation.expand(citation, function (citation) {
+                                if (include_links) {
+                                    utopia.citation.dereference(citation, final_step);
+                                } else {
+                                    final_step(citation);
+                                }
+                            });
+                        });
+                    } else {
+                        if (include_links) {
+                            var links_spinner = $('<span><span>').css({'display':'inline-block', 'vertical-align':'middle'}).addClass('auto-spinner').appendTo(links).before(' [').after(']');
+                            utopia.citation.identify(citation, function (citation) {
+                                utopia.citation.dereference(citation, function (citation) {
+                                    Spinners.remove(links_spinner);
+                                    links.empty();
+                                    renderCitation(citation);
+                                });
+                            });
+                        } else {
+                            renderCitation(citation);
+                        }
+                    }
+                }
+            },
+            _orderLinks: function (citation) {
+                if (citation.links) {
+                    citation.links.sort(function (c1, c2) {
+                        // First sort on mime type to make PDF first
+                        var pdf1 = (c1.mime == 'application/pdf');
+                        var pdf2 = (c2.mime == 'application/pdf');
+                        if (pdf1 && !pdf2) {
+                            return -1;
+                        } else if (!pdf1 && pdf2) {
+                            return 1;
+                        } else {
+                            // Next sort articles ahead of abstracts, ahead of searches
+                            var order = ['search', 'abstract', 'article']
+                            var t1 = order.indexOf(c1.type);
+                            var t2 = order.indexOf(c2.type);
+                            if (t1 != t2) {
+                                return t2 - t1;
+                            } else {
+                                // Finally, sort on weights making higher weights first
+                                var w1 = c1[':weight'];
+                                var w2 = c2[':weight'];
+                                return w2 - w1;
+                            }
+                        }
+                    });
+                }
+            },
+            _renderLink: function (link) {
+                var isPDF = (link.mime == 'application/pdf');
+                var isSearch = (link.type == 'search');
+                return $('<a></a>').attr({
+                    href: link.url,
+                    title: link.title,
+                    target: (isPDF ? 'pdf' : 'www')
+                }).text(isPDF ? 'PDF' : isSearch ? 'Find...' : 'Link').addClass('citation');
+            },
+            _renderLinks: function (citation) {
+                var hasPdf = citation.links.some(function (link) {
+                    return (link.mime == 'application/pdf');
+                });
+                var hasArticleOrAbstract = citation.links.some(function (link) {
+                    return (link.type == 'article' || link.type == 'abstract');
+                });
+                var title = 'Open article...';
+                var text = 'PDF';
+                var target = 'tab';
+                if (!hasPdf) {
+                    if (hasArticleOrAbstract) {
+                        text = 'Link';
+                    } else {
+                        text = 'Find';
+                        title = 'Find article...';
+                    }
+                    target = 'www';
+                }
+                var a = $('<a></a>').attr({
+                    href: '#citation',
+                    title: title,
+                    target: target
+                }).text(text);
+                // Surround each link with brackets
+                a = a.wrap($('<span>[<span></span>]</span>'));
+                return a;
+            },
+            _reformatAll: function () {
+                // When the default citation format has changed, update all visible citations
+                $('.-papyro-internal-citation').each(function () {
+                    var container = $(this);
+                    if (container.data('status') == 'live') {
+                        var citation = container.data('citation');
+                        var content = container.find('.content');
+                        content.html(utopia.citation.format(citation));
+                    }
+                });
+            },
+
+            ///////////////////////////////////////////////////////////////////
+            /// Public methods available to plugin developers
+
             styles: window.control.availableCitationStyles,
             defaultStyle: window.control.defaultCitationStyle,
             format: window.control.formatCitation,
+            identify: function (metadata, fn) {
+                utopia.citation._resolveMetadata(metadata, 'identify', fn);
+            },
+            expand: function (metadata, fn) {
+                utopia.citation._resolveMetadata(metadata, 'expand', fn);
+            },
+            dereference: function (metadata, fn) {
+                utopia.citation._resolveMetadata(metadata, 'dereference', fn);
+            },
+            render: function (citation, process, links, fn) {
+                var container = $('<div class="-papyro-internal-citation"></div>');
+                container.data('citation', citation);
+                container.data('process', (process === true));
+                container.data('links', (links === true));
+                container.data('callback', fn);
+                return container.each(utopia.citation._imbue);
+            }
         },
 
     elements:
@@ -48,12 +251,18 @@ var papyro = {
     onLoad:
         // Initially prepare the HTML document
         function () {
+            // Set up AJAZ global defaults
+            $.ajaxSetup({
+                // A 10 second timeout on AJAX queries
+                timeout: 10000
+            });
+
             // Get element references and template nodes
-            var results = papyro.elements['results'] = $('#-papyro-internal-results').first();
-            papyro.templates['result'] = $('#-papyro-internal-result_template').first().detach();
+            var results = utopia.elements['results'] = $('#-papyro-internal-results').first();
+            utopia.templates['result'] = $('#-papyro-internal-result_template').first().detach();
 
             // Hijack link actions on an element
-            results.delegate('a', 'click', function (e) {
+            $('body').on('click', 'a', function (e) {
                 var href = this.getAttribute('href');
                 if (href == undefined) {
                     href = this.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
@@ -62,14 +271,44 @@ var papyro = {
                 if (target == undefined) {
                     target = this.getAttributeNS('http://www.w3.org/1999/xlink', 'show');
                 }
-                window.control.activateLink(href, target);
+                if (href == '#citation') {
+                    var citation = $(this).closest('.-papyro-internal-citation').data('citation')
+                    window.control.activateCitation(citation, target);
+                } else {
+                    window.control.activateLink(href, target);
+                }
+                e.preventDefault();
             });
 
             // Remove failed images by default
-            results.delegate('img', 'error', function () { $(this).remove(); });
+            $('body').on('error', 'img', function () { $(this).remove(); });
 
             // Set up connections
-            control.resultAdded.connect(papyro.onResultItemAdded);
+            control.resultAdded.connect(utopia.onResultItemAdded);
+
+            // Look out for new spinners
+            $(document).on('DOMNodeInserted', function(e) {
+                var element = e.target;
+                $(element).filter('.auto-spinner').add('.auto-spinner', element).each(function () {
+                    var params = {
+                        radius: $(this).data('radius') || 3,
+                        height: $(this).data('height') || 2,
+                        padding: $(this).data('padding') || 0,
+                        dashes: $(this).data('dashes') || 7,
+                    };
+                    Spinners.create($(this), params);
+                    Spinners.play($(this));
+                });
+            });
+
+            // Inform the control that we're done setting everything up
+            control.onLoadComplete();
+        },
+
+    registerPolisher:
+        // Assign fn as a handler for papyro:polish
+        function (fn) {
+            $('#-papyro-internal-results').on('papyro:polish', '.-papyro-internal-content', fn);
         },
 
     clear:
@@ -81,19 +320,28 @@ var papyro = {
     result:
         // Get access to the control object for a given result
         function (obj, c) {
-            return $(obj).closest('.-papyro-internal-result').data('control', c);
+            if (c) {
+                return $(obj).closest('.-papyro-internal-result').data('control', c);
+            } else {
+                return $(obj).closest('.-papyro-internal-result').data('control');
+            }
         },
 
     toggleSlide:
         // Function to toggle an object's content
         function (obj) {
-            $(obj).closest('.-papyro-internal-result').find('.-papyro-internal-summary .-papyro-internal-body').each(function () {
+            var resultelem = $(obj).closest('.-papyro-internal-result');
+            resultelem.find('.-papyro-internal-body').each(function () {
                 if ($(this).is(':hidden')) {
-                    papyro.onResultItemOpened(obj);
+                    utopia.onResultItemOpened(obj);
                     $(this).css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
+                    resultelem.addClass('expanded');
+                    resultelem.removeClass('collapsed');
                 } else {
                     $(this).animate({opacity: 0}, 100).slideUp(100);
-                    papyro.onResultItemClosed(obj);
+                    resultelem.addClass('collapsed');
+                    resultelem.removeClass('expanded');
+                    utopia.onResultItemClosed(obj);
                 }
             });
         },
@@ -102,47 +350,45 @@ var papyro = {
         // Prepare a newly added result element
         function (obj) {
             // Add a new result element
-            result = obj.element = papyro.templates['result'].clone().get(0);
-            papyro.result(result, obj);
+            result = obj.element = utopia.templates['result'].clone().get(0);
+            utopia.result(result, obj);
 
             // Insert it into the tree (at the top for defaultly open results)
-            subsequent = $('.-papyro-internal-result', papyro.elements['results']).filter(function (idx) {
-                var candidate = papyro.result(this);
+            subsequent = $('.-papyro-internal-result', utopia.elements['results']).filter(function (idx) {
+                var candidate = utopia.result(this);
                 return (obj.headless || !candidate.headless) && (candidate.weight < obj.weight);
             });
             if (subsequent.length > 0) {
                 subsequent.first().before(result);
             } else {
-                papyro.elements['results'].append(result);
+                utopia.elements['results'].append(result);
             }
 
             // Connect content handler
-            obj.insertContent.connect(papyro.onResultItemContentAdded)
+            obj.insertContent.connect(utopia.onResultItemContentAdded)
 
             // Hide content by default
-            $('.-papyro-internal-summary .-papyro-internal-body', result).slideUp(0);
+            $('.-papyro-internal-body', result).slideUp(0);
 
-            if (obj.headless) {
-                $('.-papyro-internal-header', result).hide();
-            } else {
-                // Remove unreachable thumbnails
-                $('.-papyro-internal-header .-papyro-internal-thumbnail img', result).error(function () { $(this).remove(); });
-                $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-source', result).click(function (event) {
+            if (!obj.headless) {
+                // Remove unreachable graphicss
+                $('.-papyro-internal-header .-papyro-internal-graphics img', result).on('error', function () { $(this).remove(); });
+                $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-source', result).on('click', function (event) {
                     // Stop event from reaching the parent
                     event.stopPropagation();
                     // Send the result object off to be activated
-                    control.activateSource(papyro.result(this));
+                    control.activateSource(utopia.result(this));
                 });
-                $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-author', result).click(function (event) {
+                $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-author', result).on('click', function (event) {
                     // Stop event from reaching the parent
                     event.stopPropagation();
                     // Send the result object off to be activated
-                    control.activateAuthor(papyro.result(this));
+                    control.activateAuthor(utopia.result(this));
                 });
 
                 // Set visible information
-                var title = $("<div/>").html(obj.title).text();
-                var description = $("<div/>").html(obj.description).text();
+                var title = $("<div></div>").html(obj.title).text();
+                var description = $("<div></div>").html(obj.description).text();
                 $('.-papyro-internal-header .-papyro-internal-title', result).text(title);
                 if (obj.description) {
                     $('.-papyro-internal-header .-papyro-internal-description', result).text(description);
@@ -150,21 +396,21 @@ var papyro = {
                 //    $('.header .description', result).text('-');
                 }
                 if (obj.sourceIcon) {
-                    $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-source', result).attr('src', obj.sourceIcon);
+                    $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-source', result).attr('src', obj.sourceIcon);
                 } else if (obj.sourceDatabase) {
-                    $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-source', result).attr('src', 'http://utopia.cs.manchester.ac.uk/images/' + obj.sourceDatabase + '.png');
+                    $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-source', result).attr('src', 'http://utopia.cs.manchester.ac.uk/images/' + obj.sourceDatabase + '.png');
                 } else {
-                    $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-source', result).remove();
+                    $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-source', result).remove();
                 }
                 if (obj.authorUri) {
-                    $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-author', result).attr('src', obj.authorUri + '/avatar');
+                    $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-author', result).attr('src', obj.authorUri + '/avatar');
                 } else {
-                    $('.-papyro-internal-header .-papyro-internal-thumbnail img.-papyro-internal-author', result).remove();
+                    $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-author', result).remove();
                 }
             }
 
             // Set up interaction events
-            $('.-papyro-internal-header', result).click(function () { papyro.result(this).toggleContent(); });
+            $('.-papyro-internal-header', result).click(function () { utopia.result(this).toggleContent(); });
 
             // Mouse over colours
             $(result).bind('mouseenter', function () { $(this).addClass('selected'); });
@@ -174,7 +420,7 @@ var papyro = {
             $(result).css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
 
             // Create and start a spinner
-            $('.-papyro-internal-summary .-papyro-internal-body .-papyro-internal-loading', result).each(function () {
+            $('.-papyro-internal-body .-papyro-internal-loading', result).each(function () {
                 Spinners.create(this);
             });
 
@@ -188,6 +434,10 @@ var papyro = {
                 //alert(obj.highlight);
                 $('.-papyro-internal-header', result).css({'borderLeft': 'solid 4px ' + obj.highlight, 'paddingLeft': '6px'});
             }
+
+            if (obj.headless) {
+                $('.-papyro-internal-header', result).remove();
+            }
         },
 
     processNewContent:
@@ -196,36 +446,58 @@ var papyro = {
             // Wrap in jQuery
             obj = $(obj);
 
+            // Make sure we don't get error images anywhere
+            obj.find('img').hide().on('load', function () {
+                $(this).css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
+            });
+
             // Modify the DOM to include expandy/contracty DIVs
-            obj.find('.expandable[title]').add(obj.filter('.expandable[title]')).wrapInner('<div class="expansion" />').each(function () {
+            obj.find('.expandable[title]').add(obj.filter('.expandable[title]')).addClass('collapsed').wrapInner('<div class="expansion"></div>').each(function () {
                 var expandable = $(this);
-                var caption = $('<div class="caption"/>');
-                caption.click(function () {
-                    if ($(this).next('.expansion').filter(':visible').size() > 0) {
-                        $(this).children('img.arrow').rotate({ angle: 90, animateTo: 0, duration: 200 });
-                        $(this).next('.expansion').animate({opacity: 0}, 100).slideUp(100);
+                var caption = $('<div class="caption"></div>');
+
+                caption.prepend($('<img src="qrc:/icons/expandable_arrow.png" width="10" height="10" class="arrow">'));
+                caption.append(expandable.attr('title'));
+                caption.on('click', function () {
+                    expandable.trigger('papyro:expandable:toggle');
+                });
+
+                expandable.on('papyro:expandable:toggle', function () {
+                    if (expandable.hasClass('collapsed')) {
+                        expandable.trigger('papyro:expandable:expand');
                     } else {
-                        $(this).children('img.arrow').rotate({ angle: 0, animateTo: 90, duration: 200 });
-                        $(this).next('.expansion').css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
+                        expandable.trigger('papyro:expandable:collapse');
+                    }
+                }).on('papyro:expandable:expand', function () {
+                    if (expandable.hasClass('collapsed')) {
+                        expandable.removeClass('collapsed').addClass('expanded');
+                        expandable.find('> .caption img.arrow').rotate({ angle: 0, animateTo: 90, duration: 200 });
+                        expandable.find('> .expansion').css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
+                    }
+                }).on('papyro:expandable:collapse', function () {
+                    if (expandable.hasClass('expanded')) {
+                        expandable.removeClass('expanded').addClass('collapsed');
+                        expandable.find('> .caption img.arrow').rotate({ angle: 90, animateTo: 0, duration: 200 });
+                        expandable.find('> .expansion').animate({opacity: 0}, 100).slideUp(100);
                     }
                 });
-                caption.prepend($('<img src="qrc:/icons/expandable_arrow.png" width="10" height="10" class="arrow" />'));
-                caption.append(expandable.attr('title'));
                 expandable.removeAttr('title');
                 expandable.prepend(caption);
             }).children('.expansion').hide();
 
             // Modify the DOM to include More... links
-            obj.find('.readmore').add(obj.filter('.readmore')).wrapInner('<span class="expansion" />').each(function () {
+            obj.find('.readmore').add(obj.filter('.readmore')).wrapInner('<span class="expansion"></span>').each(function () {
                 var expandable = $(this);
                 var readmore = $('<span>&hellip; <a class="morelink" title="Show more&hellip;" href="#">[more]</a></span>');
                 var readless = $('<span> <a class="lesslink" title="Show less." href="#">[less]</a></span>').hide();
-                readmore.click(function () {
+                readmore.on('click', function () {
+                    e.preventDefault();
                     $(this).next('.expansion').show();
                     $(this).hide();
                     readless.show();
                 });
-                readless.click(function () {
+                readless.on('click', function (e) {
+                    e.preventDefault();
                     $(this).prev('.expansion').hide();
                     readmore.show();
                     $(this).hide();
@@ -233,6 +505,19 @@ var papyro = {
                 expandable.prepend(readmore);
                 expandable.append(readless);
             }).children('.expansion').hide();
+
+            obj.find('.limited-height').add(obj.filter('.limited-height')).wrapInner('<div class="expansion"></span>').each(function () {
+                var expandable = $(this);
+                var more = $('<a class="overlay" href="#">&#x25BE; More</a>').on('click', function (e) {
+                    e.preventDefault();
+                    $(this).hide();
+                    expandable.css({'max-height': 'inherit'});
+                });
+                expandable.append(more);
+            });
+
+            // Make sure citations are dealt with properly
+            obj.find('.-papyro-internal-citation[data-citation]').each(utopia.citation._imbue);
 
             // Hyphenate appropriate elements
             //Hyphenator.config({
@@ -246,22 +531,47 @@ var papyro = {
 
     onResultItemContentAdded:
         // Prepare a newly added element for inclusion
-        function (obj, content) {
+        function (obj, stringlist) {
             // Add content to object
-            var div = $('<div/>');
-            div.append(content);
-            div.find('img').hide().load(function () {
-                $(this).css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
-            });
-            $('.-papyro-internal-content', obj).append(div);
+            var styles = $();
+            var scripts = $();
+            var div = $('<div>').addClass('-papyro-internal-content');
+            var elementsToAdd = $();
 
-            papyro.processNewContent(div);
+            $.each(stringlist, function (i, string) {
+                div.append($(string));
+            });
+
+            styles = $('style', div).detach();
+            scripts = $('script', div).detach();
+
+            utopia.processNewContent(div);
+            elementsToAdd = elementsToAdd.add(styles)
+                                         .add(div)
+                                         .add(scripts);
+
+            var last_content = $('.-papyro-internal-body > *:not(.-papyro-internal-loading)', obj).last();
+            if (last_content.length > 0) {
+                last_content.after(elementsToAdd);
+            } else {
+                $('.-papyro-internal-body', obj).prepend(elementsToAdd);
+            }
+
+            $('.limited-height', div).each(function () {
+                var comment = $(this);
+                var expansion = comment.children('.expansion');
+                if (expansion.height() < 140) {
+                    comment.children('.overlay').trigger('click');
+                }
+            });
+
+            div.trigger('papyro:polish');
         },
 
     onResultItemClosed:
         // Do generic processing when a result is being closed
         function (obj) {
-            $('.-papyro-internal-summary > .-papyro-internal-body .-papyro-internal-loading', obj).each(function () {
+            $('.-papyro-internal-body .-papyro-internal-loading', obj).each(function () {
                 Spinners.pause(this);
             });
         },
@@ -269,7 +579,7 @@ var papyro = {
     onResultItemOpened:
         // Do generic processing when a result is being opened
         function (obj) {
-            $('.-papyro-internal-summary .-papyro-internal-body .-papyro-internal-loading', obj).each(function () {
+            $('.-papyro-internal-body .-papyro-internal-loading', obj).each(function () {
                 Spinners.play(this);
             });
         },
@@ -277,13 +587,11 @@ var papyro = {
     onResultItemContentFinished:
         // Do generic processing when a result has been fully rendered
         function (obj) {
-            $('.-papyro-internal-summary .-papyro-internal-body .-papyro-internal-loading', obj).each(function () {
-                Spinners.remove(this);
-            });
+            $('.-papyro-internal-body .-papyro-internal-loading', obj).remove();
         },
 
 };
 
 $(function () {
-    papyro.onLoad();
+    utopia.onLoad();
 });

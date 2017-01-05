@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -40,12 +40,11 @@ add_subdirectory(fasta)
 add_subdirectory(legacy)
 add_subdirectory(pdb)
 add_subdirectory(pir)
+add_subdirectory(python)
 add_subdirectory(system)
-add_subdirectory(update)
 add_subdirectory(utopia)
 add_subdirectory(w3)
 
-# This should be generic
-#if(UTOPIA_BUILD_DOCUMENTS)
-  add_subdirectory(python)
-#endif()
+if(NOT UTOPIA_PACKAGE_MANAGED)
+  add_subdirectory(update)
+endif()

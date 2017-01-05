@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@ namespace Utopia
 {
 
     Comment::Comment(Comment * parentComment, AbstractCommentData * data, bool editable, bool reversed)
-        : QWidget(), _parentComment(parentComment), _data(data), _reversed(reversed), reportButton(0)
+        : QWidget(), _parentComment(parentComment), _reversed(reversed), _data(data), reportButton(0)
     {
         _editor = 0;
         _highlightWidget = 0;
@@ -269,7 +269,6 @@ namespace Utopia
     void Comment::editField(FieldEditor * editorWidget)
     {
         qDebug() << "editField()";
-        QPoint topLeft = editorWidget->frameRect().topLeft();
 
         if (_editor != 0)
         {

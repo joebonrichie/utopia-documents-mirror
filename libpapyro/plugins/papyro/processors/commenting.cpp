@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -150,7 +150,7 @@ void CommentProcessorController::onSubmit(const QString & text, bool isPublic, c
 
 void CommentProcessorController::onDelete(const QString & uri)
 {
-    //std::cout << "Delete comment " << uri.toStdString() << std::endl;
+    // std::cout << "Delete comment " << uri.toStdString() << std::endl;
 
     // Only destroy child-less comments
     Spine::AnnotationSet children = document->annotationsByParentId(Papyro::unicodeFromQString(uri));
@@ -213,7 +213,7 @@ void CommentProcessorController::onPublish(const QString & uri, bool publish)
 void CommentProcessor::activate(Spine::DocumentHandle document, Spine::AnnotationSet annotations, const QPoint & globalPos)
 {
     Utopia::Conversation * conversation = new Utopia::Conversation;
-    CommentProcessorController * controller = new CommentProcessorController(document, annotations, conversation);
+    /* CommentProcessorController * controller = */ new CommentProcessorController(document, annotations, conversation);
 
 #if defined(Q_OS_LINUX)
     if (Papyro::PapyroWindow * window = Papyro::PapyroWindow::currentWindow()) {

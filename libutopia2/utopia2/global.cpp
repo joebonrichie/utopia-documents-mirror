@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -54,6 +54,10 @@
 #include <QSettings>
 #include <QWebSettings>
 #include <QtDebug>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace Utopia
 {
@@ -183,11 +187,33 @@ namespace Utopia
     {
         static QVariantMap defaults;
         if (defaults.isEmpty()) {
-            QString defaultsPath(resource_path() + "/defaults.conf");
-            QSettings defaultSettings(defaultsPath, QSettings::IniFormat);
-            defaultSettings.setIniCodec("UTF-8");
-            foreach (QString key, defaultSettings.allKeys()) {
-                defaults[key] = defaultSettings.value(key);
+            {
+                QString defaultsPath(resource_path() + "/defaults.conf");
+                QSettings defaultSettings(defaultsPath, QSettings::IniFormat);
+                defaultSettings.setIniCodec("UTF-8");
+                foreach (QString key, defaultSettings.allKeys()) {
+                    defaults[key] = defaultSettings.value(key);
+                }
+            }
+
+#ifdef _WIN32
+            char env[1024] = { 0 };
+            int status = GetEnvironmentVariable("UTOPIA_DEFAULTS_CONF", env, sizeof(env));
+            if (status == 0) { env[0] = 0; }
+            if (*env) {
+#else
+            char * env = ::getenv("UTOPIA_DEFAULTS_CONF");
+            if (env && *env) {
+#endif
+                QFileInfo fileInfo(env);
+                if (fileInfo.exists() && fileInfo.isFile()) {
+                    QString defaultsPath(env);
+                    QSettings defaultSettings(defaultsPath, QSettings::IniFormat);
+                    defaultSettings.setIniCodec("UTF-8");
+                    foreach (QString key, defaultSettings.allKeys()) {
+                        defaults[key] = defaultSettings.value(key);
+                    }
+                }
             }
         }
         return defaults;
@@ -259,7 +285,7 @@ namespace Utopia
 #endif
 
         if (
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
             path.cdUp() && path.cd("plugins")
 #elif defined(Q_OS_MACX)
             path.cdUp() && path.cd("PlugIns")
@@ -282,7 +308,7 @@ namespace Utopia
         path.cdUp() && path.cd("lib") && path.cd("utopia-documents");
         return QDir::cleanPath(path.canonicalPath());
 #else
-            return resource_path();
+        return resource_path();
 #endif
     }
 
@@ -290,7 +316,7 @@ namespace Utopia
     {
         QDir path(executable_path());
         if (
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
             path.cdUp() && path.cd("resources")
 #elif defined(Q_OS_MACX)
             path.cdUp() && path.cd("Resources")
@@ -308,7 +334,7 @@ namespace Utopia
 
     QString config_path()
     {
-#if defined(Q_OS_WIN32) || defined(Q_OS_MACX)
+#if defined(Q_OS_WIN) || defined(Q_OS_MACX)
         return profile_path(ProfileRoot);
 #elif defined(Q_OS_LINUX)
         QDir path(QDir::home());
@@ -320,13 +346,13 @@ namespace Utopia
 
     QString profile_path(ProfilePathPart part)
     {
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
         QDir path(QString(getenv("APPDATA")));
 #else
         QDir path(QDir::home());
 #endif
         if (
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
             cd(path, "Utopia")
 #elif defined(Q_OS_MACX)
             cd(path, "Library") && cd(path, "Utopia")

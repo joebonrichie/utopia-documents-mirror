@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -48,22 +48,6 @@ set(SOURCES
   titleaspect.cpp
   )
 
-set(MOC_HEADERS
-  abstractcomponent.h
-  abstractsequence.h
-  alignmentview.h
-  annotationcomponent.h
-  aspect.h
-  component.h
-  controlaspect.h
-  datacomponent.h
-  groupaspect.h
-  keycomponent.h
-  sequence.h
-  sequencecomponent.h
-  titleaspect.h
-  )
-
 include_directories(
   ${Boost_INCLUDE_DIR}
   ${utf8_INCLUDE_DIR}
@@ -71,13 +55,12 @@ include_directories(
   ${utopia2_qt_INCLUDE_DIR}
   )
 
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} )
-
 if(WIN32)
 	add_definitions(-DBUILD_LIBCINEMA=1)
 endif()
 
-add_utopia_library( ${PROJECT_NAME} SHARED ${SOURCES} ${MOC_SOURCES})
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt ${QT_LIBRARIES} utf8)
+add_utopia_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt utf8)
+qt5_use_modules(${PROJECT_NAME} Widgets)
 
 install_utopia_library(${PROJECT_NAME} "${COMPONENT}")

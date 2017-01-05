@@ -1,0 +1,675 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [ "IEEE" ],
+          "name": "title",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "id",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "link",
+          "attrs": {
+            "href": "http://www.zotero.org/styles/ieee"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {}
+            },
+            {
+              "children": [],
+              "name": "email",
+              "attrs": {}
+            }
+          ],
+          "name": "author",
+          "attrs": {}
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {}
+            },
+            {
+              "children": [],
+              "name": "email",
+              "attrs": {}
+            }
+          ],
+          "name": "contributor",
+          "attrs": {}
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {}
+            },
+            {
+              "children": [],
+              "name": "uri",
+              "attrs": {}
+            }
+          ],
+          "name": "contributor",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "category",
+          "attrs": {
+            "term": "engineering"
+          }
+        },
+        {
+          "children": [],
+          "name": "category",
+          "attrs": {
+            "term": "generic-base"
+          }
+        },
+        {
+          "children": [],
+          "name": "category",
+          "attrs": {
+            "term": "numeric"
+          }
+        },
+        {
+          "children": [],
+          "name": "updated",
+          "attrs": {}
+        },
+        {
+          "children": [],
+          "name": "link",
+          "attrs": {
+            "href": "http://www.ieee.org/portal/cms_docs_iportals/iportals/publications/authors/transjnl/stylemanual.pdf",
+            "rel": "documentation"
+          }
+        }
+      ],
+      "name": "info",
+      "attrs": {}
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {
+                "and": "text",
+                "initialize-with": ".",
+                "delimiter": ", ",
+                "name-as-sort-order": "all"
+              }
+            },
+            {
+              "children": [],
+              "name": "label",
+              "attrs": {
+                "prefix": ", ",
+                "suffix": ".",
+                "form": "short",
+                "text-case": "lowercase"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "names",
+                  "attrs": {
+                    "variable": "editor"
+                  }
+                },
+                {
+                  "children": [],
+                  "name": "names",
+                  "attrs": {
+                    "variable": "translator"
+                  }
+                }
+              ],
+              "name": "substitute",
+              "attrs": {}
+            }
+          ],
+          "name": "names",
+          "attrs": {
+            "variable": "author"
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "author"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "name",
+              "attrs": {
+                "and": "text",
+                "initialize-with": ".",
+                "delimiter": ", ",
+                "name-as-sort-order": "all"
+              }
+            },
+            {
+              "children": [],
+              "name": "label",
+              "attrs": {
+                "prefix": ", ",
+                "suffix": ".",
+                "form": "short",
+                "text-case": "lowercase"
+              }
+            }
+          ],
+          "name": "names",
+          "attrs": {
+            "variable": "editor"
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "editor"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "title",
+                    "font-style": "italic"
+                  }
+                }
+              ],
+              "name": "if",
+              "attrs": {
+                "type": "book"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "text",
+                  "attrs": {
+                    "variable": "title",
+                    "quotes": "true"
+                  }
+                }
+              ],
+              "name": "else",
+              "attrs": {}
+            }
+          ],
+          "name": "choose",
+          "attrs": {}
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "title"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "name": "text",
+          "attrs": {
+            "variable": "publisher-place",
+            "prefix": " ",
+            "suffix": ": "
+          }
+        },
+        {
+          "children": [],
+          "name": "text",
+          "attrs": {
+            "variable": "publisher",
+            "suffix": ", "
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "date-part",
+              "attrs": {
+                "name": "year"
+              }
+            }
+          ],
+          "name": "date",
+          "attrs": {
+            "variable": "issued"
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "publisher"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "name": "text",
+          "attrs": {
+            "variable": "URL"
+          }
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "access"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "label",
+              "attrs": {
+                "variable": "page",
+                "suffix": ". ",
+                "form": "short"
+              }
+            },
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "variable": "page"
+              }
+            }
+          ],
+          "name": "group",
+          "attrs": {}
+        }
+      ],
+      "name": "macro",
+      "attrs": {
+        "name": "page"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "key",
+              "attrs": {
+                "variable": "citation-number"
+              }
+            }
+          ],
+          "name": "sort",
+          "attrs": {}
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "variable": "citation-number"
+              }
+            }
+          ],
+          "name": "layout",
+          "attrs": {
+            "delimiter": ",",
+            "prefix": "[",
+            "suffix": "]"
+          }
+        }
+      ],
+      "name": "citation",
+      "attrs": {
+        "et-al-min": "3",
+        "et-al-use-first": "1",
+        "collapse": "citation-number"
+      }
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "variable": "citation-number",
+                "prefix": "[",
+                "suffix": "]"
+              }
+            },
+            {
+              "children": [],
+              "name": "text",
+              "attrs": {
+                "macro": "author",
+                "prefix": " ",
+                "suffix": ", "
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "title"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "publisher"
+                          }
+                        }
+                      ],
+                      "name": "group",
+                      "attrs": {
+                        "delimiter": ", "
+                      }
+                    }
+                  ],
+                  "name": "if",
+                  "attrs": {
+                    "type": "book"
+                  }
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "title"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "container-title",
+                            "font-style": "italic"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "editor"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "publisher"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "page"
+                          }
+                        }
+                      ],
+                      "name": "group",
+                      "attrs": {
+                        "delimiter": ", "
+                      }
+                    }
+                  ],
+                  "name": "else-if",
+                  "attrs": {
+                    "type": "chapter"
+                  }
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "macro": "title",
+                        "suffix": ", "
+                      }
+                    },
+                    {
+                      "children": [],
+                      "name": "text",
+                      "attrs": {
+                        "variable": "number",
+                        "prefix": "U.S. Patent "
+                      }
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "date-part",
+                          "attrs": {
+                            "name": "month",
+                            "suffix": " "
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "date-part",
+                          "attrs": {
+                            "name": "day",
+                            "suffix": ", "
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "date-part",
+                          "attrs": {
+                            "name": "year"
+                          }
+                        }
+                      ],
+                      "name": "date",
+                      "attrs": {
+                        "variable": "issued",
+                        "prefix": ", "
+                      }
+                    }
+                  ],
+                  "name": "else-if",
+                  "attrs": {
+                    "type": "patent"
+                  }
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "title"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "genre"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "publisher"
+                          }
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "name": "date-part",
+                              "attrs": {
+                                "name": "year"
+                              }
+                            }
+                          ],
+                          "name": "date",
+                          "attrs": {
+                            "variable": "issued"
+                          }
+                        }
+                      ],
+                      "name": "group",
+                      "attrs": {
+                        "delimiter": ", "
+                      }
+                    }
+                  ],
+                  "name": "else-if",
+                  "attrs": {
+                    "type": "thesis"
+                  }
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "title"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "container-title",
+                            "font-style": "italic"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "variable": "volume",
+                            "prefix": " vol. "
+                          }
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "name": "date-part",
+                              "attrs": {
+                                "name": "month",
+                                "form": "short",
+                                "suffix": ". "
+                              }
+                            },
+                            {
+                              "children": [],
+                              "name": "date-part",
+                              "attrs": {
+                                "name": "year"
+                              }
+                            }
+                          ],
+                          "name": "date",
+                          "attrs": {
+                            "variable": "issued"
+                          }
+                        },
+                        {
+                          "children": [],
+                          "name": "text",
+                          "attrs": {
+                            "macro": "page"
+                          }
+                        }
+                      ],
+                      "name": "group",
+                      "attrs": {
+                        "delimiter": ", "
+                      }
+                    }
+                  ],
+                  "name": "else",
+                  "attrs": {}
+                }
+              ],
+              "name": "choose",
+              "attrs": {}
+            }
+          ],
+          "name": "layout",
+          "attrs": {
+            "suffix": "."
+          }
+        }
+      ],
+      "name": "bibliography",
+      "attrs": {
+        "entry-spacing": "0",
+        "second-field-align": "true"
+      }
+    }
+  ],
+  "name": "style",
+  "attrs": {
+    "xmlns": "http://purl.org/net/xbiblio/csl",
+    "class": "in-text",
+    "xml:lang": "en"
+  }
+}

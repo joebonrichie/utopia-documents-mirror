@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -81,9 +81,11 @@ public:
     QList< Spine::AnnotationSet > canActivate(Spine::DocumentHandle document, Spine::AnnotationSet annotations) const;
     bool canActivate(Spine::DocumentHandle document, Spine::AnnotationHandle annotation) const;
     int category() const;
+    using AnnotationProcessor::icon;
     QIcon icon() const;
     QIcon icon(Spine::DocumentHandle document, Spine::AnnotationHandle annotation) const;
     void processSelection(Spine::DocumentHandle document, Spine::CursorHandle cursor, const QPoint & globalPos = QPoint());
+    using AnnotationProcessor::title;
     QString title() const;
     QString title(Spine::DocumentHandle document, Spine::AnnotationSet annotations) const;
     int weight() const;

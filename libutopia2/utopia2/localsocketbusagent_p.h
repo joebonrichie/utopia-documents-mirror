@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,8 +34,6 @@
 
 #include <QObject>
 #include <QLocalServer>
-#include <qjson/parser.h>
-#include <qjson/serializer.h>
 
 class QLocalSocket;
 
@@ -60,9 +58,6 @@ namespace Utopia
 
         QLocalServer server;
         QLocalSocket * client;
-
-        QJson::Parser jsonParser;
-        QJson::Serializer jsonSerializer;
 
     public slots:
         void newConnection();

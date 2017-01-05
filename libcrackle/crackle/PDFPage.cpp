@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the libcrackle library.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   The libcrackle library is free software: you can redistribute it and/or
@@ -102,9 +102,14 @@ int Crackle::PDFPage::pageNumber() const
 
 BoundingBox Crackle::PDFPage::boundingBox() const
 {
+    int rotate = _doc->xpdfDoc()->getCatalog()->getPage(_page)->getRotate();
     PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getCropBox();
     //PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getTrimBox();
-    return BoundingBox(rect->x1, rect->y1, rect->x2, rect->y2);
+    if (rotate % 180 == 0) { // No change to rectangle
+        return BoundingBox(rect->x1, rect->y1, rect->x2, rect->y2);
+    } else { // Swap height and width
+        return BoundingBox(rect->x1, rect->y1, rect->x1+(rect->y2-rect->y1), rect->y1+(rect->x2-rect->x1));
+    }
 }
 
 /*
@@ -147,7 +152,7 @@ int Crackle::PDFPage::rotation() const
 const Crackle::ImageCollection &Crackle::PDFPage::images() const
 {
     _mutexSharedData.lock();
-    bool alreadyExtracted = _sharedData->_images;
+    bool alreadyExtracted = (bool) _sharedData->_images;
     _mutexSharedData.unlock();
 
     if (!alreadyExtracted) {
@@ -287,7 +292,7 @@ void Crackle::PDFPage::_extractTextAndImages() const
 const Crackle::PDFTextRegionCollection &Crackle::PDFPage::regions() const
 {
     _mutexSharedData.lock();
-    bool alreadyExtracted = _sharedData->_text;
+    bool alreadyExtracted = (bool) _sharedData->_text;
     _mutexSharedData.unlock();
 
     if (!alreadyExtracted) {

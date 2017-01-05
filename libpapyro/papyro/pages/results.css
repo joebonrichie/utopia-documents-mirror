@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,8 +30,7 @@
  *****************************************************************************/
 
 html, body {
-    font-size: 8pt;
-    line-height: 10pt;
+    line-height: 120%;
     -webkit-user-select: text;
     overflow-x: hidden;
     overflow-y: hidden;
@@ -43,93 +42,154 @@ html, body {
     -webkit-box-sizing: border-box;
 }
 
+*:focus {
+    outline: none;
+}
+
 html {
-    padding: 0px 2px 0px 0px;
+    padding: 0 2px 0 0;
 }
 
 body {
     overflow-y: auto;
     height: 100%;
+    padding: 6px 6px 6px 6px;
+    background-color: white;
+}
+
+body.results-view {
+    background-color: #f8fbff;
 }
 
 a {
     text-decoration: none;
+    color: blue;
+    cursor: pointer;
 }
 
-
-
-#-papyro-internal-results {
-  padding: 4px 4px 4px 0px;
-}
-
-.-papyro-internal-result {
-    padding: 2px 2px;
-    margin: 0px;
-    border-bottom: 1px solid #ddd;
-}
-
-.-papyro-internal-result:last-child {
-    border-bottom: none;
-}
-
-.-papyro-internal-result img {
+img {
     max-width: 100%;
 }
 
+
+
+
+.-papyro-internal-result {
+    padding: 0;
+    margin: 0;
+    background-color: #fff;
+}
+
+body.results-view .-papyro-internal-result {
+    padding: 0;
+    border-radius: 6px;
+}
+
+body.results-view .-papyro-internal-result + .-papyro-internal-result {
+    margin-top: 6px;
+}
+
+body.document-wide .-papyro-internal-result + .-papyro-internal-result {
+    border-top: 1px solid #e0e0e0;
+}
+
 .-papyro-internal-result .-papyro-internal-header {
-    height: 30px;
     -webkit-user-select: none;
-    position: relative;
     cursor: pointer;
+    padding: 3px 2px;
+}
+
+body.document-wide .-papyro-internal-result .-papyro-internal-header {
+    padding: 2px;
+}
+
+body.results-view .-papyro-internal-result .-papyro-internal-header {
+    background-color: #e0f0ff;
+}
+
+body.results-view .-papyro-internal-result > * {
+    border-style: solid;
+    border-color: #d0e8ff;
+    border-width: 0 1px;
+}
+
+body.results-view .-papyro-internal-result > *:first-child {
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+body.results-view .-papyro-internal-result > *:last-child {
+    border-bottom-width: 1px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+body.results-view .-papyro-internal-result.collapsed .-papyro-internal-header {
+    border-bottom-width: 1px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.-papyro-internal-result .-papyro-internal-header table {
     width: 100%;
+    position: relative;
+}
+
+.-papyro-internal-result .-papyro-internal-header col:nth-child(2) {
+    width: 1%;
 }
 
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-title {
     font-weight: bold;
     bottom: 50%;
-    width: 100%;
 }
 
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-description {
     color: #777;
-    width: 100%;
     top: 50%;
-    padding-top: 2px;
+}
+
+.invisible {
+    visibility: hidden;
 }
 
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-meta {
-    width: 100%;
     position: relative;
+    vertical-align: middle;
 }
 
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-title,
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-description {
     white-space: nowrap;
     overflow-x: hidden;
-    overflow-y: hidden;
     text-overflow: ellipsis;
     position: absolute;
-    padding-left: 0.8ex;
+    padding-left: 2px;
     padding-right: 2ex;
-}
-
-.-papyro-internal-result .-papyro-internal-header .-papyro-internal-thumbnail {
-    float: right;
+    left: 0;
+    right: 0;
 }
 
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-graphics {
-    width: 0px;
-    white-space: nowrap;
+    vertical-align: middle;
+    text-align: right;
 }
 
-.-papyro-internal-result .-papyro-internal-header .-papyro-internal-thumbnail img {
-    height: 30px;
-    width: 30px;
+.-papyro-internal-result .-papyro-internal-header .-papyro-internal-graphics img {
+    max-width: 30px;
 }
 
 .-papyro-internal-result .-papyro-internal-body {
-    margin: 0px;
-    padding: 0px 1px 1px 1px;
+    margin: 0;
+    padding: 6px 0;
+    background: #fff;
+    border-radius: 0 0 6px 6px;
+}
+
+.-papyro-internal-body:first-child {
+    border-radius: 6px;
 }
 
 .-papyro-internal-result .-papyro-internal-body .-papyro-internal-loading {
@@ -140,11 +200,10 @@ a {
 ::-webkit-scrollbar {
     width: 9px;
     height: 9px;
-    background: white;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.20);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
 }
 
@@ -155,7 +214,7 @@ a {
 
 ::-webkit-scrollbar-track {
     border-radius: 4px;
-    background: rgba(0, 0, 0, 0.03);
+    background: rgba(0, 0, 0, 0.00);
     margin: 2px;
 }
 
@@ -168,11 +227,14 @@ a {
  */
 
 .-papyro-internal-content {
-    background: #fff;
-    margin: 0px;
-    padding: 4px;
+    margin: 0;
+    padding: 0;
     color: #555;
     word-wrap: break-word;
+}
+
+.-papyro-internal-content > * {
+    margin: 6px;
 }
 
 .-papyro-internal-content h1,
@@ -233,6 +295,14 @@ a {
     margin-bottom: auto;
 }
 
+.-papyro-internal-content > *:first-child {
+    margin-top: 0;
+}
+
+.-papyro-internal-content > *:last-child {
+    margin-bottom: 0;
+}
+
 .-papyro-internal-content table {
     width: 100%;
     border-color: #aaa;
@@ -271,15 +341,19 @@ a {
 }
 
 .-papyro-internal-content hr {
-    margin: 0.6em 0px;
+    margin: 0.6em 0;
 }
 
 .-papyro-internal-content .box {
-    border: solid 5px black;
-    -webkit-border-image: url(qrc:/images/border-rounded-box.png) 5 stretch stretch;
-    padding: 1px;
-    margin: 4px 0;
     clear: both;
+    background: #f0f8ff;
+    border-radius: 6px;
+    border: 1px solid #e0f0ff;
+    padding: 6px;
+}
+
+.box + .box {
+    margin-top: 4px;
 }
 
 .-papyro-internal-content .box.error {
@@ -288,6 +362,10 @@ a {
 
 .-papyro-internal-content .right {
     text-align: right;
+}
+
+.-papyro-internal-content .center {
+    text-align: center;
 }
 
 
@@ -316,8 +394,8 @@ a {
 
 .-papyro-internal-content .linkable .links_wrapper > .links {
     position: absolute;
-    right: 0px;
-    left: 0px;
+    right: 0;
+    left: 0;
     z-index: 10;
     background: #ddd;
     border: solid 1px #aaa;
@@ -338,7 +416,7 @@ a {
 
 .-papyro-internal-content .expandable > .caption > img.arrow {
     position: absolute;
-    left: 0px;
+    left: 0;
 }
 
 .-papyro-internal-content .expandable > .expansion {
@@ -346,11 +424,53 @@ a {
     padding-top: 0.4em;
 }
 
-.-papyro-internal-content .expandable {
-    margin-top: 0.4em;
-    margin-bottom: 0.4em;
+.-papyro-internal-content .expandable + .expandable {
+    margin-top: 0.8em;
 }
 
 * {
   -webkit-hyphenate-character: "-";
+}
+
+.-papyro-internal-content .limited-height {
+    max-height: 120px;
+    overflow-y: hidden;
+    position: relative;
+}
+
+.-papyro-internal-content .limited-height > .overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(
+        to top,
+        rgba(255,255,255, 1) 20%,
+        rgba(255,255,255, 0) 100%
+    );
+    padding-top: 4ex;
+    padding-bottom: 0.2ex;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.-papyro-internal-content .box.limited-height > .overlay,
+.-papyro-internal-content .box .limited-height > .overlay {
+    background: linear-gradient(
+        to top,
+        rgba(240,248,255, 1) 20%,
+        rgba(240,248,255, 0) 100%
+    );
+}
+
+/**************************************************************************************************
+ * Expandable sections
+ */
+
+.-papyro-internal-citation .links a:before {
+    content: ' [';
+}
+
+.-papyro-internal-citation .links a:after {
+    content: '] ';
 }

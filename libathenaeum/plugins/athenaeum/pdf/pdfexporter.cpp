@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 #include "pdfexporter.h"
 
-#include <athenaeum/abstractbibliographiccollection.h>
+#include <papyro/abstractbibliography.h>
 #include <crackle/PDFDocument.h>
 
 #include <QFile>
@@ -44,7 +44,7 @@ using namespace Athenaeum;
 // Private method
 bool PDFExporter::doExport(const QModelIndex & index, const QString & filename)
 {
-    QString sourceFileName = index.data(AbstractBibliographicCollection::PdfRole).toUrl().toLocalFile();
+    QString sourceFileName = index.data(AbstractBibliography::ObjectFileRole).toUrl().toLocalFile();
     qDebug() << "source filename = " << sourceFileName;
     QFile sourceFile(sourceFileName);
     if (!sourceFile.open(QIODevice::ReadOnly)) {
@@ -93,7 +93,7 @@ bool PDFExporter::doExport(const QModelIndexList & indexList, const QString & fi
             if (!baseDirectory.endsWith("/")) {
                 baseDirectory.append("/");
             }
-            QString filename = indexList.at(i).data(AbstractBibliographicCollection::TitleRole).toString().left(64);
+            QString filename = indexList.at(i).data(AbstractBibliography::TitleRole).toString().left(64);
             if (filename.isEmpty()) {
                 filename = "Untitled Document";
             }

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -48,13 +48,14 @@
 #include <QNetworkRequest>
 #include <QSettings>
 #include <QSignalMapper>
+#include <QUrlQuery>
 
 #include <iostream>
 
 #include <QtDebug>
 
 #define UPDATEWIDGET_DATETIME_FORMAT "ddd d MMM yy, hh:mm"
-#define UPDATEREPORT_FORMAT_VERSION "1.2"
+#define UPDATEREPORT_FORMAT_VERSION "1.3"
 
 namespace Utopia
 {
@@ -188,7 +189,9 @@ namespace Utopia
             if (url.isValid()) {
                 QList< QPair< QString, QString > > params;
                 params << QPair< QString, QString >("v", UPDATEREPORT_FORMAT_VERSION);
-                url.setQueryItems(params);
+                QUrlQuery query;
+                query.setQueryItems(params);
+                url.setQuery(query);
                 QNetworkRequest request(url);
                 QNetworkReply * reply = networkAccessManager()->get(request);
                 QObject::connect(reply, SIGNAL(finished()), this, SLOT(finished()));
@@ -215,57 +218,63 @@ namespace Utopia
             QDomDocument doc;
             if (doc.setContent(replyData, &errStr, &errLine, &errColumn))
             {
-                QDomElement root = doc.documentElement();
+                QDomElement latest = doc.documentElement();
                 this->_status = update_error_format;
-                if (root.tagName() == "latest" &&
-                    root.attribute("xmlns") == "http://utopia.cs.manchester.ac.uk/softwareupdate/" &&
-                    root.attribute("version") == UPDATEREPORT_FORMAT_VERSION)
+                if (latest.tagName() == "latest" &&
+                    latest.attribute("xmlns") == "http://utopia.cs.manchester.ac.uk/softwareupdate/" &&
+                    latest.attribute("version") == UPDATEREPORT_FORMAT_VERSION)
                 {
                     // Looks ok so far!
+                    this->_status = update_ok;
 
                     QString id("utopia.documents");
-
-                    // Get each item, check for right id
-                    QDomNodeList items = root.elementsByTagName("component");
-                    for (int i = 0; i < items.count(); ++i) {
-                        // Only accept the required id
-                        QDomElement element(items.item(i).toElement());
-                        if (element.attribute("id") == id) {
-                            this->_status = update_ok;
-
-                            QSettings settings;
-                            QDateTime lastUpdated;
-                            if (settings.contains("Software Update/lastUpdated"))
-                            {
-                                lastUpdated = settings.value("Software Update/lastUpdated").toDateTime();
-                            }
-
-                            QDateTime itemLastUpdated = QDateTime::fromString(element.attribute("lastUpdated"), "yyyyMMddHHmmss");
-                            QString itemName = element.firstChildElement("name").text();
-                            QString itemVersion = this->_itemVersion = element.firstChildElement("version").text();
-                            QString itemUrl = element.firstChildElement("url").text();
-
-                            if (itemLastUpdated.isValid() && !itemName.isEmpty() && !itemVersion.isEmpty() && !itemUrl.isEmpty())
-                            {
-                                if (lessThan(this->_currentVersion, itemVersion) && itemVersion != settings.value("Software Update/skipVersion").toString()) // Check if there is something pending
-                                {
-                                    this->_status = update_pending;
-                                    QString msg("<p>An update of this software is available (v"+itemVersion+").</p>");
-
-#ifdef Q_OS_LINUX
-                                    msg+="<p>Install using your system package manager.</p>";
+#if defined(Q_OS_LINUX)
+                    QString platform("linux");
+#elif defined(Q_OS_MAC)
+                    QString platform("mac");
+#elif defined(Q_OS_WIN)
+                    QString platform("win32");
 #else
-                                    msg+="<p>Download from: <a href=\""+itemUrl+"\">"+itemUrl+"</a></p>";
+#error Platform not supported
 #endif
 
-                                    this->_uiPending->label->setText(msg);
-                                    this->_ui->skipButton->show();
-                                }
+                    QDateTime lastUpdated = QDateTime::fromString(latest.attribute("lastUpdated"), Qt::ISODate);
 
-                                // Remember last check date!
-                                QDateTime now = QDateTime::currentDateTime();
-                                settings.setValue("Software Update/lastChecked", now);
-                                this->_ui->lastCheckedLabel->setText("Last checked: " + now.toString(UPDATEWIDGET_DATETIME_FORMAT));
+                    // Get each component variant and choose the one that matches this version
+                    for (QDomElement component = latest.firstChildElement("component"); !component.isNull(); component = component.nextSiblingElement("component")) {
+                        // Only accept the required id
+                        if (component.attribute("id") == id) {
+                            QString componentName = component.firstChildElement("name").text();
+                            for (QDomElement variant = component.firstChildElement("variant"); !variant.isNull(); variant = variant.nextSiblingElement("variant")) {
+                                // Only deal with matching variants
+                                if (variant.attribute("platforms").split(" ", QString::SkipEmptyParts).contains(platform)) {
+                                    QSettings settings;
+                                    QString version = this->_version = variant.firstChildElement("version").text();
+                                    QString url = variant.firstChildElement("url").text();
+
+                                    if (settings.contains("Software Update/lastUpdated")) {
+                                        lastUpdated = settings.value("Software Update/lastUpdated").toDateTime();
+                                    }
+
+                                    if (lastUpdated.isValid() && !componentName.isEmpty() && !version.isEmpty() && !url.isEmpty()) {
+                                        if (lessThan(this->_currentVersion, version) && version != settings.value("Software Update/skipVersion").toString()) { // Check if there is something pending
+                                            this->_status = update_pending;
+                                            QString msg("<p>An update of this software is available (v"+version+").</p>");
+#ifdef Q_OS_LINUX
+                                            msg += "<p>Install using your system package manager.</p>";
+#else
+                                            msg += QString("<p>Download from: <a href=\"%1\">%1</a></p>").arg(url);
+#endif
+                                            this->_uiPending->label->setText(msg);
+                                            this->_ui->skipButton->show();
+                                        }
+
+                                        // Remember last check date!
+                                        QDateTime now = QDateTime::currentDateTime();
+                                        settings.setValue("Software Update/lastChecked", now);
+                                        this->_ui->lastCheckedLabel->setText("Last checked: " + now.toString(UPDATEWIDGET_DATETIME_FORMAT));
+                                    }
+                                }
                             }
                         }
                     }
@@ -314,7 +323,7 @@ namespace Utopia
     {
         // Save the version to skip
         QSettings settings;
-        settings.setValue("Software Update/skipVersion", this->_itemVersion);
+        settings.setValue("Software Update/skipVersion", this->_version);
 
         // Close widget
         this->lower();

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,6 +34,8 @@
 
 #include <utopia2/qt/webview.h>
 
+#include <QVariantList>
+
 namespace Papyro
 {
 
@@ -45,7 +47,7 @@ namespace Papyro
         Q_OBJECT
 
     public:
-        ResultsView(QWidget * parent = 0);
+        ResultsView(const QString & classes = QString(), QWidget * parent = 0);
 
         void addResult(ResultItem * result);
         bool isRunning() const;
@@ -54,6 +56,7 @@ namespace Papyro
         void clear();
 
     signals:
+        void citationsActivated(const QVariantList & citation, const QString & target);
         void linkClicked(const QUrl & href, const QString & target);
         void runningChanged(bool running);
 

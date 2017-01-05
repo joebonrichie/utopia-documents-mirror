@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@
 #include <utopia2/localsocketbusagent.h>
 #include <utopia2/localsocketbusagent_p.h>
 
+#include <QJsonDocument>
 #include <QLocalSocket>
 #include <QUuid>
 
@@ -61,9 +62,9 @@ namespace Utopia
     void LocalSocketBusAgentPrivate::readyRead()
     {
         if (client) {
-            bool ok = false;
-            QVariant data = jsonParser.parse(client, &ok);
-            if (ok && !data.isNull()) {
+            QJsonParseError error;
+            QVariant data = QJsonDocument::fromJson(client->readAll(), &error).toVariant();
+            if (!data.isNull()) {
                 if (privilegedUuid.isEmpty()) {
                     busAgent->postToBus(data);
                 } else {
@@ -91,11 +92,7 @@ namespace Utopia
     void LocalSocketBusAgent::receiveFromBus(const QString & sender, const QVariant & data)
     {
         if (d->client && (d->privilegedUuid.isEmpty() || sender == d->privilegedUuid) && !data.isNull()) {
-            bool ok = false;
-            d->jsonSerializer.serialize(data, d->client, &ok);
-            if (!ok) {
-                qDebug() << "LocalSocketBusAgent::receiveFromBus";
-            }
+            d->client->write(QJsonDocument::fromVariant(data).toJson(QJsonDocument::Compact));
         }
     }
 

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -290,7 +290,7 @@ namespace Utopia
         {
             formatManager->d->previousFileSavePath = QFileInfo(fileName).absolutePath();
 
-            while (!(success = pixmap.save(fileName, chosenFilter.section(" ", 0, 0).toAscii().constData(), formatManager->exportQuality())))
+            while (!(success = pixmap.save(fileName, chosenFilter.section(" ", 0, 0).toUtf8().constData(), formatManager->exportQuality())))
             {
                 QString message("Unable to save image file. "
                                 "Would you like to try choosing a different location to save?");

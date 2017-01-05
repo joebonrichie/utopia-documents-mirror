@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -63,11 +63,6 @@ CSLEnginePreferencesPane::CSLEnginePreferencesPane(QWidget * parent, Qt::WindowF
     stylePreviewLabel = new QLabel;
     stylePreviewLabel->setWordWrap(true);
     stylePreviewLabel->setObjectName("csl-preview");
-    {
-        QFont f(stylePreviewLabel->font());
-        f.setPointSizeF(f.pointSizeF() * 0.85);
-        stylePreviewLabel->setFont(f);
-    }
 
     styleComboBox = new QComboBox;
     QVariantMap styles = cslengine->availableStyles();

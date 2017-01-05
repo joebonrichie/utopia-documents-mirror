@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 #   
 ###############################################################################
 
-import common.utils
+import utopialib.utils
 import json
 import spineapi
 import utopia.document
@@ -39,8 +39,7 @@ class CitationFormatter(utopia.document.Annotator, utopia.document.Visualiser):
 
     # Metadata properties to be collected
     properties = ('title', 'authors[]', 'url', 'volume', 'issue', 'year', 'abstract',
-                  'publication-title', 'publisher', 'pages', 'label')
-    identifiers = ('doi', 'isbn', 'issn', 'pmcid', 'pmid')
+                  'publication-title', 'publisher', 'pages', 'label', 'identifiers')
 
     def after_load_event(self, document):
         '''
@@ -50,8 +49,8 @@ class CitationFormatter(utopia.document.Annotator, utopia.document.Visualiser):
 
         # Start by getting all the best-trusted metadata for this document
         metadata = {}
-        for key in self.properties + self.identifiers:
-            value = common.utils.metadata(document, key)
+        for key in self.properties:
+            value = utopialib.utils.metadata(document, key)
             if value is not None:
                 if key[-2:] == '[]':
                     key = key[:-2]
@@ -64,7 +63,7 @@ class CitationFormatter(utopia.document.Annotator, utopia.document.Visualiser):
             annotation['concept'] = 'CitationFormatter'
             annotation['property:json'] = json.dumps(metadata)
             annotation['property:name'] = 'Formatted Citation'
-            annotation['property:description'] = "How to cite this document"
+            annotation['property:description'] = 'How to cite this document'
             annotation['property:sourceIcon'] = utopia.get_plugin_data_as_url('images/csl.png', 'image/png')
             annotation['property:sourceDescription'] = '''
                 Uses <a href="https://bitbucket.org/fbennett/citeproc-js/wiki/Home">citeproc-js</a>
@@ -90,14 +89,14 @@ class CitationFormatter(utopia.document.Annotator, utopia.document.Visualiser):
                     var metadata = citation.data('metadata');
                     var output = citation.find('.box .output').first();
                     var style = $('.citation_style', citation).val();
-                    var formatted = papyro.citation.format(metadata, style);
+                    var formatted = utopia.citation.format(metadata, style);
                     output.html(formatted);
                 }}
                 function populate_citation_styles_{0}() {{
                     var citation = $('#citation_{0}');
                     var select = $('.citation_style', citation);
-                    var styles = papyro.citation.styles();
-                    var defaultStyle = papyro.citation.defaultStyle();
+                    var styles = utopia.citation.styles();
+                    var defaultStyle = utopia.citation.defaultStyle();
                     for (var code in styles) {{
                         var defaultness = '';
                         if (code == defaultStyle) {{
@@ -117,10 +116,14 @@ class CitationFormatter(utopia.document.Annotator, utopia.document.Visualiser):
                     display: inline;
                 }}
                 #citation_{0} {{
-                    text-align: right;
-                }}
-                #citation_{0} .box {{
                     text-align: left;
+                }}
+                #citation_{0} .options {{
+                    text-align: right;
+                    margin-top: 6px;
+                }}
+                #citation_{0} .options select {{
+                    margin: 0;
                 }}
             </style>
         '''.format(id)
@@ -130,7 +133,9 @@ class CitationFormatter(utopia.document.Annotator, utopia.document.Visualiser):
                 <div class="box">
                     <div class="output">No citation found</div>
                 </div>
-                Style: <select class="citation_style" onchange="generate_formatted_citation_{0}(this)" />
+                <div class="options">
+                    Style: <select class="citation_style" onchange="generate_formatted_citation_{0}(this)" />
+                </div>
             </div>
         '''.format(id)
 

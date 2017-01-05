@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 #? urls: http://api.figshare.com/ http://figshare.com/
 
 
-import common.utils
+import utopialib.utils
 import json
 import spineapi
 import urllib
@@ -52,7 +52,7 @@ class FigShareAnnotator(utopia.document.Annotator):
     '''Connect to FigShare service.'''
 
     def on_ready_event(self, document):
-        doi = common.utils.metadata(document, 'doi')
+        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
         if doi is not None:
             page = 1
             items_retrieved = 0

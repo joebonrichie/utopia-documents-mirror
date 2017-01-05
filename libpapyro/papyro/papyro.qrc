@@ -1,7 +1,7 @@
 <!--
     
      This file is part of the Utopia Documents application.
-         Copyright (c) 2008-2014 Lost Island Labs
+         Copyright (c) 2008-2016 Lost Island Labs
              <info@utopiadocs.com>
      
      Utopia Documents is free software: you can redistribute it and/or modify
@@ -37,11 +37,11 @@
 
         <file>images/left-fade.png</file>
 
-	<file>icons/plot.png</file>
-	<file>icons/sequence.png</file>
+        <file>icons/plot.png</file>
+        <file>icons/sequence.png</file>
         <file>icons/sticky-note.png</file>
-	<file>icons/structure.png</file>
-	<file>icons/startup.png</file>
+        <file>icons/structure.png</file>
+        <file>icons/startup.png</file>
         <file>icons/document-small-gray.png</file>
         <file>icons/document-tiny-gray.png</file>
         <file>icons/document-small.png</file>
@@ -177,10 +177,12 @@
         <file>images/border-rounded-box.png</file>
         <file>images/border-rounded-box-error.png</file>
 
-        <file>images/tab-west-active.png</file>
-        <file>images/tab-west-inactive.png</file>
-        <file>images/tab-west-hover.png</file>
         <file>icons/broken-tab.png</file>
+
+        <file>icons/tab-favourite.png</file>
+        <file>icons/tab-favourite-checked.png</file>
+        <file>icons/tab-close.png</file>
+        <file>icons/tab-close-hover.png</file>
 
     </qresource>
 </RCC>

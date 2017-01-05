@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -41,38 +41,6 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}
     )
 
-set(CMAKE_SWIG_OUTDIR "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SWIG_OUTDIR}")
-
-SET(CMAKE_SWIG_FLAGS -c++)
-SET_SOURCE_FILES_PROPERTIES(utopiacore.i PROPERTIES CPLUSPLUS ON)
-
-SWIG_ADD_MODULE(utopiacore python utopiacore.i)
-
-if(WIN32)
-    # changes dll name to pyd
-    SET_TARGET_PROPERTIES(_utopiacore PROPERTIES SUFFIX ".pyd")
-elseif(APPLE)
-    SET_TARGET_PROPERTIES(_utopiacore PROPERTIES LINK_FLAGS " -Wl,-F. -bundle -undefined dynamic_lookup")
-endif()
-
-install(FILES "${CMAKE_SWIG_OUTDIR}/utopiacore.py" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/" COMPONENT "${COMPONENT}")
-if(APPLE)
-    install(TARGETS _utopiacore DESTINATION "${PLUGIN_INSTALL_DIR}" COMPONENT "${COMPONENT}")
-    SWIG_LINK_LIBRARIES(utopiacore utf8 utopia2 stdc++)
-else()
-    install(TARGETS _utopiacore DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/" COMPONENT "${COMPONENT}")
-    SWIG_LINK_LIBRARIES(utopiacore utf8 ${PYTHON_LIBRARIES} utopia2 stdc++)
-endif()
-
-ADD_DEPENDENCIES(build _utopiacore)
-
-
-
-
-
-
-
 file(GLOB SCRIPTS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.py)
 
 foreach(SCRIPT ${SCRIPTS})
@@ -80,8 +48,7 @@ foreach(SCRIPT ${SCRIPTS})
   install(FILES "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/${SCRIPT}" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia" COMPONENT "${COMPONENT}")
 endforeach()
 
-if(WIN32)
-  set(PYTHON_LIB_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}/Lib")
+if(FALSE)
   set(PYTHON_BIN "${PYTHON_BIN_ROOT}/python.exe")
   configure_file("${PYTHON_BIN}" "${CMAKE_BINARY_DIR}/${BIN_INSTALL_DIR}/python.exe" COPYONLY)
 
@@ -93,7 +60,7 @@ if(WIN32)
     endif()
   endforeach()
 
-  set(PYTHON_DLL_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}/DLLs")
+  set(PYTHON_DLL_ROOT "c:/mingw64/lib/python${PYTHON_VERSION}/DLLs")
   file(GLOB_RECURSE DLL_SCRIPTS RELATIVE "${PYTHON_DLL_ROOT}" "${PYTHON_DLL_ROOT}/*.dll")
   file(GLOB_RECURSE PYD_SCRIPTS RELATIVE "${PYTHON_DLL_ROOT}" "${PYTHON_DLL_ROOT}/*.pyd")
   foreach(SCRIPT ${PYD_SCRIPTS} ${DLL_SCRIPTS})
@@ -103,36 +70,38 @@ if(WIN32)
   endforeach()
 
   install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib" DESTINATION "${PYTHON_INSTALL_DIR}" COMPONENT "${COMPONENT}"
-        PATTERN "*.pyc" EXCLUDE
-        PATTERN "*.pyo" EXCLUDE)
+          PATTERN "*.pyc" EXCLUDE
+          PATTERN "*.pyo" EXCLUDE)
   install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/dlls" DESTINATION "${PYTHON_INSTALL_DIR}" COMPONENT "${COMPONENT}"
-        PATTERN "*.pyc" EXCLUDE
-        PATTERN "*.pyo" EXCLUDE)
+          PATTERN "*.pyc" EXCLUDE
+          PATTERN "*.pyo" EXCLUDE)
 
-elseif(NOT USE_SYSTEM_Python)
-  set(PYTHON_LIB_ROOT "${UTOPIA_DEPENDENCIES_DIR}/lib/python${PYTHON_VERSION}")
-  set(PYTHON_BIN "${UTOPIA_DEPENDENCIES_DIR}/bin/python")
-  configure_file("${PYTHON_BIN}" "${CMAKE_BINARY_DIR}/${BIN_INSTALL_DIR}/python" COPYONLY)
+elseif(NOT USE_SYSTEM_Python OR WIN32)
+  if(WIN32)
+    #configure_file("${PYTHON_BIN_ROOT}/bin/python.exe" "${CMAKE_BINARY_DIR}/${BIN_INSTALL_DIR}/python.exe" COPYONLY)
+  else()
+    #configure_file("${PYTHON_BIN_ROOT}/bin/python" "${CMAKE_BINARY_DIR}/${BIN_INSTALL_DIR}/python" COPYONLY)
+  endif()
 
   file(GLOB_RECURSE PY_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.py")
   file(GLOB_RECURSE SO_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.so")
+  file(GLOB_RECURSE DLL_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}" "${PYTHON_LIB_ROOT}/*.dll")
+  file(GLOB_RECURSE PYD_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}" "${PYTHON_LIB_ROOT}/*.pyd")
   file(GLOB_RECURSE MAKEFILE RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/Makefile")
 
-  foreach(SCRIPT ${PY_SCRIPTS} ${SO_SCRIPTS} ${MAKEFILE})
+  foreach(SCRIPT ${PY_SCRIPTS} ${SO_SCRIPTS} ${MAKEFILE} ${PYD_SCRIPTS} ${DLL_SCRIPTS})
     configure_file("${PYTHON_LIB_ROOT}/${SCRIPT}" "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/${SCRIPT}" COPYONLY)
   endforeach()
 
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}" COMPONENT "${COMPONENT}"
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}" COMPONENT "${COMPONENT}"
         PATTERN "*.pyc" EXCLUDE
         PATTERN "*.pyo" EXCLUDE)
 
-  file(GLOB_RECURSE PYCONFIG RELATIVE "${PYTHON_INCLUDE_ROOT}" "${PYTHON_INCLUDE_ROOT}/pyconfig.h")
-
-  foreach(SCRIPT ${PYCONFIG})
-    configure_file("${PYTHON_INCLUDE_ROOT}/${SCRIPT}" "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/include/python${PYTHON_VERSION}/${SCRIPT}" COPYONLY)
-  endforeach()
-
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/include/python${PYTHON_VERSION}" DESTINATION "${PYTHON_INSTALL_DIR}/include/python${PYTHON_VERSION}" COMPONENT "${COMPONENT}")
+  #file(GLOB_RECURSE PYCONFIG RELATIVE "${PYTHON_INCLUDE_ROOT}" "${PYTHON_INCLUDE_ROOT}/pyconfig.h")
+  #foreach(SCRIPT ${PYCONFIG})
+  #  configure_file("${PYTHON_INCLUDE_ROOT}/${SCRIPT}" "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/include/python${PYTHON_VERSION}/${SCRIPT}" COPYONLY)
+  #endforeach()
+  #install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/include/python${PYTHON_VERSION}" DESTINATION "${PYTHON_INSTALL_DIR}/include/python${PYTHON_VERSION}" COMPONENT "${COMPONENT}")
 
 endif()
 

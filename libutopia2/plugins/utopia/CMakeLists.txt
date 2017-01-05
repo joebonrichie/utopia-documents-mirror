@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -32,24 +32,17 @@
 project(utopia2-utopia)
 
 set(SOURCES
-  raptor_init.cpp
   utopia_parser.cpp
-  utopia_serializer.cpp
   utopia.cpp
 )
 
 
 include_directories(
   ${PROJECT_BINARY_DIR}
-  ${Raptor_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   )
 
-if(WIN32)
-  add_definitions(-DRAPTOR_STATIC=1)
-endif()
-
 add_utopia_plugin(${PROJECT_NAME} MODULE ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${Raptor_LIBRARIES} utopia2 ${EXPAT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} utopia2 ${EXPAT_LIBRARIES})
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

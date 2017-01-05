@@ -1,0 +1,2 @@
+set(UTOPIA_LIBSPINE_PDF_BACKEND "xpdf" CACHE STRING "Spine PDF backend")
+

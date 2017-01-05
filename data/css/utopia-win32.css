@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,15 +29,6 @@
  *  
  *****************************************************************************/
 
-
-QToolBar
-{
-  background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                              stop: 0 rgb(170,170,170),
-                              stop: 1 rgb(150,150,150));
-  border-top: 1 solid rgb(195,195,195);
-  border-bottom: 1 solid rgb(45, 45, 45);
-}
 
 Utopia--BubbleWidgetOld QStatusBar QPushButton,
 Utopia--BubbleWidget QStatusBar QPushButton

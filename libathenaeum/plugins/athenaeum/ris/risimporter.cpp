@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,6 +30,8 @@
  *****************************************************************************/
 
 #include "risimporter.h"
+
+#include <athenaeum/bibliographicitem.h>
 
 #include <QMap>
 #include <QString>
@@ -102,7 +104,7 @@ private:
 
 }
 
-bool RISImporter::import(Athenaeum::AbstractBibliographicModel * model, QIODevice * io)
+bool RISImporter::import(Athenaeum::AbstractBibliography * model, QIODevice * io)
 {
     // Parse the QIODevice and populate the model
     RISParser parser(io);
@@ -262,25 +264,24 @@ bool RISImporter::import(Athenaeum::AbstractBibliographicModel * model, QIODevic
             qDebug() << "keywords" << keywords;
 
             if(model) {
-                int index(model->rowCount());
-                model->insertRow(index);
-                QModelIndex current_index(model->index(index, 0));
+                Athenaeum::BibliographicItemHandle item(new Athenaeum::BibliographicItem);
 
-                model->setData(current_index, type, Athenaeum::AbstractBibliographicCollection::TypeRole);
-                model->setData(current_index, authors, Athenaeum::AbstractBibliographicCollection::AuthorsRole);
-                model->setData(current_index, identifiers, Athenaeum::AbstractBibliographicCollection::IdentifiersRole);
-                model->setData(current_index, start_page, Athenaeum::AbstractBibliographicCollection::PageFromRole);
-                model->setData(current_index, end_page, Athenaeum::AbstractBibliographicCollection::PageToRole);
-                model->setData(current_index, title, Athenaeum::AbstractBibliographicCollection::TitleRole);
-                //model->setData(current_index, subtitle, Athenaeum::AbstractBibliographicCollection::SubtitleRole);
-                model->setData(current_index, url, Athenaeum::AbstractBibliographicCollection::UrlRole);
-                model->setData(current_index, abstract, Athenaeum::AbstractBibliographicCollection::AbstractRole);
-                model->setData(current_index, publication_title, Athenaeum::AbstractBibliographicCollection::PublicationTitleRole);
-                model->setData(current_index, publisher, Athenaeum::AbstractBibliographicCollection::PublisherRole);
-                model->setData(current_index, year, Athenaeum::AbstractBibliographicCollection::YearRole);
-                model->setData(current_index, issue, Athenaeum::AbstractBibliographicCollection::IssueRole);
-                model->setData(current_index, volume, Athenaeum::AbstractBibliographicCollection::VolumeRole);
-                model->setData(current_index, keywords, Athenaeum::AbstractBibliographicCollection::KeywordsRole);
+                item->setField(Athenaeum::AbstractBibliography::TypeRole, type);
+                item->setField(Athenaeum::AbstractBibliography::AuthorsRole, authors);
+                item->setField(Athenaeum::AbstractBibliography::IdentifiersRole, identifiers);
+                item->setField(Athenaeum::AbstractBibliography::PageFromRole, start_page);
+                item->setField(Athenaeum::AbstractBibliography::PageToRole, end_page);
+                item->setField(Athenaeum::AbstractBibliography::TitleRole, title);
+                item->setField(Athenaeum::AbstractBibliography::UrlRole, url);
+                item->setField(Athenaeum::AbstractBibliography::AbstractRole, abstract);
+                item->setField(Athenaeum::AbstractBibliography::PublicationTitleRole, publication_title);
+                item->setField(Athenaeum::AbstractBibliography::PublisherRole, publisher);
+                item->setField(Athenaeum::AbstractBibliography::YearRole, year);
+                item->setField(Athenaeum::AbstractBibliography::IssueRole, issue);
+                item->setField(Athenaeum::AbstractBibliography::VolumeRole, volume);
+                item->setField(Athenaeum::AbstractBibliography::KeywordsRole, keywords);
+
+                model->appendItem(item);
             }
 
         }

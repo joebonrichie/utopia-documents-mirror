@@ -70,46 +70,9 @@ if [ x"${ARCH}" = x"Darwin" ]; then
     export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
     export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
     export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
-    # Fix the noddy makefile on OS X
-    mv Makefile Makefile.lfcr
-    tr -d '\r' < Makefile.lfcr > Makefile
-    patch -p0 <<'EOF'
---- Makefile.orig       2008-11-03 06:25:21.000000000 +0000
-+++ Makefile    2009-11-19 11:42:23.000000000 +0000
-@@ -59,12 +59,12 @@
- OPT = $(POPT)
- endif
- INCLUDE = -Iinclude
--CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA)
-+CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA) $(CFLAGS_ENV)
 
- LIB.SRCS = src/glew.c
- LIB.OBJS = $(LIB.SRCS:.c=.o)
- LIB.SOBJS = $(LIB.SRCS:.c=.$(SHARED_OBJ_EXT))
--LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS.GL)
-+LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS.GL) $(LDFLAGS_ENV)
- LIB.LIBS = $(GL_LDFLAGS)
-
- GLEWINFO.BIN = glewinfo$(BIN.SUFFIX)
-@@ -73,7 +73,7 @@
- VISUALINFO.BIN = visualinfo$(BIN.SUFFIX)
- VISUALINFO.BIN.SRCS = src/visualinfo.c
- VISUALINFO.BIN.OBJS = $(VISUALINFO_BIN.SRCS:.c=.o)
--BIN.LIBS = -Llib $(LDFLAGS.DYNAMIC) -l$(NAME) $(LDFLAGS.EXTRA) $(LDFLAGS.GL)
-+BIN.LIBS = -Llib $(LDFLAGS.DYNAMIC) -l$(NAME) $(LDFLAGS.EXTRA) $(LDFLAGS.GL) $(LDFLAGS_ENV)
-
- all debug: lib/$(LIB.SHARED) lib/$(LIB.STATIC) bin/$(GLEWINFO.BIN) bin/$(VISUALINFO.BIN)
-
-@@ -81,7 +81,7 @@
- mkdir lib
-
- lib/$(LIB.STATIC): $(LIB.OBJS)
--	$(AR) cr $@ $^
-+	$(AR) csr $@ $^
-
- lib/$(LIB.SHARED): $(LIB.SOBJS)
- 	$(LD) $(LDFLAGS.SO) -o $@ $^ $(LIB.LDFLAGS) $(LIB.LIBS)
-EOF
+    export CFLAGS_ENV="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+    export LDFLAGS_ENV="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
 fi
 
 GLEW_DEST="${PREFIX}/build" \

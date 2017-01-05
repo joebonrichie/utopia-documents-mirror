@@ -1,7 +1,7 @@
 <!--
     
      This file is part of the Utopia Documents application.
-         Copyright (c) 2008-2014 Lost Island Labs
+         Copyright (c) 2008-2016 Lost Island Labs
              <info@utopiadocs.com>
      
      Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,6 +30,13 @@
 -->
 
 <!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/autoload-qt">
+        <file alias="processors.css">assets/processors.css</file>
+    </qresource>
+    <qresource prefix="/processors">
+        <file alias="save-context.png">assets/save-context.png</file>
+        <file alias="show-context.png">assets/show-context.png</file>
+    </qresource>
     <qresource prefix="/processors/highlighting">
         <file alias="icon.png">icons/highlighting.png</file>
         <file alias="icon-overlay.png">icons/highlighting-overlay.png</file>

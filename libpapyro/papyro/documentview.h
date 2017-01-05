@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,8 +33,11 @@
 #define DOCUMENTVIEW_H
 
 #include <papyro/config.h>
-#include <papyro/pageview.h>
-#include <spine/Document.h>
+
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <papyro/pageview.h>
+#  include <spine/Document.h>
+#endif
 
 #include <QScrollArea>
 //#include <QtDesigner/QDesignerExportWidget>
@@ -161,8 +164,8 @@ namespace Papyro
         void selectNone();
         void setAutoScrollBars(bool value);
         void setBindingMode(BindingMode mode);
-        void setDocument(Spine::DocumentHandle document, size_t pageNumber, const QRectF & pageRect);
-        void setDocument(Spine::DocumentHandle document, size_t pageNumber = 0, const QPointF & pagePos = QPointF()) { setDocument(document, pageNumber, QRectF(pagePos, QSizeF())); }
+        void setDocument(Spine::DocumentHandle document, int pageNumber, const QRectF & pageRect);
+        void setDocument(Spine::DocumentHandle document, int pageNumber = 0, const QPointF & pagePos = QPointF()) { setDocument(document, pageNumber, QRectF(pagePos, QSizeF())); }
         void setExposing(bool exposing);
         void setHighlightColor(const QColor & color);
         void setInteractionMode(InteractionMode interactionMode);
@@ -177,8 +180,8 @@ namespace Papyro
         void showLastPage();
         void showNextPage();
         void showPage(Spine::TextExtentHandle extent);
-        void showPage(size_t pageNumber, const QRectF & pageRect);
-        void showPage(size_t pageNumber, const QPointF & pagePos = QPointF()) { showPage(pageNumber, QRectF(pagePos, QSize())); }
+        void showPage(int pageNumber, const QRectF & pageRect);
+        void showPage(int pageNumber, const QPointF & pagePos = QPointF()) { showPage(pageNumber, QRectF(pagePos, QSize())); }
         void showPage(const QVariantMap & params = QVariantMap());
         void showPreviousPage();
         void updateAnnotations();

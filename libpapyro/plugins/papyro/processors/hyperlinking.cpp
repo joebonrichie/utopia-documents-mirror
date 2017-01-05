@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -295,8 +295,8 @@ void HyperlinkFactory::activate(Spine::DocumentHandle document, Spine::Annotatio
         QUrl url(Papyro::qStringFromUnicode(annotation->getFirstProperty("property:webpageUrl")));
         QString target(Papyro::qStringFromUnicode(annotation->getFirstProperty("property:webpageUrlTarget")));
         QString anchor(Papyro::qStringFromUnicode(annotation->getFirstProperty("property:destinationAnchorName")));
-        if (target.isEmpty() && !anchor.isEmpty()) {
-            target = QString("pdf; anchor=%1").arg(anchor);
+        if (!anchor.isEmpty()) {
+            target = QString("pdf; anchor=%1; ").arg(anchor) + target;
         }
         Papyro::PapyroWindow::currentWindow()->requestUrl(url, target);
     }
@@ -356,7 +356,7 @@ void HyperlinkFactory::processSelection(Spine::DocumentHandle document, Spine::C
 QList< boost::shared_ptr< Papyro::SelectionProcessor > > HyperlinkFactory::selectionProcessors(Spine::DocumentHandle document, Spine::CursorHandle cursor)
 {
     QList< boost::shared_ptr< Papyro::SelectionProcessor > > list;
-    if (hasTextSelection(document, cursor)) {
+    if (hasTextSelection(document, cursor) || hasAreaSelection(document, cursor)) {
         list << boost::shared_ptr< Papyro::SelectionProcessor >(new HyperlinkFactory);
     }
     return list;

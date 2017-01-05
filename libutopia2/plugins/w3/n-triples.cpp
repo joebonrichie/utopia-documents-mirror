@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ namespace Utopia
         QChar gobbled;
         if (line_[0] == '\\' && line_[1] == '\\')
         {
-            switch (line_[2].toAscii())
+            switch (line_[2].toLatin1())
             {
             case 'u':
                 characters_gobbled = 7;
@@ -76,7 +76,7 @@ namespace Utopia
         }
         if (characters_gobbled > 1)
         {
-            switch (line_[2].toAscii())
+            switch (line_[2].toLatin1())
             {
             case 'u':
             {
@@ -199,7 +199,7 @@ namespace Utopia
                 switch (part)
                 {
                 case Unknown:
-                    switch (atom.toAscii())
+                    switch (atom.toLatin1())
                     {
                     case '<':
                         tokens[triple].type = part = UriRef;

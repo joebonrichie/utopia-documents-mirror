@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the libspine library.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    The libspine library is free software: you can redistribute it and/or
@@ -31,6 +31,10 @@ set(SOURCES
     fingerprint.cpp
     )
 
-add_utopia_library(spine SHARED ${SOURCES} )
-install_utopia_library(spine "${COMPONENT}")
+add_definitions (
+  -DUTF8PROC_EXPORTS
+)
+
+add_utopia_library(spine SHARED ${SOURCES})
 target_link_libraries (spine utf8 ${PCRE_LIBRARIES} ${Boost_SIGNALS_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${OPENSSL_LIBRARIES} )
+install_utopia_library(spine "${COMPONENT}")

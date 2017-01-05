@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -171,10 +171,10 @@ class _PageBox:
         pagebox = etree.Element('{%s}%s' % (NS['kend'], name), nsmap = nsmap)
         pagebox.set('page', str(obj.page))
         pagebox.set('rotation', str(obj.rotation))
-        pagebox.set('left', str(obj.left))
-        pagebox.set('top', str(obj.top))
-        pagebox.set('right', str(obj.right))
-        pagebox.set('bottom', str(obj.bottom))
+        pagebox.set('left', '{:.3f}'.format(obj.left))
+        pagebox.set('top', '{:.3f}'.format(obj.top))
+        pagebox.set('right', '{:.3f}'.format(obj.right))
+        pagebox.set('bottom', '{:.3f}'.format(obj.bottom))
         return pagebox
 
 

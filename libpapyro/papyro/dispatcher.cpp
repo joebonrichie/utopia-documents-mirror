@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@
 
 #include <QDebug>
 
-Q_DECLARE_METATYPE(Spine::AnnotationHandle)
+Q_DECLARE_METATYPE(Spine::AnnotationHandle);
 
 
 QDataStream & operator >> (QDataStream & str, QList< Spine::AnnotationHandle > & annotationList)
@@ -131,7 +131,7 @@ namespace Papyro
                                    DispatcherPrivate * dispatcherPrivate,
                                    Spine::DocumentHandle document,
                                    const QStringList & terms)
-        : QThread(dispatcher), mutex(QMutex::Recursive), d(dispatcherPrivate), document(document), cancelled(false)
+        : QThread(dispatcher), d(dispatcherPrivate), mutex(QMutex::Recursive), cancelled(false), document(document)
     {
         qRegisterMetaType< Spine::AnnotationHandle >();
 
@@ -146,6 +146,14 @@ namespace Papyro
     DispatchEngine::~DispatchEngine()
     {}
 
+    void DispatchEngine::cancel()
+    {
+        QMutexLocker guard(&mutex);
+
+        // Cancel all queued runnables
+        cancelled = true;
+    }
+
     void DispatchEngine::detach()
     {
         QMutexLocker guard(&mutex);
@@ -153,8 +161,7 @@ namespace Papyro
         disconnect(dispatcher(), SLOT(onAnnotationFound(Spine::AnnotationHandle)));
         disconnect(dispatcher(), SIGNAL(finished()));
 
-        // Cancel all queued runnables
-        cancelled = true;
+        cancel();
     }
 
     bool DispatchEngine::detached() const

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -85,12 +85,13 @@ namespace Utopia
 
         d->actionPreferences = new QAction("Preferences", this);
         d->actionPreferences->setShortcut(QKeySequence::Preferences);
+        d->actionPreferences->setMenuRole(QAction::PreferencesRole);
         connect(d->actionPreferences, SIGNAL(triggered()), this, SLOT(showPreferences()));
 
         d->windowActionGroup = new QActionGroup(this);
         d->windowActionGroup->setExclusive(true);
 
-        d->menuRecent.setTitle("Recent Files...");
+        d->menuRecent.setTitle("Recent Files");
         d->menuRecent.setEnabled(false);
         d->menuRecent.addSeparator();
         d->menuRecent.addAction(d->actionClearHistory);
@@ -118,7 +119,7 @@ namespace Utopia
             if (urlsToSkip-- > 0) { continue; }
 
             // Ignore non-existant files
-            if (url.scheme() != "file" || QFileInfo(url.toLocalFile()).exists()) {
+            if (url.isLocalFile() && QFileInfo(url.toLocalFile()).exists()) {
                 addRecentFile(url);
             }
         }
@@ -266,14 +267,14 @@ namespace Utopia
         }
     }
 
-    QMenu * UIManager::menuRecent() const
+    QMenu * UIManager::menuRecent(QWidget * parent) const
     {
-        return SlaveMenu::slave(&d->menuRecent);
+        return SlaveMenu::slave(&d->menuRecent, parent);
     }
 
-    QMenu * UIManager::menuWindow() const
+    QMenu * UIManager::menuWindow(QWidget * parent) const
     {
-        return SlaveMenu::slave(&d->menuWindow);
+        return SlaveMenu::slave(&d->menuWindow, parent);
     }
 
     QMenu * UIManager::menuWindowMaster() const
@@ -286,9 +287,9 @@ namespace Utopia
         return d->windowActionGroup;
     }
 
-    QMenu * UIManager::menuHelp() const
+    QMenu * UIManager::menuHelp(QWidget * parent) const
     {
-        return SlaveMenu::slave(&d->menuHelp);
+        return SlaveMenu::slave(&d->menuHelp, parent);
     }
 
     void UIManager::onMessage(const QString & message)
@@ -344,9 +345,9 @@ namespace Utopia
         QDesktopServices::openUrl(QUrl("http://utopiadocs.com/redirect.php?to=quickstart"));
     }
 
-    void UIManager::showPreferences(const QString & paneName)
+    void UIManager::showPreferences(const QString & paneName, const QVariant & params)
     {
-        d->preferencesDialog->focusPane(paneName);
+        d->preferencesDialog->focusPane(paneName, params);
         d->preferencesDialog->show();
         d->preferencesDialog->raise();
     }

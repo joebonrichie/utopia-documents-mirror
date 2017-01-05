@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,14 +31,34 @@
 
 #include <Python.h>
 
+#include <utopia2/configurable.h>
+#include <utopia2/configuration.h>
+
+#include <boost/python.hpp>
+#include <boost/mpl/vector.hpp>
+
+#include <QUuid>
+#include <QDebug>
+
 #include <string>
+#include <vector>
 #include <iostream>
 
-class PyExtension
+namespace python = boost::python;
+namespace mpl = boost::mpl;
+
+
+
+
+class PyExtension : public virtual Utopia::Configurable
 {
 public:
     PyExtension(const std::string & extensionMetaType, const std::string & extensionTypeName)
-        : _extensionMetaType(extensionMetaType), _extensionTypeName(extensionTypeName), _extensionObject(0), _extensionNamespace(0)
+        : _extensionMetaType(extensionMetaType),
+          _extensionTypeName(extensionTypeName),
+          _extensionObject(0),
+          _extensionNamespace(0),
+          _thread_id(0)
     {
         // Acquire Python's global interpreter lock
         PyGILState_STATE gstate;
@@ -54,6 +74,22 @@ public:
             PyObject * doc = PyObject_GetAttrString(_extensionObject, "__doc__");
             _extensionDocString = doc != Py_None ? PyString_AsString(doc) : "UNTITLED";
             Py_XDECREF(doc);
+
+            // Ensure the extension object instantiated correctly, then tailor this object
+            if (extensionObject()) {
+                // Get UUID
+                if (PyObject * uuidret = PyObject_CallMethod(extensionObject(), (char *) "uuid", NULL)) {
+                    _uuid = PyString_AsString(uuidret);
+                    Py_DECREF(uuidret);
+
+                    // Use boost::python to attach a method to the extension instance
+                    python::scope outer(python::object(python::handle<>(python::borrowed(extensionObject()))));
+                    python::def("get_config", python::make_function(bind(&PyExtension::get_config, this, _1, python::object()), python::default_call_policies(), mpl::vector< python::object, python::object >()));
+                    python::def("get_config", python::make_function(bind(&PyExtension::get_config, this, _1, _2), python::default_call_policies(), mpl::vector< python::object, python::object, python::object >()));
+                    python::def("set_config", python::make_function(bind(&PyExtension::set_config, this, _1, _2), python::default_call_policies(), mpl::vector< void, python::object, python::object >()));
+                    python::def("del_config", python::make_function(bind(&PyExtension::del_config, this, _1), python::default_call_policies(), mpl::vector< void, python::object >()));
+                }
+            }
         }
 
         // Release Python's global interpreter lock
@@ -75,12 +111,78 @@ public:
         }
     }
 
+    void cancel()
+    {
+        PyGILState_STATE gstate;
+        gstate = PyGILState_Ensure();
+
+        if (_thread_id > 0) {
+            PyObject * exc = PyErr_NewException((char *) "utopia.Cancellation", 0, 0);
+            PyThreadState_SetAsyncExc(_thread_id, exc);
+            _thread_id = 0;
+        }
+
+        PyGILState_Release(gstate);
+    }
+
+    void makeCancellable()
+    {
+        PyGILState_STATE gstate;
+        gstate = PyGILState_Ensure();
+
+        // Get current thread ID
+        PyObject * threadName = PyString_FromString("thread");
+        PyObject * thread = PyImport_Import(threadName);
+        Py_DECREF(threadName);
+        PyObject * get_ident = PyObject_GetAttrString(thread, "get_ident");
+        PyObject * ident = PyObject_CallObject(get_ident, 0);
+        Py_DECREF(get_ident);
+        _thread_id = PyInt_AsLong(ident);
+        Py_DECREF(ident);
+
+        PyGILState_Release(gstate);
+    }
+
+
+
+
+    //**** Configuration methods ****//
+
+    QUuid configurationId() const
+    {
+        return uuid().c_str();
+    }
+
+    void del_config(python::object key)
+    {
+        // Del value
+        configuration()->del(convert(key).toString());
+    }
+
+    python::object get_config(python::object key, python::object def = python::object())
+    {
+        // Resolve key
+        python::object value(def);
+        PyObject * valueObj = convert(configuration()->get(convert(key).toString()));
+        if (valueObj != Py_None) {
+            value = python::object(python::handle<>(valueObj));
+        }
+        return value;
+    }
+
+    void set_config(python::object key, python::object value)
+    {
+        // Set value
+        configuration()->set(convert(key).toString(), convert(value));
+    }
+
 protected:
     std::string extensionMetaType() const { return _extensionMetaType; }
     std::string extensionTypeName() const { return _extensionTypeName; }
     std::string extensionDocString() const { return _extensionDocString; }
     PyObject * extensionObject() const { return _extensionObject; }
     PyObject * extensionNamespace() const { return _extensionNamespace; }
+    std::string uuid() const { return _uuid; }
 
 private:
     std::string _extensionMetaType;
@@ -88,4 +190,6 @@ private:
     std::string _extensionDocString;
     PyObject * _extensionObject;
     PyObject * _extensionNamespace;
+    std::string _uuid;
+    long _thread_id;
 };

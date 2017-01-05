@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -42,6 +42,7 @@
 #include <utopia2/qt/filedialog.h>
 #include <utopia2/qt/fileformatdialog.h>
 #include <utopia2/qt/filefixerdialog.h>
+#include <utopia2/qt/hidpi.h>
 #include <utopia2/extension.h>
 #include <utopia2/node.h>
 #include <utopia2/parser.h>
@@ -118,253 +119,253 @@ namespace
         return (rect1.top() <= (rect2.bottom() + grace) && rect1.bottom() >= (rect2.top() - grace));
     }
 
-    QRectF extentPageBounds(Spine::TextExtentHandle extent, int pageNumber)
-    {
-        QRectF bounds;
-        BOOST_FOREACH(const Spine::Area & area, extent->areas())
-        {
-            if (area.page == pageNumber)
-            {
-                const Spine::BoundingBox & bb = area.boundingBox;
-                bounds |= QRectF(bb.x1, bb.y1, bb.width(), bb.height());
-            }
-        }
-        return bounds;
-    }
+//     QRectF extentPageBounds(Spine::TextExtentHandle extent, int pageNumber)
+//     {
+//         QRectF bounds;
+//         BOOST_FOREACH(const Spine::Area & area, extent->areas())
+//         {
+//             if (area.page == pageNumber)
+//             {
+//                 const Spine::BoundingBox & bb = area.boundingBox;
+//                 bounds |= QRectF(bb.x1, bb.y1, bb.width(), bb.height());
+//             }
+//         }
+//         return bounds;
+//     }
 
-    static QPointF qRound(const QPointF & p, int places = 0)
-    {
-        const int factor(qPow(10, places));
-        return QPointF(::qRound(p.x() * factor) / (qreal) factor,
-                       ::qRound(p.y() * factor) / (qreal) factor);
-    }
+//     static QPointF qRound(const QPointF & p, int places = 0)
+//     {
+//         const int factor(qPow(10, places));
+//         return QPointF(::qRound(p.x() * factor) / (qreal) factor,
+//                        ::qRound(p.y() * factor) / (qreal) factor);
+//     }
+//
+//     static QPolygonF qRound(const QPolygonF & p, int places = 0)
+//     {
+//         QPolygonF rounded;
+//         QPointF previous;
+//         foreach (const QPointF & point, p) {
+//             QPointF roundedPoint(qRound(point, places));
+//             if (previous.isNull() || roundedPoint != previous) {
+//                 rounded << roundedPoint;
+//             }
+//             previous = roundedPoint;
+//         }
+//         return rounded;
+//     }
 
-    static QPolygonF qRound(const QPolygonF & p, int places = 0)
-    {
-        QPolygonF rounded;
-        QPointF previous;
-        foreach (const QPointF & point, p) {
-            QPointF roundedPoint(qRound(point, places));
-            if (previous.isNull() || roundedPoint != previous) {
-                rounded << roundedPoint;
-            }
-            previous = roundedPoint;
-        }
-        return rounded;
-    }
-
-    static QPainterPath roundyCorners(const QVector< QRectF > & rects_, const qreal radius = 1.0, const QSizeF & padding = QSizeF(0.0, 1.0))
-    {
-        // Compile rectangles
-        QVector< QRectF > rects(rects_);
-        foreach (const QRectF & rect, rects_) {
-            rects << rect.adjusted(-(radius + padding.width()), -(radius + padding.height()), radius + padding.width(), radius + padding.height());
-        }
-
-        // Modify rects to remove similar x coordinates
-        if (rects.size() > 1) {
-            bool fixed = true;
-            while (fixed) {
-                fixed = false;
-                int indexFrom = 0;
-                qreal conformTo = rects.at(0).right();
-                for (int i = 1; i < rects.size(); ++i) {
-                    if (qAbs(rects.at(i).right() - rects.at(i-1).right()) >= (2.0 * radius)) {
-                        if (i - indexFrom > 1) {
-                            // Conform
-                            for (int j = indexFrom; j < i; ++j) {
-                                if (rects.at(j).right() != conformTo) {
-                                    rects[j].setRight(conformTo);
-                                    fixed = true;
-                                }
-                            }
-                        }
-
-                        indexFrom = i;
-                        conformTo = rects.at(i).right();
-                    } else {
-                        conformTo = qMax(conformTo, rects.at(i).right());
-                    }
-                }
-                if (indexFrom != rects.size() - 1) {
-                    // Conform
-                    for (int j = indexFrom; j < rects.size(); ++j) {
-                        if (rects.at(j).right() != conformTo) {
-                            rects[j].setRight(conformTo);
-                            fixed = true;
-                        }
-                    }
-                }
-                indexFrom = 0;
-                conformTo = rects.at(0).left();
-                for (int i = 1; i < rects.size(); ++i) {
-                    if (i == rects.size() - 1 || qAbs(rects.at(i).left() - rects.at(i-1).left()) >= (2.0 * radius)) {
-                        if (i - indexFrom > 1) {
-                            // Conform
-                            for (int j = indexFrom; j < i; ++j) {
-                                if (rects.at(j).left() != conformTo) {
-                                    rects[j].setLeft(conformTo);
-                                    fixed = true;
-                                }
-                            }
-                        }
-
-                        indexFrom = i;
-                        conformTo = rects.at(i).left();
-                    } else {
-                        conformTo = qMin(conformTo, rects.at(i).left());
-                    }
-                }
-                if (indexFrom != rects.size() - 1) {
-                    // Conform
-                    for (int j = indexFrom; j < rects.size(); ++j) {
-                        if (rects.at(j).left() != conformTo) {
-                            rects[j].setLeft(conformTo);
-                            fixed = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Merge rectangles into individual non-overlapping polygons
-        QPainterPath paths;
-        paths.setFillRule(Qt::WindingFill);
-        foreach (const QRectF & rect, rects) {
-            paths.addRect(rect);
-        }
-        QList< QPolygonF > polygons(paths.simplified().toSubpathPolygons());
-
-        // For each polygon...
-        QPainterPath outlines;
-        foreach (const QPolygonF & polygon, polygons) {
-            bool newPath = true;
-            // Round the polygon
-            QPolygonF poly(qRound(polygon, 2));
-            // Quick pass to remove co-liner points
-            for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
-                // Get the three points of interest, and useful vectors
-                const int poi = poly.size() - 1; // # of points of interest
-                const int currentIndex = (previousIndex + 1) % poi;
-                const int nextIndex = (previousIndex + 2) % poi;
-                QPointF previous(poly.at(previousIndex % poi));
-                QPointF current(poly.at(currentIndex));
-                QPointF next(poly.at(nextIndex));
-                QVector2D backwards(previous - current);
-                QVector2D forwards(next - current);
-                backwards.normalize();
-                forwards.normalize();
-                qreal angle(qAcos(QVector2D::dotProduct(forwards, backwards)));
-                if (qAbs(angle - M_PI) < 0.001) {
-                    poly.remove(currentIndex);
-                    ++previousIndex;
-                }
-            }
-
-            // Calculate concavity
-            QVector< bool > convexity(poly.size());
-            for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
-                // Get the three points of interest, and useful vectors
-                const int poi = poly.size() - 1; // # of points of interest
-                const int currentIndex = (previousIndex + 1) % poi;
-                const int nextIndex = (previousIndex + 2) % poi;
-                QPointF previous(poly.at(previousIndex % poi));
-                QPointF current(poly.at(currentIndex));
-                QPointF next(poly.at(nextIndex));
-                QVector2D backwards(previous - current);
-                QVector2D forwards(next - current);
-
-                // Concave or convex?
-                // Uses the z coordinate of the cross product to decide concavity
-                convexity[currentIndex] = (forwards.x() * backwards.y() - forwards.y() * backwards.x()) > 0;
-            }
-
-            for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
-                // Get the three points of interest, and useful vectors
-                const int poi = poly.size() - 1; // # of points of interest
-                const int currentIndex = (previousIndex + 1) % poi;
-                const int nextIndex = (previousIndex + 2) % poi;
-                QPointF previous(poly.at(previousIndex % poi));
-                QPointF current(poly.at(currentIndex));
-                QPointF next(poly.at(nextIndex));
-                QVector2D backwards(previous - current);
-                QVector2D forwards(next - current);
-                qreal backwardsLength(backwards.length());
-                qreal forwardsLength(forwards.length());
-                backwards.normalize();
-                forwards.normalize();
-
-                // Firstly work out the angle of this corner using the dot product
-                qreal angle(qAcos(QVector2D::dotProduct(forwards, backwards)));
-
-                // Things to calculate
-                QPointF centre; // Centre of the corner arc
-                qreal arc_start_angle = 0.0;
-                qreal arc_sweep_length = M_PI - angle;
-                qreal arc_radius = radius;
-
-                // Concave or convex?
-                // Uses the z coordinate of the cross product to decide concavity
-                bool convex = (forwards.x() * backwards.y() - forwards.y() * backwards.x()) > 0;
-
-                if (true) {
-                    // Next calculate the radius of this corner
-                    // The rounded corner cannot meet the edges a distance of more than half the
-                    // available space along a side from the corner
-                    qreal d1 = backwardsLength / 2.0;
-                    qreal d2 = forwardsLength / 2.0;
-                    qreal tan_half_angle = qTan(angle / 2.0);
-
-                    // Centre of arc
-                    QVector2D a((backwards + forwards).normalized());
-                    if (convex) {
-                        qreal max_l = 2 * radius / tan_half_angle;
-                        bool previousConcave(!convexity.at(previousIndex % poi));
-                        bool nextConcave(!convexity.at(nextIndex));
-                        qreal l = qMin(max_l, qMin(previousConcave ? backwardsLength : backwardsLength / 2.0,
-                                                   nextConcave ? forwardsLength : forwardsLength / 2.0));
-                        qreal r = l * tan_half_angle;
-                        qreal h = r / qSin(angle / 2.0);
-                        centre = current + h * a.toPointF();
-                        arc_radius = r - radius;
-                    } else {
-                        qreal h = radius / qSin(angle / 2.0);
-                        qreal r = radius; // qMin(radius, qMin(backwardsLength / 2.0, forwardsLength / 2.0));
-                        qreal x = h - r * h / radius;
-                        centre = current - x * a.toPointF();
-                        arc_radius = r;
-                    }
-
-                    // Arc
-                    arc_start_angle = qAtan2(backwards.x(), backwards.y()) + M_PI_2;
-                    if (!convex) {
-                        arc_sweep_length = -arc_sweep_length;
-                    }
-                } else {
-                    // Arc
-                    arc_start_angle = qAtan2(backwards.x(), backwards.y()) + M_PI_2;
-                    arc_sweep_length = -arc_sweep_length;
-
-                    // Centre of arc
-                    centre = current;
-                }
-
-                arc_start_angle = arc_start_angle * 180.0 * M_1_PI;
-                arc_sweep_length = arc_sweep_length * 180.0 * M_1_PI;
-                QRectF arcRect(centre - QPointF(arc_radius, arc_radius), QSizeF(2 * arc_radius, 2 * arc_radius));
-
-                if (newPath) {
-                    outlines.arcMoveTo(arcRect, arc_start_angle + arc_sweep_length);
-                    newPath = false;
-                } else {
-                    outlines.arcTo(arcRect, arc_start_angle, arc_sweep_length);
-                }
-            }
-            outlines.closeSubpath();
-        }
-
-        return outlines;
-    }
+//     static QPainterPath roundyCorners(const QVector< QRectF > & rects_, const qreal radius = 1.0, const QSizeF & padding = QSizeF(0.0, 1.0))
+//     {
+//         // Compile rectangles
+//         QVector< QRectF > rects(rects_);
+//         foreach (const QRectF & rect, rects_) {
+//             rects << rect.adjusted(-(radius + padding.width()), -(radius + padding.height()), radius + padding.width(), radius + padding.height());
+//         }
+//
+//         // Modify rects to remove similar x coordinates
+//         if (rects.size() > 1) {
+//             bool fixed = true;
+//             while (fixed) {
+//                 fixed = false;
+//                 int indexFrom = 0;
+//                 qreal conformTo = rects.at(0).right();
+//                 for (int i = 1; i < rects.size(); ++i) {
+//                     if (qAbs(rects.at(i).right() - rects.at(i-1).right()) >= (2.0 * radius)) {
+//                         if (i - indexFrom > 1) {
+//                             // Conform
+//                             for (int j = indexFrom; j < i; ++j) {
+//                                 if (rects.at(j).right() != conformTo) {
+//                                     rects[j].setRight(conformTo);
+//                                     fixed = true;
+//                                 }
+//                             }
+//                         }
+//
+//                         indexFrom = i;
+//                         conformTo = rects.at(i).right();
+//                     } else {
+//                         conformTo = qMax(conformTo, rects.at(i).right());
+//                     }
+//                 }
+//                 if (indexFrom != rects.size() - 1) {
+//                     // Conform
+//                     for (int j = indexFrom; j < rects.size(); ++j) {
+//                         if (rects.at(j).right() != conformTo) {
+//                             rects[j].setRight(conformTo);
+//                             fixed = true;
+//                         }
+//                     }
+//                 }
+//                 indexFrom = 0;
+//                 conformTo = rects.at(0).left();
+//                 for (int i = 1; i < rects.size(); ++i) {
+//                     if (i == rects.size() - 1 || qAbs(rects.at(i).left() - rects.at(i-1).left()) >= (2.0 * radius)) {
+//                         if (i - indexFrom > 1) {
+//                             // Conform
+//                             for (int j = indexFrom; j < i; ++j) {
+//                                 if (rects.at(j).left() != conformTo) {
+//                                     rects[j].setLeft(conformTo);
+//                                     fixed = true;
+//                                 }
+//                             }
+//                         }
+//
+//                         indexFrom = i;
+//                         conformTo = rects.at(i).left();
+//                     } else {
+//                         conformTo = qMin(conformTo, rects.at(i).left());
+//                     }
+//                 }
+//                 if (indexFrom != rects.size() - 1) {
+//                     // Conform
+//                     for (int j = indexFrom; j < rects.size(); ++j) {
+//                         if (rects.at(j).left() != conformTo) {
+//                             rects[j].setLeft(conformTo);
+//                             fixed = true;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//
+//         // Merge rectangles into individual non-overlapping polygons
+//         QPainterPath paths;
+//         paths.setFillRule(Qt::WindingFill);
+//         foreach (const QRectF & rect, rects) {
+//             paths.addRect(rect);
+//         }
+//         QList< QPolygonF > polygons(paths.simplified().toSubpathPolygons());
+//
+//         // For each polygon...
+//         QPainterPath outlines;
+//         foreach (const QPolygonF & polygon, polygons) {
+//             bool newPath = true;
+//             // Round the polygon
+//             QPolygonF poly(qRound(polygon, 2));
+//             // Quick pass to remove co-liner points
+//             for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
+//                 // Get the three points of interest, and useful vectors
+//                 const int poi = poly.size() - 1; // # of points of interest
+//                 const int currentIndex = (previousIndex + 1) % poi;
+//                 const int nextIndex = (previousIndex + 2) % poi;
+//                 QPointF previous(poly.at(previousIndex % poi));
+//                 QPointF current(poly.at(currentIndex));
+//                 QPointF next(poly.at(nextIndex));
+//                 QVector2D backwards(previous - current);
+//                 QVector2D forwards(next - current);
+//                 backwards.normalize();
+//                 forwards.normalize();
+//                 qreal angle(qAcos(QVector2D::dotProduct(forwards, backwards)));
+//                 if (qAbs(angle - M_PI) < 0.001) {
+//                     poly.remove(currentIndex);
+//                     ++previousIndex;
+//                 }
+//             }
+//
+//             // Calculate concavity
+//             QVector< bool > convexity(poly.size());
+//             for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
+//                 // Get the three points of interest, and useful vectors
+//                 const int poi = poly.size() - 1; // # of points of interest
+//                 const int currentIndex = (previousIndex + 1) % poi;
+//                 const int nextIndex = (previousIndex + 2) % poi;
+//                 QPointF previous(poly.at(previousIndex % poi));
+//                 QPointF current(poly.at(currentIndex));
+//                 QPointF next(poly.at(nextIndex));
+//                 QVector2D backwards(previous - current);
+//                 QVector2D forwards(next - current);
+//
+//                 // Concave or convex?
+//                 // Uses the z coordinate of the cross product to decide concavity
+//                 convexity[currentIndex] = (forwards.x() * backwards.y() - forwards.y() * backwards.x()) > 0;
+//             }
+//
+//             for (int previousIndex = poly.size(); previousIndex > 0; --previousIndex) {
+//                 // Get the three points of interest, and useful vectors
+//                 const int poi = poly.size() - 1; // # of points of interest
+//                 const int currentIndex = (previousIndex + 1) % poi;
+//                 const int nextIndex = (previousIndex + 2) % poi;
+//                 QPointF previous(poly.at(previousIndex % poi));
+//                 QPointF current(poly.at(currentIndex));
+//                 QPointF next(poly.at(nextIndex));
+//                 QVector2D backwards(previous - current);
+//                 QVector2D forwards(next - current);
+//                 qreal backwardsLength(backwards.length());
+//                 qreal forwardsLength(forwards.length());
+//                 backwards.normalize();
+//                 forwards.normalize();
+//
+//                 // Firstly work out the angle of this corner using the dot product
+//                 qreal angle(qAcos(QVector2D::dotProduct(forwards, backwards)));
+//
+//                 // Things to calculate
+//                 QPointF centre; // Centre of the corner arc
+//                 qreal arc_start_angle = 0.0;
+//                 qreal arc_sweep_length = M_PI - angle;
+//                 qreal arc_radius = radius;
+//
+//                 // Concave or convex?
+//                 // Uses the z coordinate of the cross product to decide concavity
+//                 bool convex = (forwards.x() * backwards.y() - forwards.y() * backwards.x()) > 0;
+//
+//                 if (true) {
+//                     // Next calculate the radius of this corner
+//                     // The rounded corner cannot meet the edges a distance of more than half the
+//                     // available space along a side from the corner
+//                     //qreal d1 = backwardsLength / 2.0;
+//                     //qreal d2 = forwardsLength / 2.0;
+//                     qreal tan_half_angle = qTan(angle / 2.0);
+//
+//                     // Centre of arc
+//                     QVector2D a((backwards + forwards).normalized());
+//                     if (convex) {
+//                         qreal max_l = 2 * radius / tan_half_angle;
+//                         bool previousConcave(!convexity.at(previousIndex % poi));
+//                         bool nextConcave(!convexity.at(nextIndex));
+//                         qreal l = qMin(max_l, qMin(previousConcave ? backwardsLength : backwardsLength / 2.0,
+//                                                    nextConcave ? forwardsLength : forwardsLength / 2.0));
+//                         qreal r = l * tan_half_angle;
+//                         qreal h = r / qSin(angle / 2.0);
+//                         centre = current + h * a.toPointF();
+//                         arc_radius = r - radius;
+//                     } else {
+//                         qreal h = radius / qSin(angle / 2.0);
+//                         qreal r = radius; // qMin(radius, qMin(backwardsLength / 2.0, forwardsLength / 2.0));
+//                         qreal x = h - r * h / radius;
+//                         centre = current - x * a.toPointF();
+//                         arc_radius = r;
+//                     }
+//
+//                     // Arc
+//                     arc_start_angle = qAtan2(backwards.x(), backwards.y()) + M_PI_2;
+//                     if (!convex) {
+//                         arc_sweep_length = -arc_sweep_length;
+//                     }
+//                 } else {
+//                     // Arc
+//                     arc_start_angle = qAtan2(backwards.x(), backwards.y()) + M_PI_2;
+//                     arc_sweep_length = -arc_sweep_length;
+//
+//                     // Centre of arc
+//                     centre = current;
+//                 }
+//
+//                 arc_start_angle = arc_start_angle * 180.0 * M_1_PI;
+//                 arc_sweep_length = arc_sweep_length * 180.0 * M_1_PI;
+//                 QRectF arcRect(centre - QPointF(arc_radius, arc_radius), QSizeF(2 * arc_radius, 2 * arc_radius));
+//
+//                 if (newPath) {
+//                     outlines.arcMoveTo(arcRect, arc_start_angle + arc_sweep_length);
+//                     newPath = false;
+//                 } else {
+//                     outlines.arcTo(arcRect, arc_start_angle, arc_sweep_length);
+//                 }
+//             }
+//             outlines.closeSubpath();
+//         }
+//
+//         return outlines;
+//     }
 
 }
 
@@ -438,7 +439,7 @@ namespace Papyro
     void PageViewRenderThread::getTarget(QSize * size, QColor * color)
     {
         QMutexLocker lock(&this->_mutex);
-        *size = this->_size;
+        *size = this->_size * Utopia::retinaScaling();
         *color = this->_color;
         this->_dirty = false;
     }
@@ -453,14 +454,20 @@ namespace Papyro
     PageViewPrivate::PageViewPrivate(PageView * pageView)
         : QObject(pageView),
           pageView(pageView),
-          dirtyImage(0),
+          userTransformDegrees(0),
+          rotateMapper(0),
+          rotateMenu(0),
           renderThread(new PageViewRenderThread(pageView)),
-          imageCache(":test"),
+          imageCache(QString(":page-cache:%1").arg((qlonglong) pageView->window())),
           dragging(false),
           multiClick(false),
           tripleClick(false),
           imageFormatManager(Utopia::ImageFormatManager::instance())
-    {}
+    {
+        // Seems reasonable that no more than 20 pages will be visible at once
+        // in a single window
+        imageCache.setMaximumSize(20);
+    }
 
     void PageViewPrivate::browseUrl(const QString & url, const QString & target)
     {
@@ -470,6 +477,28 @@ namespace Papyro
     void PageViewPrivate::browseUrl(const QUrl & url, const QString & target)
     {
         emit urlRequested(url, target);
+    }
+
+    QRectF PageViewPrivate::mediaRect() const
+    {
+        Spine::BoundingBox bb(cursor->page()->mediaBox());
+        return QRectF(bb.x1, bb.y1, bb.x2-bb.x1, bb.y2-bb.y1);
+    }
+
+    QSizeF PageViewPrivate::mediaSize() const
+    {
+        return mediaRect().size();
+    }
+
+    QRectF PageViewPrivate::pageRect() const
+    {
+        Spine::BoundingBox bb(cursor->page()->boundingBox());
+        return QRectF(bb.x1, bb.y1, bb.x2-bb.x1, bb.y2-bb.y1);
+    }
+
+    QSizeF PageViewPrivate::pageSize() const
+    {
+        return pageRect().size();
     }
 
     // Set interaction state for mouse press
@@ -493,6 +522,56 @@ namespace Papyro
     {
         mouseReleasePos = pos;
         mouseReleasePagePos = pageView->transformToPage(mouseReleasePos);
+    }
+
+    static QTransform generateTransform(int degrees, const QSizeF & canvasSize)
+    {
+        QTransform rotation;
+        rotation.rotate(degrees);
+        QRectF rotatedRect(rotation.mapRect(QRectF(QPointF(0, 0), canvasSize)));
+        QTransform translation;
+        translation.translate(-rotatedRect.left(), -rotatedRect.top());
+
+        return rotation * translation;
+    }
+
+    void PageViewPrivate::setUserTransform(int degrees)
+    {
+        userTransformDegrees = degrees;
+        userTransform = generateTransform(degrees, pageSize());
+        userTransformInverse = userTransform.inverted();
+
+        transformedPageRect = applyUserTransform(pageRect());
+    }
+
+    QPointF PageViewPrivate::applyUserTransform(const QPointF & point)
+    {
+        return userTransform.map(point);
+    }
+
+    QRectF PageViewPrivate::applyUserTransform(const QRectF & rect)
+    {
+        return userTransform.mapRect(rect);
+    }
+
+    QSizeF PageViewPrivate::applyUserTransform(const QSizeF & size)
+    {
+        return userTransform.mapRect(QRectF(QPointF(0, 0), size)).size();
+    }
+
+    QPointF PageViewPrivate::unapplyUserTransform(const QPointF & point)
+    {
+        return userTransformInverse.map(point);
+    }
+
+    QRectF PageViewPrivate::unapplyUserTransform(const QRectF & rect)
+    {
+        return userTransformInverse.mapRect(rect);
+    }
+
+    QSizeF PageViewPrivate::unapplyUserTransform(const QSizeF & size)
+    {
+        return userTransformInverse.mapRect(QRectF(QPointF(0, 0), size)).size();
     }
 
 
@@ -714,9 +793,7 @@ namespace Papyro
         d->embeddedRects.clear();
 
         // Clear image cache
-        dirtyImage();
-        d->pageImage = QPixmap();
-        d->cacheName = QString();
+        d->imageCache.clear();
 
         // Zero state
         d->previousSelectedImageCursor.reset();
@@ -846,12 +923,6 @@ namespace Papyro
         return cursor;
     }
 
-    void PageView::dirtyImage()
-    {
-        d->dirtyImage = true;
-        update();
-    }
-
     void PageView::deleteAnnotation(const QString & uri)
     {
         std::set< Spine::AnnotationHandle > annotations = document()->annotationsById(unicodeFromQString(uri));
@@ -966,7 +1037,7 @@ namespace Papyro
         }
         else
         {
-            return width() / (double) pageSize().width();
+            return width() / pageSize(true).width();
         }
     }
 
@@ -1079,21 +1150,24 @@ namespace Papyro
         update();
     }
 
-    QRectF PageView::mediaRect() const
+    QRectF PageView::mediaRect(bool transformed) const
     {
-        Spine::BoundingBox bb(page()->mediaBox());
-        return QRectF(bb.x1, bb.y1, bb.x2-bb.x1, bb.y2-bb.y1);
+        if (transformed) {
+            return d->applyUserTransform(d->mediaRect());
+        } else {
+            return d->mediaRect();
+        }
     }
 
-    QSizeF PageView::mediaSize() const
+    QSizeF PageView::mediaSize(bool transformed) const
     {
-        return mediaRect().size();
+        return mediaRect(transformed).size();
     }
 
 /*********
                     else if (concept == "Chemical")
                     {
-                        QPixmap thumbnail(QPixmap::fromImage(QImage::fromData(QByteArray::fromBase64(qStringFromUnicode(annotation->getFirstProperty("property:thumbnail")).toAscii()))));
+                        QPixmap thumbnail(QPixmap::fromImage(QImage::fromData(QByteArray::fromBase64(qStringFromUnicode(annotation->getFirstProperty("property:thumbnail")).toUtf8()))));
                         QString name(qStringFromUnicode(annotation->getFirstProperty("property:name")));
                         QString url(qStringFromUnicode(annotation->getFirstProperty("property:webpageUrl")));
                         QString inchi(qStringFromUnicode(annotation->getFirstProperty("property:inchi")));
@@ -1148,21 +1222,17 @@ namespace Papyro
 
     QPixmap PageView::pageImage(QSize size, QColor paper)
     {
-        QString cacheName = QString("%1-%2").arg(pageNumber()).arg((unsigned long long) document().get());
+        QPixmap pageImage = d->imageCache.get(d->cacheName);
 
-        if (d->dirtyImage || d->renderThread->isDirty() || size != d->pageImage.size())
-        {
+        if (size != pageImage.size()) {
             d->renderThread->setTarget(size, paper);
             bool running = d->renderThread->isRunning();
-            if (!running)
-            {
+            if (!running) {
                 d->renderThread->start();
             }
-            d->dirtyImage = false;
-            d->cacheName = cacheName;
         }
 
-        return d->pageImage;
+        return pageImage;
     }
 
     int PageView::pageNumber() const
@@ -1170,28 +1240,23 @@ namespace Papyro
         return page()->pageNumber();
     }
 
-    QRectF PageView::pageRect() const
+    QRectF PageView::pageRect(bool transformed) const
     {
-        Spine::BoundingBox bb(page()->boundingBox());
-        return QRectF(bb.x1, bb.y1, bb.x2-bb.x1, bb.y2-bb.y1);
+        if (transformed) {
+            return d->transformedPageRect;
+        } else {
+            return d->pageRect();
+        }
     }
 
-    QSizeF PageView::pageSize() const
+    QSizeF PageView::pageSize(bool transformed) const
     {
-        Spine::BoundingBox bb(page()->boundingBox());
-        if (page()->rotation() % 180)
-        {
-            return QSizeF(bb.height(), bb.width());
-        }
-        else
-        {
-            return QSizeF(bb.width(), bb.height());
-        }
+        return pageRect(transformed).size();
     }
 
     void PageView::paintEvent(QPaintEvent * event)
     {
-        QSizeF pSize(pageSize());
+        QSizeF pSize(pageSize(true));
         QPainter painter(this);
 
         if (isNull())
@@ -1200,7 +1265,10 @@ namespace Papyro
         }
         else
         {
-            QPixmap pImage = pageImage(size());
+            // Find the size of the page (before user transform) in screen
+            // coordinates
+            QSize pImageSize = d->unapplyUserTransform(size()).toSize();
+            QPixmap pImage = pageImage(d->unapplyUserTransform(size()).toSize());
 
             if (pImage.isNull())
             {
@@ -1236,25 +1304,23 @@ namespace Papyro
             }
             else
             {
+                QTransform transform(generateTransform(d->userTransformDegrees, pImageSize));
+                painter.setTransform(transform, true);
+
                 // Render the page image to the widget
                 painter.save();
-                double xScale = width() / (double) pImage.width();
-                double yScale = height() / (double) pImage.height();
-                painter.scale(xScale, yScale);
                 painter.setRenderHint(QPainter::SmoothPixmapTransform);
-                QVector< QRect > rects = event->region().rects();
-
-                for (int i = 0; i < rects.size(); ++i) {
-                    QRectF scaled(QPointF(rects[i].left() / xScale, rects[i].top() / yScale),
-                                  QSizeF(rects[i].width() / xScale, rects[i].height() / yScale));
-                    painter.drawPixmap(scaled, pImage, scaled);
+                foreach (QRect rect, event->region().rects()) {
+                    rect = transform.mapRect(rect);
+                    painter.drawPixmap(rect, pImage, rect);
                 }
+                painter.drawPixmap(QRect(QPoint(0, 0), pImageSize), pImage);
                 painter.restore();
 
                 // Scale to current zoom
-                painter.translate(-0.5, -0.5);
                 painter.scale(width() / (double) pSize.width(),
                               height() / (double) pSize.height());
+                //painter.translate(-0.5, -0.5);
 
                 // Antialias
                 painter.setRenderHint(QPainter::Antialiasing, true);
@@ -1295,127 +1361,17 @@ namespace Papyro
 
     void PageView::populateContextMenuAt(QMenu * menu, const QPoint & pos)
     {
-        QPointF pagePos = transformToPage(pos);
-        Spine::CursorHandle cursor = cursorAt(pagePos);
-
-        // What's the context?
-        std::string selectionText(document()->selectionText());
-        bool textSelectionExists = !selectionText.empty();
-        bool areaSelectionExists = false; // FIXME !d->selection.activeArea.isNull();
-        bool cursorOverWord = cursor->character();
-        bool cursorOverImage = cursor->image() != 0;
-        Spine::AnnotationSet annotations(document()->annotationsAt(pageNumber(),
-                                                                   pagePos.x(),
-                                                                   pagePos.y()));
-
-        // Stuff to do
-        bool requiresAddToManager = textSelectionExists || areaSelectionExists;
-        bool requiresAddAllToManager = textSelectionExists;
-        bool requiresAddDataLink = areaSelectionExists;
-
-        // Hyperlink(s) under mouse?
-        QList< QAction * > hyperlinkActions;
-        BOOST_FOREACH(Spine::AnnotationHandle annotation, annotations)
-        {
-            if (annotation->getFirstProperty("concept") == "Hyperlink" ||
-                annotation->getFirstProperty("concept") == "WebPage")
-            {
-                QString url = qStringFromUnicode(annotation->getFirstProperty("property:webpageUrl"));
-                if (!url.isEmpty())
-                {
-                    QAction * action = new QAction(url, menu);
-                    d->browseToMapper->setMapping(action, url);
-                    connect(action, SIGNAL(triggered()), d->browseToMapper, SLOT(map()));
-                    hyperlinkActions.append(action);
-                }
-            }
+        if (d->rotateMenu) {
+            // Rotate page
+            menu->addMenu(d->rotateMenu);
+            menu->addSeparator();
         }
-        if (hyperlinkActions.size() == 1)
-        {
-            QString url(hyperlinkActions.at(0)->text());
-            if (url.startsWith("mailto:"))
-            {
-                hyperlinkActions.at(0)->setText(QString("Email <%1>...").arg(url.mid(7)));
-                menu->addAction(hyperlinkActions.at(0));
-                menu->setDefaultAction(hyperlinkActions.at(0));
-
-                QAction * copyAction = menu->addAction("Copy email address", this, SLOT(copyEmailAddress()));
-                copyAction->setProperty("__u_textToCopy", url.mid(7));
-            }
-            else
-            {
-                hyperlinkActions.at(0)->setText("Follow hyperlink...");
-                menu->addAction(hyperlinkActions.at(0));
-                menu->setDefaultAction(hyperlinkActions.at(0));
-            }
-        }
-        else if (hyperlinkActions.size() > 1)
-        {
-            QMenu * hyperlinkMenu = new QMenu("Follow hyperlink");
-            foreach(QAction * action, hyperlinkActions)
-            {
-                QString url(action->text());
-                if (url.startsWith("mailto:"))
-                {
-                    QMenu * emailMenu = new QMenu(QString("<%1>").arg(url.mid(7)));
-                    action->setText("Launch email client...");
-                    emailMenu->addAction(action);
-                    QAction * copyAction = emailMenu->addAction("Copy email address", this, SLOT(copyEmailAddress()));
-                    copyAction->setProperty("__u_textToCopy", url.mid(7));
-                    hyperlinkMenu->addMenu(emailMenu);
-                }
-                else
-                {
-                    hyperlinkMenu->addAction(action);
-                }
-            }
-            menu->addMenu(hyperlinkMenu);
-        }
-
-        // Any annotations under the mouse?
-        QList< QAction * > deleteActions;
-        BOOST_FOREACH(Spine::AnnotationHandle annotation, annotations)
-        {
-            QString id(qStringFromUnicode(annotation->getFirstProperty("id")));
-            if (!id.isEmpty() && annotation->getFirstProperty("session:volatile").empty())
-            {
-                QString concept(qStringFromUnicode(annotation->getFirstProperty("concept")));
-                QAction * action = new QAction(concept, menu);
-                d->deleteAnnotationMapper->setMapping(action, id);
-                connect(action, SIGNAL(triggered()), d->deleteAnnotationMapper, SLOT(map()));
-                deleteActions.append(action);
-            }
-        }
-        if (deleteActions.size() == 1)
-        {
-            deleteActions.at(0)->setText("Delete annotation");
-            menu->addAction(deleteActions.at(0));
-            menu->setDefaultAction(deleteActions.at(0));
-        }
-        else if (deleteActions.size() > 1)
-        {
-            QMenu * deleteAnnotationMenu = new QMenu("Delete annotation");
-            foreach(QAction * action, deleteActions)
-            {
-                deleteAnnotationMenu->addAction(action);
-            }
-            menu->addMenu(deleteAnnotationMenu);
-        }
-
-        // Is there an image under the mouse?
-        if (cursorOverImage)
-        {
-            menu->addAction(tr("Save Image As..."), this, SLOT(saveImageAs()));
-        }
-
-        // Separator if necessary
-        if (menu->actions().size() > 0) { menu->addSeparator(); }
     }
 
     void PageView::recomputeDarkness()
     {
         // Darken whole page
-        d->darkness.addRect(pageRect().translated(-pageRect().topLeft()).adjusted(0, 0, 1, 1));
+        d->darkness.addRect(pageRect().adjusted(0, 0, 1, 1));
 
         if (spotlights().size() > 0)
         {
@@ -1438,7 +1394,9 @@ namespace Papyro
                     Spine::BoundingBox bb = box.boundingBox;
                     if (page == pageNumber())
                     {
-                        holes.addRoundedRect(QRectF(bb.x1, bb.y1, bb.x2-bb.x1, bb.y2-bb.y1).adjusted(-radius+1, -radius+1, radius-1, radius-1), radius, radius);
+                        QRectF hole(bb.x1, bb.y1, bb.x2-bb.x1, bb.y2-bb.y1);
+                        hole.adjust(-radius+1, -radius+1, radius-1, radius-1);
+                        holes.addRoundedRect(hole, radius, radius);
                     }
                 }
             }
@@ -1488,7 +1446,8 @@ namespace Papyro
 
     void PageView::renderThreadFinished()
     {
-        d->pageImage = QPixmap::fromImage(d->renderThread->image());
+        QPixmap pageImage = QPixmap::fromImage(d->renderThread->image());
+        d->imageCache.put(pageImage, d->cacheName);
         update();
     }
 
@@ -1512,11 +1471,11 @@ namespace Papyro
     {
         if (isNull())
         {
-            resize(width(), h);
+            setFixedSize(width(), h);
         }
         else
         {
-            setZoom(h / (double) pageSize().height());
+            setZoom(h / pageSize(true).height());
         }
     }
 
@@ -1524,12 +1483,13 @@ namespace Papyro
     {
         if (isNull())
         {
-            resize(size);
+            setFixedSize(size);
         }
         else
         {
-            double pageAspect = pageSize().height() / (double) pageSize().width();
-            double rectAspect = size.height() / (double) size.width();
+            QSizeF pSize(pageSize(true));
+            double pageAspect = pSize.height() / pSize.width();
+            double rectAspect = size.height() / size.width();
 
             if (pageAspect > rectAspect)
             {
@@ -1546,11 +1506,11 @@ namespace Papyro
     {
         if (isNull())
         {
-            resize(w, height());
+            setFixedSize(w, height());
         }
         else
         {
-            setZoom(w / pageSize().width());
+            setZoom(w / pageSize(true).width());
         }
     }
 
@@ -1607,22 +1567,19 @@ namespace Papyro
     {
         if (!isNull())
         {
-            resize(QSize((int) (pageSize().width() * zoom), height()));
+            setFixedSize(QSize((int) (pageSize(true).width() * zoom), height()));
         }
     }
 
     void PageView::setPage(Spine::DocumentHandle document, int page)
     {
+        // Clear completely the page view's document-related members
         clear();
-        d->document = document;
-        d->cursor = document->newCursor(page);
-        dirtyImage();
-        d->pageImage = QPixmap();
 
-        Spine::DocumentHandle doc = document;
-        if (doc)
-        {
-            d->documentSignalProxy.reset(new DocumentSignalProxy(doc, this));
+        // Set the new document and hook up signals
+        d->document = document;
+        if (d->document) {
+            d->documentSignalProxy.reset(new DocumentSignalProxy(d->document, this));
             connect(d->documentSignalProxy.get(), SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
                     this, SLOT(updateAnnotations(const std::string &, const Spine::AnnotationSet &, bool)));
             connect(d->documentSignalProxy.get(), SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
@@ -1630,17 +1587,54 @@ namespace Papyro
             connect(d->documentSignalProxy.get(), SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
                     this, SLOT(updateTextSelection(const std::string &, const Spine::TextExtentSet &, bool)));
         }
+        d->cursor = document->newCursor();
+
+        setPage(page);
+    }
+
+    void PageView::setPage(int pageNumber)
+    {
+        d->cursor->gotoPage(pageNumber);
+        d->setUserTransform(0);
 
         updateAnnotations(std::string(), Spine::AnnotationSet(), true);
         update();
+
+        if (d->rotateMapper) { delete d->rotateMapper; }
+        d->rotateMapper = new QSignalMapper(this);
+        QObject::connect(d->rotateMapper, SIGNAL(mapped(int)), this, SLOT(setRotation(int)));
+        if (d->rotateMenu) { delete d->rotateMenu; }
+        d->rotateMenu = new QMenu("Rotate Page", this);
+        QActionGroup * rotateActionGroup = new QActionGroup(this);
+        QAction * defaultAction = 0;
+        for (int i = 0; i < 4; ++i) {
+            int degrees = 90 * i;
+            QAction * action = d->rotateMenu->addAction(QString("%1 Degrees").arg(degrees), d->rotateMapper, SLOT(map()));
+            action->setCheckable(true);
+            if (degrees == page()->rotation()) {
+                defaultAction = action;
+                action->setChecked(true);
+            }
+            action->setActionGroup(rotateActionGroup);
+            degrees = (degrees - page()->rotation()) % 360;
+            d->rotateMapper->setMapping(action, degrees);
+        }
+        if (defaultAction) {
+            d->rotateMenu->addSeparator();
+            QAction * resetAction = d->rotateMenu->addAction("Reset Rotation", defaultAction, SLOT(trigger()));
+            resetAction->setEnabled(false);
+            connect(defaultAction, SIGNAL(toggled(bool)), resetAction, SLOT(setDisabled(bool)));
+        }
+
+        d->cacheName = QString("%1-%2").arg(pageNumber).arg((qulonglong) document().get());
     }
 
-    void PageView::setPage(int page)
+    void PageView::setRotation(int degrees)
     {
-        d->cursor->gotoPage(page);
-        dirtyImage();
-        d->pageImage = QPixmap();
-        updateAnnotations(std::string(), Spine::AnnotationSet(), true);
+        double hZ = horizontalZoom();
+        d->setUserTransform(degrees);
+        setZoom(hZ);
+        emit pageRotated();
         update();
     }
 
@@ -1672,7 +1666,7 @@ namespace Papyro
     {
         if (!isNull())
         {
-            resize(QSize(width(), (int) (pageSize().height() * zoom)));
+            setFixedSize(QSize(width(), (int) (pageSize(true).height() * zoom)));
         }
     }
 
@@ -1680,7 +1674,7 @@ namespace Papyro
     {
         if (!isNull())
         {
-            QSizeF size(pageSize() * zoom);
+            QSizeF size(pageSize(true) * zoom);
             setFixedSize(size.toSize());
         }
     }
@@ -1848,9 +1842,10 @@ namespace Papyro
         }
         else
         {
-            int x = (int) (width() * point.x() / pageSize().width());
-            int y = (int) (height() * point.y() / pageSize().height());
-            return QPoint(x, y);
+            QPointF transformed(d->applyUserTransform(point));
+            QSizeF pSize(pageSize(true));
+            return QPointF(width() * transformed.x() / pSize.width(),
+                           height() * transformed.y() / pSize.height()).toPoint();
         }
     }
 
@@ -1872,17 +1867,18 @@ namespace Papyro
         }
         else
         {
+            QSizeF pSize(pageSize(true));
             double x = 0;
             if (width() > 0)
             {
-                x = pageSize().width() * (point.x()) / (double) width();
+                x = pSize.width() * (point.x()) / (double) width();
             }
             double y = 0;
             if (height() > 0)
             {
-                y = pageSize().height() * (point.y()) / (double) height();
+                y = pSize.height() * (point.y()) / (double) height();
             }
-            return QPointF(x, y);
+            return d->unapplyUserTransform(QPointF(x, y));
         }
     }
 
@@ -1902,13 +1898,11 @@ namespace Papyro
         if (name.empty())
         {
             // Cache margin stripes and U:D logos where appropriate
-            QSizeF pSize(pageSize());
-
             std::set< Spine::AnnotationHandle > annotations(newCursor()->document()->annotations());
             foreach (Spine::AnnotationHandle annotation, annotations)
             {
                 // Does this annotation require embedding?
-                bool embedded = annotation->getFirstProperty("property:embedded") == "1";
+                //bool embedded = annotation->getFirstProperty("property:embedded") == "1";
                 EmbeddedFrame * frame = d->embeddedWidgets.value(annotation, 0);
                 bool first = true;
                 foreach (const Spine::Area & pageBox, annotation->areas())
@@ -1988,6 +1982,11 @@ namespace Papyro
         }
     }
 
+    QTransform PageView::userTransform() const
+    {
+        return d->userTransform;
+    }
+
     double PageView::verticalZoom() const
     {
         if (isNull())
@@ -1996,7 +1995,7 @@ namespace Papyro
         }
         else
         {
-            return height() / (double) pageSize().height();
+            return height() / (double) pageSize(true).height();
         }
     }
 

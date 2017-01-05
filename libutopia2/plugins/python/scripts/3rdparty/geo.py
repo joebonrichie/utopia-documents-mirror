@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@
 
 import spineapi
 import utopia.document
-import common.utils
+import utopialib.utils
 import urllib2
 
 class GeneExpressionOmnibusAnnotator(utopia.document.Annotator, utopia.document.Visualiser):
@@ -44,9 +44,9 @@ class GeneExpressionOmnibusAnnotator(utopia.document.Annotator, utopia.document.
 
     def _fetchGEO(self, gse):
 
-        url='http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={0}&form=text&view=full'.format(gse)
+        url='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={0}&form=text&view=full'.format(gse)
         response = urllib2.urlopen(url, timeout=8)
-        data= response.read()
+        data= response.read().decode('utf8')
 
         entry={}
         keys=('title', 'summary', 'pubmed_id', 'submission_date', 'last_update_date',
@@ -85,7 +85,7 @@ class GeneExpressionOmnibusAnnotator(utopia.document.Annotator, utopia.document.
     @utopia.document.buffer
     def on_ready_event(self, document):
         # Find distinguishing ID
-        pmid = common.utils.metadata(document, 'pmid')
+        pmid = utopialib.utils.metadata(document, 'identifiers[pubmed]')
 
         # Compile distinct GEO IDs in the text
         matches = {}
@@ -97,18 +97,25 @@ class GeneExpressionOmnibusAnnotator(utopia.document.Annotator, utopia.document.
         for gse, extents in matches.iteritems():
             entry = self._fetchGEO(gse)
 
+            print entry
+
             dates = u'Submitted {0}'.format(entry['submission_date'])
             if 'last_update_date' in entry:
                 dates += u'; last updated {0}'.format(entry['last_update_date'])
             dates += '.'
 
             dataCitation=u'''<p>{0}. <strong>{1}</strong>.</p><p>{2}<br>({3})</p><p>{4}</p>'''.format(
-                entry['contributors'].decode('utf8'),  entry['title'].decode('utf8'), entry['overall_design'].decode('utf8'), entry['type'].decode('utf8'), dates)
+                entry['contributors'],
+                entry['title'],
+                entry.get('overall_design', ''),
+                entry['type'],
+                dates)
 
             xhtml = u'<div class="box">{0}{{0}}<p>GEO Accession: <a href="{1}">{2}</a></p></div>'.format(
-                dataCitation, entry['GEO_url'].decode('utf8'), gse)
+                dataCitation, entry['GEO_url'], gse)
 
-            xhtml += u'<p><a href="{0}">Explore in InSilico DB...</a></p>'.format(entry['InSilicoDB_url'])
+            # Removed broken InSilicoDB link
+            #xhtml += u'<p><a href="{0}">Explore in InSilico DB...</a></p>'.format(entry['InSilicoDB_url'])
 
             srcdesc='''<p>The <a href="http://www.ncbi.nlm.nih.gov/geo">Gene
                        Expression Omnibus (GEO)</a> is a public repository

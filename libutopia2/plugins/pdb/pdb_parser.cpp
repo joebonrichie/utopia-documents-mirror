@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -633,10 +633,10 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
 
     // Convenience...
     Node * c_ExtentAnnotation = UtopiaSystem.term("ExtentAnnotation");
-    Node * p_annotates = UtopiaSystem.term("annotates");
+    //Node * p_annotates = UtopiaSystem.term("annotates");
 
-    Node * c_Alignment = UtopiaDomain.term("Alignment");
-    Node * c_Sequence = UtopiaDomain.term("Sequence");
+    //Node * c_Alignment = UtopiaDomain.term("Alignment");
+    //Node * c_Sequence = UtopiaDomain.term("Sequence");
 
     Node * authority = createAuthority();
     Node * model = authority->create("complex");
@@ -788,7 +788,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                     if (line.mid(13, 5) == "BIOMT")
                     {
                         size_t row = atoi(line.mid(18, 1).toStdString().c_str());
-                        size_t id = atoi(line.mid(20, 3).toStdString().c_str());
+                        int id = atoi(line.mid(20, 3).toStdString().c_str());
                         double r1 = atof(line.mid(24, 9).toStdString().c_str());
                         double r2 = atof(line.mid(34, 9).toStdString().c_str());
                         double r3 = atof(line.mid(44, 9).toStdString().c_str());
@@ -815,7 +815,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                 float y = atof(line.mid(38, 8).toStdString().c_str());
                 float z = atof(line.mid(46, 8).toStdString().c_str());
 //                         float occupancy = atof(line.mid(54, 6).toStdString().c_str());
-                float tempFactor = atof(line.mid(60, 6).toStdString().c_str());
+                //float tempFactor = atof(line.mid(60, 6).toStdString().c_str());
                 QString segID = line.mid(72, 4).trimmed();
                 QString element = "";
                 if (line[77] >= 'A' && line[77] <= 'Z')
@@ -823,7 +823,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                 int charge = 0;
                 QChar chargeSign = line[79];
                 if (chargeSign == '+' || chargeSign == '-') {
-                    charge = line[78].toAscii() - '0';
+                    charge = line[78].toLatin1() - '0';
                     if (chargeSign == '-') charge *= -1;
                 }
 
@@ -836,7 +836,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                 // Initialise new chains
                 if (chain == 0 || !chain->attributes.exists("chainId") || chainId != chain->attributes.get("chainId").toChar()) {
                     size_t moleculeId = 1;
-                    size_t compndIndex = 0;
+                    int compndIndex = 0;
                     if (compndInfo.size() > 1) {
                         molecule = 0;
 
@@ -953,7 +953,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                 long int serial = atoi(line.mid(6, 5).toStdString().c_str());
                 QString name = line.mid(12, 4);
                 QChar remoteness = line[14];
-                QChar branch = line[15];
+                //QChar branch = line[15];
                 QChar altLoc = line[16];
                 QString resSymbol = line.mid(17, 3).trimmed();
                 QChar chainId = line[21];
@@ -963,7 +963,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                 float y = atof(line.mid(38, 8).toStdString().c_str());
                 float z = atof(line.mid(46, 8).toStdString().c_str());
 //                         float occupancy = atof(line.mid(54, 6).toStdString().c_str());
-                float tempFactor = atof(line.mid(60, 6).toStdString().c_str());
+                //float tempFactor = atof(line.mid(60, 6).toStdString().c_str());
                 QString segID = line.mid(72, 4).trimmed();
                 QString element = "";
                 if (line[77] >= 'A' && line[77] <= 'Z')
@@ -971,7 +971,7 @@ Node * PDBParser::parse(Parser::Context& ctx, QIODevice& stream_) const
                 int charge = 0;
                 QChar chargeSign = line[79];
                 if (chargeSign == '+' || chargeSign == '-') {
-                    charge = line[78].toAscii() - '0';
+                    charge = line[78].toLatin1() - '0';
                     if (chargeSign == '-') charge *= -1;
                 }
 

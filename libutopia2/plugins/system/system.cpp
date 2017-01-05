@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -198,20 +198,28 @@ namespace Utopia
 
             delete ntriples;
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
             // On WINDOWS, register the utopia(s) protocols
             QString cmdLine(QCoreApplication::applicationFilePath());
             cmdLine = "\"" + cmdLine.replace("/", "\\") + "\" \"%1\"";
-            QSettings utopiaKey("HKEY_CLASSES_ROOT\\utopia", QSettings::NativeFormat);
+
+            QSettings utopiaKey("HKEY_CURRENT_USER\\Software\\Classes\\utopia", QSettings::NativeFormat);
             utopiaKey.setValue(".", "URL:utopia Protocol");
             utopiaKey.setValue("URL Protocol", "");
-            QSettings utopiaOpenKey("HKEY_CLASSES_ROOT\\utopia\\shell\\open\\command", QSettings::NativeFormat);
+            QSettings utopiaOpenKey("HKEY_CURRENT_USER\\Software\\Classes\\utopia\\shell\\open\\command", QSettings::NativeFormat);
             utopiaOpenKey.setValue(".", cmdLine);
-            QSettings utopiasKey("HKEY_CLASSES_ROOT\\utopias", QSettings::NativeFormat);
+
+            QSettings utopiasKey("HKEY_CURRENT_USER\\Software\\Classes\\utopias", QSettings::NativeFormat);
             utopiasKey.setValue(".", "URL:utopias Protocol");
             utopiasKey.setValue("URL Protocol", "");
-            QSettings utopiasOpenKey("HKEY_CLASSES_ROOT\\utopias\\shell\\open\\command", QSettings::NativeFormat);
+            QSettings utopiasOpenKey("HKEY_CURRENT_USER\\Software\\Classes\\utopias\\shell\\open\\command", QSettings::NativeFormat);
             utopiasOpenKey.setValue(".", cmdLine);
+
+            QSettings utopiafileKey("HKEY_CURRENT_USER\\Software\\Classes\\utopiafile", QSettings::NativeFormat);
+            utopiafileKey.setValue(".", "URL:utopiafile Protocol");
+            utopiafileKey.setValue("URL Protocol", "");
+            QSettings utopiafileOpenKey("HKEY_CURRENT_USER\\Software\\Classes\\utopiafile\\shell\\open\\command", QSettings::NativeFormat);
+            utopiafileOpenKey.setValue(".", cmdLine);
 #endif
 
             return;

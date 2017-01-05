@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -29,6 +29,35 @@
 #   
 ###############################################################################
 
+###############################################################################
+##  Try to initialise the Utopia bridge.
+###############################################################################
+
+try:
+    import utopiabridge as bridge
+    bridge.proxyUrllib2()
+except ImportError:
+    import traceback
+    traceback.print_exc()
+    bridge = None
+
+###############################################################################
+##  Basic classes for use in Utopia
+###############################################################################
+
+import utopia.extension
+
+class Configurator(utopia.extension.Extension):
+	pass
+
+class Cancellation(RuntimeError):
+    '''The user has cancelled this task.'''
+    pass
+
+###############################################################################
+##  Utility functions for accessing plugin data files through custom module
+##  loaders.
+###############################################################################
 
 def get_plugin_data(path):
     try:
@@ -40,7 +69,7 @@ def get_plugin_data(path):
             if loader is None:
                 plugin_name = frame[0].f_globals.get('__plugin__', None)
                 if plugin_name is not None:
-                    loader = getattr(sys.modules.get(plugin_name), '__loader__')
+                    loader = getattr(sys.modules.get(plugin_name), '__loader__', None)
             if loader is not None:
                 break
 
@@ -48,7 +77,8 @@ def get_plugin_data(path):
         if loader is not None:
             return loader.get_data(path)
     except:
-        pass
+        import traceback
+        traceback.print_exc()
 
 def get_plugin_data_as_url(path, mime):
     try:
@@ -59,6 +89,6 @@ def get_plugin_data_as_url(path, mime):
             encoded = base64.standard_b64encode(data)
             return 'data:{0};base64,{1}'.format(mime, encoded)
     except:
-        pass
+        import traceback
+        traceback.print_exc()
 
-from utopiacore import *

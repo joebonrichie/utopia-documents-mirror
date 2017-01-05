@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -434,7 +434,7 @@ namespace Kend
                 QBuffer buffer(&bytes);
                 buffer.open(QIODevice::WriteOnly);
                 avatar->pixmap()->save(&buffer, "PNG");
-                values["avatar"] = QString::fromAscii(bytes.toBase64());
+                values["avatar"] = QString::fromUtf8(bytes.toBase64());
             }
         }
 

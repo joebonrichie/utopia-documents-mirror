@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 #include <Python.h>
 
-#include <athenaeum/resolver.h>
+#include <papyro/resolver.h>
 #include <spine/Annotation.h>
 #include <spine/Document.h>
 #include <spine/spineapi.h>
@@ -57,8 +57,24 @@ public:
         if (extensionObject()) {
             // Get Weight
             if (PyObject * weightret = PyObject_CallMethod(extensionObject(), (char *) "weight", (char *) "")) {
-                _ordering = (int) PyInt_AS_LONG(weightret);
+                _ordering = convert(weightret).toInt();
                 Py_XDECREF(weightret);
+            }
+            // Get Purpose
+            if (PyObject_HasAttrString(extensionObject(), (char *) "purposes")) {
+                if (PyObject * purposeret = PyObject_CallMethod(extensionObject(), (char *) "purposes", (char *) "")) {
+                    QStringList purposes = convert(purposeret).toStringList();
+                    if (purposes.isEmpty()) {
+                        purposes << convert(purposeret).toString();
+                    }
+                    if (purposes.contains("expand")) { _purposes |= Athenaeum::Resolver::Expand; }
+                    if (purposes.contains("identify")) { _purposes |= Athenaeum::Resolver::Identify; }
+                    if (purposes.contains("dereference")) { _purposes |= Athenaeum::Resolver::Dereference; }
+                    if (!_purposes) { // Not sure this ought to be the default
+                        _purposes |= Athenaeum::Resolver::Dereference;
+                    }
+                    Py_XDECREF(purposeret);
+                }
             }
         }
 
@@ -66,19 +82,46 @@ public:
         PyGILState_Release(gstate);
     }
 
-    QVariantMap resolve(const QVariantMap & metadata)
+    // Ensure the extension is cancelled
+    void cancel()
+    {
+        PyExtension::cancel();
+    }
+
+    Athenaeum::Resolver::Purposes purposes()
+    {
+        return _purposes;
+    }
+
+    QVariantMap resolve(const QVariantMap & metadata, Spine::DocumentHandle document = Spine::DocumentHandle())
     {
         QVariantMap resolved;
+
+        makeCancellable();
 
         PyGILState_STATE gstate;
         gstate = PyGILState_Ensure();
 
-        PyObject *method = PyString_FromString("resolve");
+        PyObject * method = PyString_FromString("resolve");
+
+        /* Get python wrapper of document */
+        PyObject * pydoc = 0;
+        if (document) {
+            Document * doc = static_cast<Document *>(malloc(sizeof(Document)));
+            doc->_doc = Spine::share_SpineDocument(document, 0);
+            doc->_err = SpineError_NoError;
+            pydoc = SWIG_NewPointerObj(static_cast<void *>(doc),
+                                       SWIG_TypeQuery("_p_Document"),
+                                       SWIG_POINTER_OWN);
+        } else {
+            pydoc = Py_None;
+            Py_INCREF(pydoc);
+        }
 
         PyObject * metadataObj = convert(metadata);
 
         /* Invoke method on extension */
-        PyObject * ret = PyObject_CallMethodObjArgs(extensionObject(), method, metadataObj, NULL);
+        PyObject * ret = PyObject_CallMethodObjArgs(extensionObject(), method, metadataObj, pydoc, NULL);
 
         if (ret == 0) { /* Exception*/
             PyObject * ptype = 0;
@@ -106,6 +149,7 @@ public:
         /*  Clean up */
         Py_XDECREF(ret);
         Py_XDECREF(metadataObj);
+        Py_XDECREF(pydoc);
         Py_DECREF(method);
 
         PyGILState_Release(gstate);
@@ -125,5 +169,6 @@ public:
 
 private:
     int _ordering;
+    Athenaeum::Resolver::Purposes _purposes;
 
 };

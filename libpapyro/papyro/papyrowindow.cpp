@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -55,22 +55,27 @@
 #include <papyro/selectionprocessoraction.h>
 #include <papyro/sliver.h>
 #include <papyro/tabbar.h>
-#include <athenaeum/articledelegate.h>
-#include <athenaeum/articleview.h>
-#include <athenaeum/aggregatingproxymodel.h>
-#include <athenaeum/bibliographicitem_p.h>
-#include <athenaeum/exporter.h>
-#include <athenaeum/filters.h>
-#include <athenaeum/librarymodel.h>
-#include <athenaeum/persistentbibliographicmodel.h>
-#include <athenaeum/remotequery.h>
-#include <athenaeum/remotequerybibliographicmodel.h>
-#include <athenaeum/resolver.h>
-#include <athenaeum/resolverrunnable.h>
-#include <athenaeum/sortfilterproxymodel.h>
+#include <papyro/articledelegate.h>
+#include <papyro/articleview.h>
+#include <papyro/aggregatingproxymodel.h>
+#include <papyro/citation.h>
+#include <papyro/bibliography.h>
+#include <papyro/exporter.h>
+#include <papyro/filters.h>
+#include <papyro/librarydelegate.h>
+#include <papyro/librarymodel.h>
+#include <papyro/libraryview.h>
+#include <papyro/persistencemodel.h>
+#include <papyro/remotequery.h>
+#include <papyro/remotequerybibliography.h>
+#include <papyro/resolver.h>
+#include <papyro/resolverrunnable.h>
+#include <papyro/sortfilterproxymodel.h>
 #include <spine/spine.h>
 #include <utopia2/qt/aboutdialog.h>
 #include <utopia2/qt/bubble.h>
+#include <utopia2/qt/hidpi.h>
+#include <utopia2/qt/elidedlabel.h>
 #include <utopia2/qt/filedialog.h>
 #include <utopia2/qt/flowbrowser.h>
 #include <utopia2/qt/holdablebutton.h>
@@ -79,6 +84,7 @@
 #include <utopia2/qt/spinner.h>
 #include <utopia2/qt/uimanager.h>
 #include <utopia2/auth/qt/servicestatusicon.h>
+#include <utopia2/bus.h>
 #include <utopia2/fileformat.h>
 #include <utopia2/node.h>
 #include <utopia2/parser.h>
@@ -89,11 +95,13 @@
 #include <QButtonGroup>
 #include <QClipboard>
 #include <QCloseEvent>
+#include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QGraphicsBlurEffect>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QInputDialog>
 #include <QIODevice>
 #include <QKeyEvent>
@@ -108,6 +116,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPainter>
+#include <QPalette>
 #include <QPointer>
 #include <QPrintDialog>
 #include <QPrinter>
@@ -126,6 +135,7 @@
 #include <QTextDocument>
 #include <QThreadPool>
 #include <QTimer>
+#include <QTreeView>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -176,12 +186,14 @@ namespace Papyro
     {
         tab->setSelectionProcessorActions(selectionProcessorActions);
         tab->setActiveSelectionProcessorAction(activePrimaryToolAction);
-        connect(tab, SIGNAL(closeRequested()), this, SLOT(onClose()));
         connect(tab, SIGNAL(documentChanged()), this, SLOT(onTabDocumentChanged()));
+        connect(tab, SIGNAL(citationChanged()), this, SLOT(onTabCitationChanged()));
+        connect(tab, SIGNAL(knownChanged(bool)), this, SLOT(onTabKnownChanged(bool)));
         connect(tab, SIGNAL(stateChanged(PapyroTab::State)), this, SLOT(onTabStateChanged(PapyroTab::State)));
         connect(tab, SIGNAL(titleChanged(const QString &)), this, SLOT(onTabTitleChanged(const QString &)));
         connect(tab, SIGNAL(urlChanged(const QUrl &)), this, SLOT(onTabUrlChanged(const QUrl &)));
         connect(tab, SIGNAL(urlRequested(const QUrl &, const QString &)), this, SLOT(onUrlRequested(const QUrl &, const QString &)));
+        connect(tab, SIGNAL(citationsActivated(const QVariantList &, const QString &)), this, SLOT(onCitationsActivated(const QVariantList &, const QString &)));
         connect(tab, SIGNAL(contextMenuAboutToShow(QMenu *)), this, SLOT(onTabContextMenu(QMenu *)));
         tabLayout->addWidget(tab);
         tabBar->addTab(tab);
@@ -193,7 +205,10 @@ namespace Papyro
             toLayerState = layerState;
 
             if (QWidget * layerWidget = layers.value(SearchLayer, 0)) {
-                layerWidget->setEnabled(toLayerState == SearchState);
+                layerWidget->setEnabled(toLayerState != DocumentState);
+            }
+            if (QWidget * layerWidget = layers.value(LibraryLayer, 0)) {
+                layerWidget->setEnabled(toLayerState == LibraryState);
             }
             // FIXME not sure if this should be disabled, so removing its disabling code
             //if (QWidget * layerWidget = layers.value(DocumentLayer, 0)) {
@@ -210,8 +225,22 @@ namespace Papyro
             }
             QTimer::singleShot(0, &layerAnimationGroup, SLOT(start()));
 
+            // Sort out menu toggles
+            switch (toLayerState) {
+            case LibraryState:
+                actionShowLibrary->setChecked(true);
+                break;
+            case SearchState:
+                //actionShowSearch->setChecked(true);
+                break;
+            case DocumentState:
+                //actionShowDocuments->setChecked(true);
+                break;
+            }
+
             // Make sure the right things are focused / shown
             switch (toLayerState) {
+            case LibraryState:
             case SearchState:
                 searchBox->setFocus();
                 cornerButton->setChecked(true);
@@ -233,7 +262,7 @@ namespace Papyro
             if (urls.isEmpty()) {
                 QString text(mimeData->text());
                 if (text.indexOf(QRegExp("[a-zA-Z]+://")) == 0) {
-                    QUrl textUrl(QUrl::fromEncoded(text.toAscii()));
+                    QUrl textUrl(QUrl::fromEncoded(text.toUtf8()));
                     if (!textUrl.isValid()) {
                         textUrl = QUrl(text);
                     }
@@ -269,7 +298,7 @@ namespace Papyro
     void PapyroWindowPrivate::closeTab(int index)
     {
         if (PapyroTab * tab = tabAt(index)) {
-            bool wasEmpty = tab->state() == PapyroTab::EmptyState;
+            bool wasEmpty = (tab->state() == PapyroTab::EmptyState);
             if (tab->close()) {
                 takeTab(index);
                 tab->deleteLater();
@@ -427,27 +456,98 @@ namespace Papyro
         //}
 
         /////////////////////////////////////////////////////////////////////////////////
+        // Drag/Drop overlay
+
+        {
+            dropOverlay = new QFrame(window());
+            dropOverlay->setObjectName("dropOverlay");
+            dropOverlay->setGeometry(window()->rect());
+            dropOverlay->hide();
+            QHBoxLayout * dropLayout = new QHBoxLayout(dropOverlay);
+            dropLayout->setContentsMargins(0, 0, 0, 0);
+            dropLayout->setSpacing(0);
+            {
+                dropIntoLibrary = new QFrame;
+                dropIntoLibrary->setAcceptDrops(true);
+                dropIntoLibrary->setObjectName("dropIntoLibrary");
+                dropIntoLibrary->setStyleSheet("QWidget { color: #333; border-color: #333 }");
+                dropLayout->addWidget(dropIntoLibrary, 1);
+                QHBoxLayout * dropIntoLibraryLayout = new QHBoxLayout(dropIntoLibrary);
+                QFrame * dropIntoLibraryFrame = new QFrame;
+                dropIntoLibraryLayout->addWidget(dropIntoLibraryFrame);
+                QHBoxLayout * dropIntoLibraryLabelLayout = new QHBoxLayout(dropIntoLibraryFrame);
+                QLabel * dropIntoLibraryLabel = new QLabel;
+                dropIntoLibraryLabelLayout->addWidget(dropIntoLibraryLabel, 0);
+                dropIntoLibraryLabel->setAlignment(Qt::AlignCenter);
+                dropIntoLibraryLabel->setWordWrap(true);
+                dropIntoLibraryLabel->setObjectName("dropIntoLibraryLabel");
+                dropIntoLibraryLabel->setText("Add to Library");
+            }
+            {
+                dropIntoDocument = new QFrame;
+                dropIntoDocument->setAcceptDrops(true);
+                dropIntoDocument->setObjectName("dropIntoDocument");
+                dropIntoDocument->setStyleSheet("QWidget { color: #333; border-color: #333 }");
+                dropLayout->addWidget(dropIntoDocument, 1);
+                QHBoxLayout * dropIntoDocumentLayout = new QHBoxLayout(dropIntoDocument);
+                QFrame * dropIntoDocumentFrame = new QFrame;
+                dropIntoDocumentLayout->addWidget(dropIntoDocumentFrame);
+                QHBoxLayout * dropIntoDocumentLabelLayout = new QHBoxLayout(dropIntoDocumentFrame);
+                QLabel * dropIntoDocumentLabel = new QLabel;
+                dropIntoDocumentLabelLayout->addWidget(dropIntoDocumentLabel, 0);
+                dropIntoDocumentLabel->setAlignment(Qt::AlignCenter);
+                dropIntoDocumentLabel->setWordWrap(true);
+                dropIntoDocumentLabel->setObjectName("dropIntoDocumentLabel");
+                dropIntoDocumentLabel->setText("Open Article(s)");
+            }
+        }
+
+
+        /////////////////////////////////////////////////////////////////////////////////
         // Search layer
 
         QWidget * searchLayer = layers[SearchLayer] = new QWidget(mainWidget);
         searchLayer->setObjectName("search_layer");
+        int searchLayerWidth = qMin(Utopia::maxScreenWidth() / 3, qRound(300 * Utopia::hiDPIScaling()));
+        searchLayer->setFixedWidth(searchLayerWidth);
         layerAnimationGroup.addAnimation(layerAnimations[SearchLayer] = new QPropertyAnimation(searchLayer, "geometry", this));
         layerAnimations[SearchLayer]->setEasingCurve(QEasingCurve::InOutSine);
 
-        QVBoxLayout * searchLayout = new QVBoxLayout(searchLayer);
+        QGridLayout * searchLayout = new QGridLayout(searchLayer);
         {
             QMargins margins(searchLayout->contentsMargins());
+            margins.setLeft(6 * Utopia::hiDPIScaling()); // Was 6 with the button
             margins.setRight(0);
             margins.setBottom(0);
             searchLayout->setContentsMargins(margins);
+            searchLayout->setSpacing(6 * Utopia::hiDPIScaling());
         }
 
+/*
         {
-            QLabel * label = new QLabel;
-            label->setStyleSheet("font-size: 10pt; color: white; padding: 0px;");
-            label->setText("Search for articles (in PubMed)");
-            label->setAlignment(Qt::AlignCenter);
-            searchLayout->addWidget(label, 0);
+            libraryButton = new QToolButton;
+            libraryButton->setObjectName("library_open_button");
+            QIcon icon;
+            icon.addPixmap(QPixmap(":/icons/open-library.png"), QIcon::Normal, QIcon::Off);
+            icon.addPixmap(QPixmap(":/icons/open-library-hover.png"), QIcon::Active, QIcon::Off);
+            icon.addPixmap(QPixmap(":/icons/close-library.png"), QIcon::Normal, QIcon::On);
+            icon.addPixmap(QPixmap(":/icons/close-library-hover.png"), QIcon::Active, QIcon::On);
+            libraryButton->setIcon(icon);
+
+            searchLayout->addWidget(libraryButton, 0, 0, 3, 1, Qt::AlignCenter);
+            libraryButton->setCheckable(true);
+            libraryButton->setAutoRaise(true);
+            libraryButton->setToolTip("Open / close library");
+
+            connect(libraryButton, SIGNAL(clicked(bool)), this, SLOT(onLibraryToggled(bool)));
+        }
+ */
+
+        {
+            searchLabel = new QLabel;
+            searchLabel->setObjectName("search_label");
+            searchLabel->setAlignment(Qt::AlignCenter);
+            searchLayout->addWidget(searchLabel, 0, 0);
         }
 
         QFrame * remoteSearchHeaderFrame = new QFrame;
@@ -457,71 +557,70 @@ namespace Papyro
         searchHeaderLayout->setSpacing(0);
 
         searchBox = new Athenaeum::BibliographicSearchBox;
-        // FIXME filtering is disabled for the day-zero release
-        //connect(searchBox, SIGNAL(filterRequested(const QString &, Athenaeum::BibliographicSearchBox::SearchDomain)),
-        //        this, SLOT(onFilterRequested(const QString &, Athenaeum::BibliographicSearchBox::SearchDomain)));
+        connect(searchBox, SIGNAL(filterRequested(const QString &, Athenaeum::BibliographicSearchBox::SearchDomain)),
+                this, SLOT(onFilterRequested(const QString &, Athenaeum::BibliographicSearchBox::SearchDomain)));
         connect(searchBox, SIGNAL(searchRequested(const QString &, Athenaeum::BibliographicSearchBox::SearchDomain)),
                 this, SLOT(onSearchRequested(const QString &, Athenaeum::BibliographicSearchBox::SearchDomain)));
-        searchHeaderLayout->addWidget(searchBox, 0);
+        searchHeaderLayout->addWidget(searchBox, 0, Qt::AlignTop);
 
         remoteSearchLabelFrame = new QFrame;
         remoteSearchLabelFrame->setObjectName("remote_search_label");
         QHBoxLayout * remoteSearchLabelFrameLayout = new QHBoxLayout(remoteSearchLabelFrame);
         remoteSearchLabelFrameLayout->setContentsMargins(0, 0, 0, 0);
         remoteSearchLabelFrameLayout->setSpacing(4);
-        remoteSearchLabelFrameLayout->addWidget(remoteSearchLabel = new QLabel, 1);
+        remoteSearchLabelFrameLayout->addWidget(filterLabel = new QLabel, 1);
+        filterLabel->setAlignment(Qt::AlignCenter);
+        remoteSearchLabelFrameLayout->addWidget(remoteSearchLabel = new Utopia::ElidedLabel, 1);
         remoteSearchLabelFrameLayout->addWidget(remoteSearchLabelSpinner = new Utopia::Spinner, 0);
-        remoteSearchLabelSpinner->setFixedSize(24, 24);
+        remoteSearchLabelSpinner->setFixedSize(QSize(16, 16) * Utopia::hiDPIScaling());
         remoteSearchLabelSpinner->setColor(QColor(255, 255, 255, 180));
         searchHeaderLayout->addWidget(remoteSearchLabelFrame, 0);
 
         articleResultsView = new Athenaeum::ArticleView;
-        articleResultsView->setMouseTracking(true);
-        articleResultsView->setDragEnabled(true);
-        articleResultsView->setAcceptDrops(true);
-        articleResultsView->setDropIndicatorShown(false);
-        articleResultsView->setDefaultDropAction(Qt::MoveAction);
-        articleResultsView->setItemDelegate(new Athenaeum::ArticleDelegate(this));
-        articleResultsView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        articleResultsView->horizontalScrollBar()->disconnect(); // no horizontal scrolling
-        articleResultsView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-        articleResultsView->setAlternatingRowColors(false);
-        articleResultsView->setFrameStyle(QFrame::NoFrame);
-        articleResultsView->setAttribute(Qt::WA_MacShowFocusRect, false);
-        articleResultsView->setDragDropMode(QAbstractItemView::DragDrop);
-        articleResultsView->setContextMenuPolicy(Qt::CustomContextMenu);
+        //articleResultsView->setContextMenuPolicy(Qt::CustomContextMenu);
         articleResultsView->installEventFilter(this);
         articleResultsView->viewport()->installEventFilter(this);
-        connect(articleResultsView, SIGNAL(activated(const QModelIndex &)),
-                this, SLOT(onArticleActivated(const QModelIndex &)));
         connect(articleResultsView, SIGNAL(clicked(const QModelIndex &)),
                 this, SLOT(onArticlePreviewRequested(const QModelIndex &)));
         connect(articleResultsView, SIGNAL(previewRequested(const QModelIndex &)),
                 this, SLOT(onArticlePreviewRequested(const QModelIndex &)));
-        connect(articleResultsView, SIGNAL(customContextMenuRequested(const QPoint &)),
-                this, SLOT(onArticleViewCustomContextMenuRequested(const QPoint &)));
+        connect(articleResultsView, SIGNAL(articleActivated(const QModelIndex &, bool)),
+                this, SLOT(onArticleViewArticleActivated(const QModelIndex &, bool)));
+        connect(articleResultsView, SIGNAL(articlesActivated(const QModelIndexList &, bool)),
+                this, SLOT(onArticleViewArticlesActivated(const QModelIndexList &, bool)));
+
 
         {
             aggregatingProxyModel = new Athenaeum::AggregatingProxyModel(Qt::Vertical, this);
             filterProxyModel = new Athenaeum::SortFilterProxyModel(this);
             articleResultsView->setModel(filterProxyModel);
-            standardFilters[Athenaeum::BibliographicSearchBox::SearchTitle] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliographicCollection::TitleRole - Qt::UserRole, Qt::DisplayRole, this);
-            standardFilters[Athenaeum::BibliographicSearchBox::SearchAuthors] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliographicCollection::AuthorsRole - Qt::UserRole, Qt::DisplayRole, this);
-            standardFilters[Athenaeum::BibliographicSearchBox::SearchAbstract] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliographicCollection::AbstractRole - Qt::UserRole, Qt::DisplayRole, this);
+            standardFilters[Athenaeum::BibliographicSearchBox::SearchTitle] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliography::TitleRole - Qt::UserRole, Qt::DisplayRole, this);
+            standardFilters[Athenaeum::BibliographicSearchBox::SearchAuthors] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliography::AuthorsRole - Qt::UserRole, Qt::DisplayRole, this);
+            standardFilters[Athenaeum::BibliographicSearchBox::SearchAbstract] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliography::AbstractRole - Qt::UserRole, Qt::DisplayRole, this);
             Athenaeum::ORFilter * orFilter = new Athenaeum::ORFilter(standardFilters.values(), this);
             standardFilters[Athenaeum::BibliographicSearchBox::SearchAll] = orFilter;
 
-            libraryModel = new Athenaeum::LibraryModel(this);
-
+            libraryModel = Athenaeum::LibraryModel::instance();
+/*
             // Load libraries from disk
             QDir dataRoot(Utopia::profile_path());
-            QList< Athenaeum::AbstractBibliographicModel * > models;
-            QList< Athenaeum::RemoteQueryBibliographicModel * > searches;
             if (dataRoot.cd("library") || (dataRoot.mkdir("library") && dataRoot.cd("library"))) {
+                QDir masterDir(dataRoot);
+                if (masterDir.cd("master") || (masterDir.mkdir("master") && masterDir.cd("master"))) {
+                    Athenaeum::Bibliography * master = new Athenaeum::Bibliography(this);
+                    Athenaeum::LocalPersistenceModel * persistenceModel = new Athenaeum::LocalPersistenceModel(library.absoluteFilePath());
+                    persistenceModel->load(master);
+                    models << master;
+                } else {
+                    qDebug() << "=== Could not open master library directory";
+                }
                 QDir libraryRoot(dataRoot);
                 if (libraryRoot.cd("collections") || (libraryRoot.mkdir("collections") && libraryRoot.cd("collections"))) {
                     foreach (const QFileInfo & library, libraryRoot.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot)) {
-                        models << new Athenaeum::PersistentBibliographicModel(library.absoluteFilePath(), this);
+                        Athenaeum::Bibliography * master = new Athenaeum::Bibliography(this);
+                        Athenaeum::LocalPersistenceModel * persistenceModel = new Athenaeum::LocalPersistenceModel(library.absoluteFilePath());
+                        persistenceModel->load(master);
+                        models << master;
                     }
                     if (models.isEmpty()) {
                         // Create a new model if none exist
@@ -535,26 +634,28 @@ namespace Papyro
                 } else {
                     qDebug() << "=== Could not open library directory";
                 }
-
+*/
                 /*
                 QDir searchesRoot(dataRoot);
                 if (searchesRoot.cd("searches") || (searchesRoot.mkdir("searches") && searchesRoot.cd("searches"))) {
                     foreach (const QFileInfo & library, searchesRoot.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot)) {
-                        searches << new RemoteQueryBibliographicModel(library.absoluteFilePath(), this);
+                        searches << new RemoteQueryBibliography(library.absoluteFilePath(), this);
                     }
                 } else {
                     qDebug() << "=== Could not open searches directory";
                 }
                 */
+/*
             } else {
                 qDebug() << "=== Could not open data directory";
             }
             //qDebug() << "=== Adding collections to library";
-            foreach (Athenaeum::AbstractBibliographicModel * model, models) {
+            foreach (Athenaeum::AbstractBibliography * model, models) {
                 libraryModel->appendModel(model);
             }
+*/
             /*
-            foreach (RemoteQueryBibliographicModel * search, searches) {
+            foreach (RemoteQueryBibliography * search, searches) {
                 d->libraryModel->appendSearch(search);
             }
             */
@@ -574,15 +675,64 @@ namespace Papyro
             */
         }
 
-        searchLayout->addWidget(remoteSearchHeaderFrame, 0);
-        remoteSearchLabelFrame->hide();
-        searchLayout->addWidget(articleResultsView, 1);
+        searchLayout->addWidget(remoteSearchHeaderFrame, 1, 0);
+        searchLayout->addWidget(articleResultsView, 2, 0);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // Library layer
+
+        QWidget * libraryLayer = layers[LibraryLayer] = new QWidget(mainWidget);
+        int libraryLayerWidth = qMin(Utopia::maxScreenWidth() / 5, qRound(200 * Utopia::hiDPIScaling()));
+        libraryLayer->setFixedWidth(libraryLayerWidth);
+        libraryLayer->setObjectName("library_layer");
+        layerAnimationGroup.addAnimation(layerAnimations[LibraryLayer] = new QPropertyAnimation(libraryLayer, "geometry", this));
+        layerAnimations[LibraryLayer]->setEasingCurve(QEasingCurve::InOutSine);
+        {
+            QHBoxLayout * layout = new QHBoxLayout(libraryLayer);
+            layout->setSpacing(0);
+            //layout->setContentsMargins(0, 0, 0, 0);
+
+            libraryView = new Athenaeum::LibraryView;
+            libraryView->setModel(libraryModel.get());
+            libraryView->setDragEnabled(true);
+            libraryView->setAcceptDrops(true);
+            libraryView->setDropIndicatorShown(false);
+            libraryView->setItemDelegate(new Athenaeum::LibraryDelegate(libraryView));
+            libraryView->setAllColumnsShowFocus(true);
+            libraryView->setHeaderHidden(true);
+            libraryView->setItemsExpandable(false);
+            libraryView->setRootIsDecorated(false);
+            libraryView->setMouseTracking(true);
+            libraryView->setIndentation(0);
+            libraryView->setFrameStyle(QFrame::NoFrame);
+            libraryView->setAttribute(Qt::WA_MacShowFocusRect, 0);
+            libraryView->viewport()->setAttribute(Qt::WA_Hover);
+            libraryView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+            libraryView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+            libraryView->setSelectionBehavior(QAbstractItemView::SelectRows);
+            libraryView->setSelectionMode(QAbstractItemView::SingleSelection);
+            for (int i = 1; i < libraryModel->columnCount(); ++i) {
+                libraryView->setColumnHidden(i, true);
+            }
+            libraryView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+            libraryView->expandAll();
+            libraryView->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(libraryView->selectionModel(), SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+                    this, SLOT(onLibrarySelected(const QModelIndex &, const QModelIndex &)));
+            connect(libraryView, SIGNAL(customContextMenuRequested(const QPoint &)),
+                    this, SLOT(onLibraryCustomContextMenu(const QPoint &)));
+            layout->addWidget(libraryView);
+
+            libraryView->selectionModel()->setCurrentIndex(libraryModel->everything(), QItemSelectionModel::SelectCurrent);
+            onLibrarySelected(libraryModel->everything(), libraryModel->everything());
+        }
 
         /////////////////////////////////////////////////////////////////////////////////
         // SearchControl layer
 
         QWidget * searchControlLayer = layers[SearchControlLayer] = new QWidget(mainWidget);
         searchControlLayer->setObjectName("search_control_layer");
+        searchControlLayer->hide();
         layerAnimationGroup.addAnimation(layerAnimations[SearchControlLayer] = new QPropertyAnimation(searchControlLayer, "geometry", this));
         layerAnimations[SearchControlLayer]->setEasingCurve(QEasingCurve::InOutSine);
         searchControlLayer->setFixedHeight(48);
@@ -607,19 +757,19 @@ namespace Papyro
         mainLayout->setSpacing(0);
         mainLayout->setContentsMargins(0, 0, 0, 0);
 
-        QFrame * tabBarWidget = new QFrame;
-        tabBarWidget->setObjectName("tab_bar_frame");
-        tabBarWidget->setFixedWidth(48);
-        QVBoxLayout * tabBarWidgetLayout = new QVBoxLayout(tabBarWidget);
-        tabBarWidgetLayout->setSpacing(0);
-        tabBarWidgetLayout->setContentsMargins(0, 0, 0, 0);
         tabBar = new TabBar;
-        tabBar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
+        tabBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
         connect(tabBar, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentTabChanged(int)));
         connect(tabBar, SIGNAL(layoutChanged()), this, SLOT(onTabLayoutChanged()));
         connect(tabBar, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(onTabBarCustomContextMenuRequested(const QPoint &)));
         connect(tabBar, SIGNAL(closeRequested(int)), this, SLOT(closeTab(int)));
-        tabBarWidgetLayout->addWidget(tabBar, 0, Qt::AlignRight | Qt::AlignTop);
+        QFrame * tabBarWidget = new QFrame;
+        tabBarWidget->setObjectName("tab_bar_frame");
+        tabBarWidget->setFixedWidth(tabBar->minimumWidth());
+        QVBoxLayout * tabBarWidgetLayout = new QVBoxLayout(tabBarWidget);
+        tabBarWidgetLayout->setSpacing(0);
+        tabBarWidgetLayout->setContentsMargins(0, 0, 0, 0);
+        tabBarWidgetLayout->addWidget(tabBar, 0, Qt::AlignTop);
         mainLayout->addWidget(tabBarWidget);
 
         /////////////////////////////////////////////////////////////////////////////////
@@ -628,6 +778,7 @@ namespace Papyro
         // Sliver
         QWidget * sliverLayer = layers[SliverLayer] = new QWidget(mainWidget);
         sliverLayer->setObjectName("sliver_frame");
+        sliverLayer->setFixedWidth(tabBar->minimumWidth());
         layerAnimationGroup.addAnimation(layerAnimations[SliverLayer] = new QPropertyAnimation(sliverLayer, "geometry", this));
         layerAnimations[SliverLayer]->setEasingCurve(QEasingCurve::InOutSine);
         QVBoxLayout * sliverLayout = new QVBoxLayout(sliverLayer);
@@ -689,7 +840,7 @@ namespace Papyro
             colors << _ColorPair("Pink", Qt::magenta);
             bool first = true;
             foreach (const _ColorPair & color, colors) {
-                static const QSize size(28, 28);
+                static const QSize size(QSize(28, 28) * Utopia::hiDPIScaling());
                 QToolButton * button = new QToolButton;
                 button->setCheckable(true);
                 button->setText(color.first);
@@ -731,14 +882,13 @@ namespace Papyro
 
 
 
-
         /////////////////////////////////////////////////////////////////////////////////
         // Corner frame
 
         {
             cornerFrame = new QFrame(window());
             cornerFrame->setObjectName("corner_frame");
-            cornerFrame->setFixedSize(48, 48);
+            cornerFrame->setFixedSize(tabBar->minimumWidth(), 48 * Utopia::hiDPIScaling());
             QHBoxLayout * layout2 = new QHBoxLayout(cornerFrame);
             layout2->setSpacing(0);
             layout2->setContentsMargins(0, 0, 0, 0);
@@ -747,10 +897,9 @@ namespace Papyro
             icon.addPixmap(QPixmap(":/icons/article-search-close.png"), QIcon::Normal, QIcon::On);
             cornerButton->setIcon(icon);
             cornerButton->setCheckable(true);
-            cornerButton->setToolTip("Toggle article search");
-            connect(cornerButton, SIGNAL(clicked(bool)), this, SLOT(onCornerButtonClicked(bool)));
+            cornerButton->setToolTip("Toggle Library");
             layout2->addWidget(cornerButton);
-            connect(searchBox, SIGNAL(cancelRequested()), this, SLOT(showDocuments()));
+            //connect(searchBox, SIGNAL(cancelRequested()), this, SLOT(showDocuments()));
         }
 
 
@@ -775,8 +924,6 @@ namespace Papyro
             window()->addAction(actionPreviousTab);
         }
 
-        window()->resize(1000, 800);
-
         // Make status bar
         //setStatusBar(statusBar = new QStatusBar());
 
@@ -796,6 +943,12 @@ namespace Papyro
         actionOpenFromClipboard->setEnabled(false);
         QObject::connect(actionOpenFromClipboard, SIGNAL(triggered()), window(), SLOT(openFileFromClipboard()));
         window()->addAction(actionOpenFromClipboard);
+
+        actionSaveToLibrary = new QAction(QIcon(":/icons/save.png"), "Save to Library", this);
+        actionSaveToLibrary->setShortcut(Qt::CTRL + Qt::Key_L);
+        actionSaveToLibrary->setEnabled(false);
+        QObject::connect(actionSaveToLibrary, SIGNAL(triggered()), window(), SLOT(saveToLibrary()));
+        window()->addAction(actionSaveToLibrary);
 
         actionSave = new QAction(QIcon(":/icons/save.png"), "Save Copy...", this);
         actionSave->setShortcut(QKeySequence::Save);
@@ -822,6 +975,7 @@ namespace Papyro
 
         actionQuit = new QAction("Quit", this);
         actionQuit->setShortcut(QKeySequence::Quit);
+        actionQuit->setMenuRole(QAction::QuitRole);
         QObject::connect(actionQuit, SIGNAL(triggered()), QApplication::instance(), SLOT(closeAllWindows()));
         window()->addAction(actionQuit);
 
@@ -831,36 +985,38 @@ namespace Papyro
         window()->addAction(actionCopy);
 
         {
-            QActionGroup * group = new QActionGroup(this);
+//             QActionGroup * group = new QActionGroup(this);
 
-            actionShowDocuments = new QAction("Show Documents", this);
-            actionShowDocuments->setCheckable(true);
-            actionShowDocuments->setChecked(true);
-            QObject::connect(actionShowDocuments, SIGNAL(triggered()), this, SLOT(showDocuments()));
-            window()->addAction(actionShowDocuments);
-            group->addAction(actionShowDocuments);
+//             actionShowDocuments = new QAction("Show Documents", this);
+//             actionShowDocuments->setCheckable(true);
+//             actionShowDocuments->setChecked(true);
+//             QObject::connect(actionShowDocuments, SIGNAL(triggered()), this, SLOT(showDocuments()));
+//             window()->addAction(actionShowDocuments);
+//             group->addAction(actionShowDocuments);
 
-#ifdef UTOPIA_BUILD_DEBUG
-            actionShowLibrary = new QAction("Show Library", this);
-            actionShowLibrary->setEnabled(false);
+            actionShowLibrary = new QAction("Toggle Library", this);
             actionShowLibrary->setCheckable(true);
-            QObject::connect(actionShowLibrary, SIGNAL(triggered()), this, SLOT(showLibrary()));
+            actionShowLibrary->setChecked(false);
+            connect(actionShowLibrary, SIGNAL(toggled(bool)), this, SLOT(showLibrary(bool)));
+            connect(actionShowLibrary, SIGNAL(triggered(bool)), cornerButton, SLOT(setChecked(bool)));
+            connect(cornerButton, SIGNAL(clicked(bool)), actionShowLibrary, SLOT(setChecked(bool)));
             window()->addAction(actionShowLibrary);
-            group->addAction(actionShowLibrary);
-#endif
 
-            actionShowSearch = new QAction("Search For Documents", this);
-            actionShowSearch->setCheckable(true);
-            QObject::connect(actionShowSearch, SIGNAL(triggered()), this, SLOT(showSearch()));
-            window()->addAction(actionShowSearch);
-            group->addAction(actionShowSearch);
+//             group->addAction(actionShowLibrary);
+
+//             actionShowSearch = new QAction("Search For Documents", this);
+//             actionShowSearch->setCheckable(true);
+//             QObject::connect(actionShowSearch, SIGNAL(triggered()), this, SLOT(showSearch()));
+//             window()->addAction(actionShowSearch);
+//             group->addAction(actionShowSearch);
         }
 
         actionShowHelp = new QAction("View Quick Start Guide", this);
         QObject::connect(actionShowHelp, SIGNAL(triggered()), window(), SLOT(showHelp()));
         window()->addAction(actionShowHelp);
 
-        actionShowAbout = new QAction("About Utopia Documents", this);
+        actionShowAbout = new QAction("About", this);
+        actionShowAbout->setMenuRole(QAction::AboutRole);
         QObject::connect(actionShowAbout, SIGNAL(triggered()), window(), SLOT(showAbout()));
         window()->addAction(actionShowAbout);
 
@@ -868,15 +1024,16 @@ namespace Papyro
         window()->menuBar()->addMenu(menuFile = new QMenu("&File", window()));
         window()->menuBar()->addMenu(menuEdit = new QMenu("&Edit", window()));
         window()->menuBar()->addMenu(menuView = new QMenu("&View", window()));
-        window()->menuBar()->addMenu(uiManager->menuWindow());
-        window()->menuBar()->addMenu(uiManager->menuHelp());
+        window()->menuBar()->addMenu(uiManager->menuWindow(window()));
+        window()->menuBar()->addMenu(uiManager->menuHelp(window()));
 
         // Populate File menu
         menuFile->addAction(actionOpen);
         menuFile->addAction(actionOpenUrl);
         menuFile->addAction(actionOpenFromClipboard);
-        menuFile->addMenu(uiManager->menuRecent());
+        menuFile->addMenu(uiManager->menuRecent(window()));
         menuFile->addSeparator();
+        menuFile->addAction(actionSaveToLibrary);
         menuFile->addAction(actionSave);
         if (printingEnabled) {
             menuFile->addSeparator();
@@ -886,14 +1043,44 @@ namespace Papyro
         menuFile->addAction(actionClose);
         menuFile->addSeparator();
         menuFile->addAction(actionQuit);
+        menuFile->addSeparator();
+
+        menuEdit->addSeparator();
+        menuEdit->addAction(actionCopy);
+        menuEdit->addSeparator();
+        menuEdit->addAction(actionQuickSearch = new Utopia::ActionProxy("Find In Document...", this));
+        menuEdit->addAction(actionQuickSearchNext = new Utopia::ActionProxy("Find Next", this));
+        menuEdit->addAction(actionQuickSearchPrevious = new Utopia::ActionProxy("Find Previous", this));
+        menuEdit->addSeparator();
+        QAction * actionPreferences = uiManager->actionPreferences();
+        actionPreferences->setMenuRole(QAction::PreferencesRole);
+        menuEdit->addAction(actionPreferences);
+        menuEdit->addSeparator();
+
+        menuView->addMenu(menuLayout = new Utopia::MenuProxy("Layout", menuView));
+        menuView->addMenu(menuZoom = new Utopia::MenuProxy("Zoom", menuView));
+        menuView->addSeparator();
+        menuView->addAction(actionToggleSidebar = new Utopia::ActionProxy("Toggle Sidebar", this));
+        menuView->addAction(actionToggleLookupBar = new Utopia::ActionProxy("Toggle Lookup Search Box", this));
+        menuView->addAction(actionTogglePager = new Utopia::ActionProxy("Toggle Pager", this));
+        menuView->addAction(actionToggleImageBrowser = new Utopia::ActionProxy("Toggle Figure Browser", this));
+        menuView->addSeparator();
+        menuView->addAction(actionNextTab);
+        menuView->addAction(actionPreviousTab);
+        menuView->addSeparator();
+        //menuView->addAction(actionShowDocuments);
+        //menuView->addAction(actionShowSearch);
+        menuView->addAction(actionShowLibrary);
+        menuView->addSeparator();
+
 
         // Registering annotation / selection processors
         //foreach (AnnotationProcessor * processor, Utopia::instantiateAllExtensions< AnnotationProcessor >()) {
         //    d->annotationProcessors << boost::shared_ptr< AnnotationProcessor >(processor);
         //}
-        foreach (SelectionProcessor * processor, Utopia::instantiateAllExtensions< SelectionProcessor >()) {
-            //selectionProcessorActions << new SelectionProcessorAction(window(), processor);
-        }
+        //foreach (SelectionProcessor * processor, Utopia::instantiateAllExtensions< SelectionProcessor >()) {
+        //    selectionProcessorActions << new SelectionProcessorAction(window(), processor);
+        //}
         connect(&primaryToolSignalMapper, SIGNAL(mapped(int)),
                 this, SLOT(onPrimaryToolButtonClicked(int)));
 
@@ -931,6 +1118,8 @@ namespace Papyro
         }
 
         updateHighlightingModeButton();
+
+        updateSearchFilterUI();
     }
 
     QRect PapyroWindowPrivate::layerGeometry(Layer layer) const
@@ -946,42 +1135,56 @@ namespace Papyro
     {
         if (QWidget * layerWidget = layers.value(layer, 0)) {
             QRect bounds(layerWidget->parentWidget()->rect());
+
+            int libraryWidth = layers[LibraryLayer]->width();
+            int searchControlHeight = layers[SearchControlLayer]->height();
+            int searchWidth = layers[SearchLayer]->width();
+
             switch (layer) {
             case SearchControlLayer: {
-                int searchControlHeight = layers[SearchControlLayer]->height();
                 return QRect(0, bounds.height() - searchControlHeight, bounds.width(), searchControlHeight);
             }
             case SliverLayer: {
-                int searchControlHeight = layers[SearchControlLayer]->height();
                 QRect rect(0, bounds.height() - sliver->sizeHint().height() - searchControlHeight, sliver->width(), sliver->sizeHint().height());
                 switch (layerState) {
                 case DocumentState:
                     return rect;
-                case SearchState:
                 default:
                     return rect.translated(-sliver->width(), 0);
                 }
             }
             case SearchLayer: {
-                int searchControlHeight = layers[SearchControlLayer]->height();
-                bounds.setWidth(300);
+                bounds.setWidth(searchWidth);
                 bounds.setBottom(bounds.height() - searchControlHeight);
                 switch (layerState) {
                 case SearchState:
                     return bounds;
-                case DocumentState:
+                case LibraryState:
+                    return bounds.translated(libraryWidth, 0);
                 default:
                     return bounds.translated(sliver->width(), 0);
                 }
             }
-            case DocumentLayer:
+            case LibraryLayer: {
+                bounds.setWidth(libraryWidth);
+                //bounds.setBottom(bounds.height() - searchControlHeight);
+                switch (layerState) {
+                case LibraryState:
+                    return bounds;
+                default:
+                    return bounds.translated(-libraryWidth, 0);
+                }
+            }
+            case DocumentLayer: {
                 switch (layerState) {
                 case SearchState:
-                    return bounds.translated(300, 0);
-                case DocumentState:
+                    return bounds.translated(searchWidth, 0);
+                case LibraryState:
+                    return bounds.translated(searchWidth + libraryWidth, 0);
                 default:
                     return bounds;
                 }
+            }
             default:
                 return bounds;
             }
@@ -1002,6 +1205,7 @@ namespace Papyro
         PapyroTab * tab = new PapyroTab;
         tab->documentView()->setInteractionMode(interactionMode);
         tab->documentView()->setHighlightColor(highlightingColor);
+        tab->bus()->subscribe(this);
         addTab(tab);
 
         // Add to window menu
@@ -1012,25 +1216,55 @@ namespace Papyro
         return tab;
     }
 
-    void PapyroWindowPrivate::onResolverRunnableCompleted(QModelIndex index, QVariantMap metadata)
+//     static bool link_less_than(const QVariantMap & lhs, const QVariantMap & rhs)
+//     {
+//         // Reverse order of mime type importance
+//         static QStringList mime_types_order;
+//         if (mime_types_order.isEmpty()) {
+//             mime_types_order << "text/html" << "application/pdf";
+//         }
+//
+//         // Reverse order of link type importance
+//         static QStringList types_order;
+//         if (types_order.isEmpty()) {
+//             types_order << "search" << "abstract" << "article";
+//         }
+//
+//         QString mime_lhs = lhs.value("mime").toString();
+//         QString mime_rhs = rhs.value("mime").toString();
+//         int order_mime_lhs = mime_types_order.contains(mime_lhs) ? mime_types_order.indexOf(mime_lhs) : -1;
+//         int order_mime_rhs = mime_types_order.contains(mime_rhs) ? mime_types_order.indexOf(mime_rhs) : -1;
+//         if (order_mime_lhs == order_mime_rhs) {
+//             QString type_lhs = lhs.value("type").toString();
+//             QString type_rhs = rhs.value("type").toString();
+//             int order_type_lhs = types_order.contains(type_lhs) ? types_order.indexOf(type_lhs) : -1;
+//             int order_type_rhs = types_order.contains(type_rhs) ? types_order.indexOf(type_rhs) : -1;
+//             if (order_type_lhs == order_type_rhs) {
+//                 int weight_lhs = lhs.value(":weight").toInt();
+//                 int weight_rhs = rhs.value(":weight").toInt();
+//                 return weight_lhs > weight_rhs;
+//             } else {
+//                 return order_type_lhs > order_type_rhs;
+//             }
+//         } else {
+//             return order_mime_lhs > order_mime_rhs;
+//         }
+//     }
+
+    void PapyroWindowPrivate::onResolverRunnableCompleted(Athenaeum::CitationHandle citation)
     {
-        QUrl pdfUrl = metadata.value("pdf").toUrl();
-        QUrl url = metadata.value("url").toUrl();
-        bool raise = metadata.value("_raise").toBool();
+        qDebug() << "AFTER";
+        QVariantMap userDef = citation->field(Athenaeum::AbstractBibliography::UserDefRole).toMap();
+        bool raise = userDef.value("__raise").toBool();
+        //QModelIndex index = userDef.value("__index").value< QModelIndex >();
+        PapyroWindow * window = qobject_cast< PapyroWindow * >(userDef.value("__window").value< QWidget * >());
 
-        articleResultsView->model()->setData(index, Athenaeum::AbstractBibliographicCollection::IdleItemState, Athenaeum::AbstractBibliographicCollection::ItemStateRole);
-        articleResultsView->setIndexWidget(index, 0);
+        //articleResultsView->setIndexWidget(index, 0);
 
-        if (pdfUrl.isValid()) {
-            // Now we have a valid URL, we must do our best to resolve it to a PDF
-            // file, then open it.
-            articleResultsView->model()->setData(index, pdfUrl, Athenaeum::AbstractBibliographicCollection::PdfRole);
-            window()->open(pdfUrl, raise);
-        } else if (url.isValid()) {
-            QDesktopServices::openUrl(url);
-        } else {
-            // FIXME attempt to use the local discoverer
-        }
+        window->open(citation, raise ? PapyroWindow::ForegroundTab : PapyroWindow::BackgroundTab);
+
+        // FIXME should try to work out if a PDF file was found, and set the icon perhaps?
+        //articleResultsView->model()->setData(index, pdfUrl, Athenaeum::AbstractBibliographicCollection::ObjectFileRole);
     }
 
     void PapyroWindowPrivate::onArticleActivated(const QModelIndex & index)
@@ -1038,42 +1272,90 @@ namespace Papyro
         closeArticlePreview();
 
         // Only bother trying to launch an idle article
-        Athenaeum::AbstractBibliographicCollection::ItemState state = index.data(Athenaeum::AbstractBibliographicCollection::ItemStateRole).value< Athenaeum::AbstractBibliographicCollection::ItemState >();
-        if (state == Athenaeum::AbstractBibliographicCollection::IdleItemState) {
+        Athenaeum::AbstractBibliography::ItemState state = index.data(Athenaeum::AbstractBibliography::ItemStateRole).value< Athenaeum::AbstractBibliography::ItemState >();
+        if (state == Athenaeum::AbstractBibliography::IdleItemState) {
             // It is the job of this method to do something useful and expected when a user
             // activates (double-clicks) an article.
             bool raise = ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0);
 
             // If the record includes a local filename, launch that PDF file
-            QUrl pdfUrl(index.data(Athenaeum::AbstractBibliographicCollection::PdfRole).toUrl());
-            QUrl url(index.data(Athenaeum::AbstractBibliographicCollection::UrlRole).toUrl());
-            if (pdfUrl.isValid()) {
-                window()->open(pdfUrl, raise);
+            QFileInfo objectFile(index.data(Athenaeum::AbstractBibliography::ObjectFileRole).toUrl().toLocalFile());
+            if (objectFile.exists()) {
+                window()->open(objectFile.canonicalFilePath(), raise ? PapyroWindow::ForegroundTab : PapyroWindow::BackgroundTab);
             } else {
                 // If no local file is found, we must attempt to generate or find a URL with
                 // which to search for the article. Sometimes such a URL is already provided
                 // in the citation record. If not, we must fall back to some intelligent
                 // guesswork
-                if (Athenaeum::BibliographicItem * item = index.data(Athenaeum::AbstractBibliographicCollection::ItemRole).value< Athenaeum::BibliographicItem * >()) {
-                    QVariantMap metadata = item->toMap();
-                    Athenaeum::ResolverRunnable * resolverRunnable = new Athenaeum::ResolverRunnable(index, metadata);
+                Athenaeum::CitationHandle item = index.data(Athenaeum::AbstractBibliography::ItemRole).value< Athenaeum::CitationHandle >();
+                if (item) {
+                    QVariantMap userDef;
+                    userDef["__index"] = QVariant::fromValue(index);
+                    userDef["__raise"] = raise;
+                    item->setField(Athenaeum::AbstractBibliography::UserDefRole, userDef);
 
+
+/*
                     QWidget * spinnerWidget = new QWidget;
                     QHBoxLayout * spinnerLayout = new QHBoxLayout(spinnerWidget);
-                    spinnerLayout->setContentsMargins(4, 4, 4, 4);
-                    Utopia::Spinner * spinner = new Utopia::Spinner;
+                    int iconWidth = QPixmap(":/icons/article-starred.png").width();
+                    spinnerLayout->setContentsMargins(3 + iconWidth / (Utopia::isHiDPI() ? 1 : 2), 3, 3, 3);
+                    Utopia::Spinner * spinner = new Utopia::Spinner(spinnerWidget);
                     spinner->setColor(Qt::white);
-                    spinner->setFixedSize(34, 48);
+                    spinner->setFixedSize(QPixmap(":/icons/article-icon.png").size() / (Utopia::isHiDPI() ? 1 : 2));
                     spinnerLayout->addWidget(spinner, 0, Qt::AlignLeft | Qt::AlignVCenter);
-
-                    connect(resolverRunnable, SIGNAL(started()), spinner, SLOT(start()));
-                    connect(resolverRunnable, SIGNAL(completed()), spinner, SLOT(stop()));
-                    connect(resolverRunnable, SIGNAL(completed(QModelIndex, QVariantMap)), this, SLOT(onResolverRunnableCompleted(QModelIndex, QVariantMap)));
                     articleResultsView->setIndexWidget(index, spinnerWidget);
+                    spinner->start();
+ */
+                    qRegisterMetaType< Athenaeum::CitationHandle >("Athenaeum::CitationHandle");
+                    Athenaeum::ResolverRunnable::dereference(item, this, SLOT(onResolverRunnableCompleted(Athenaeum::CitationHandle)));
+                }
+            }
+        }
+    }
 
-                    articleResultsView->model()->setData(index, QVariant::fromValue(Athenaeum::AbstractBibliographicCollection::BusyItemState), Athenaeum::AbstractBibliographicCollection::ItemStateRole);
+    void PapyroWindowPrivate::onArticleViewArticleActivated(const QModelIndex & index, bool newWindow)
+    {
+        QModelIndexList indices;
+        indices << index;
+        onArticleViewArticlesActivated(indices, newWindow);
+    }
 
-                    QThreadPool::globalInstance()->start(resolverRunnable);
+    void PapyroWindowPrivate::onArticleViewArticlesActivated(const QModelIndexList & indices, bool newWindow)
+    {
+        // Choose this window by default
+        PapyroWindow * window = this->window();
+        if (newWindow) {
+            window = PapyroWindow::newWindow();
+        }
+
+        // It is the job of this method to do something useful and expected when a user
+        // activates (double-clicks) an article.
+        bool raise = ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0);
+
+        foreach (QModelIndex index, indices) {
+            // Only bother trying to launch an idle article
+            Athenaeum::AbstractBibliography::ItemState state = index.data(Athenaeum::AbstractBibliography::ItemStateRole).value< Athenaeum::AbstractBibliography::ItemState >();
+            if (state == Athenaeum::AbstractBibliography::IdleItemState) {
+                if (Athenaeum::CitationHandle citation = index.data(Athenaeum::AbstractBibliography::ItemRole).value< Athenaeum::CitationHandle >()) {
+                    // If the record includes a local filename, launch that PDF file
+                    QFileInfo objectFile(index.data(Athenaeum::AbstractBibliography::ObjectFileRole).toUrl().toLocalFile());
+                    if (objectFile.exists()) {
+                        window->open(citation, raise ? Papyro::PapyroWindow::ForegroundTab : Papyro::PapyroWindow::BackgroundTab);
+                    } else {
+                        // If no local file is found, we must attempt to generate or find a URL with
+                        // which to search for the article. Sometimes such a URL is already provided
+                        // in the citation record. If not, we must fall back to some intelligent
+                        // guesswork
+                        QVariantMap userDef;
+                        userDef["__index"] = QVariant::fromValue(index);
+                        userDef["__raise"] = raise;
+                        userDef["__window"] = QVariant::fromValue(window);
+                        citation->setField(Athenaeum::AbstractBibliography::UserDefRole, userDef);
+
+                        QPointer< Athenaeum::ResolverRunnable > runnable(Athenaeum::ResolverRunnable::resolve(citation, this, SLOT(onResolverRunnableCompleted(Athenaeum::CitationHandle))));
+                        connect(this, SIGNAL(cancellationRequested()), runnable, SLOT(cancel()));
+                    }
                 }
             }
         }
@@ -1081,6 +1363,7 @@ namespace Papyro
 
     void PapyroWindowPrivate::onArticlePreviewRequested(const QModelIndex & index)
     {
+        return;
         static const QString css = "h1 { color: #000; } "
                                    "p { color: #222; } "
                                    "p.authors, p .publicationTitle, p .publisher { font-style: italic; } ";
@@ -1088,11 +1371,11 @@ namespace Papyro
         typedef QPair< int, QString > _PAIR;
         static QList< _PAIR > tpls;
         if (tpls.isEmpty()) {
-            tpls << _PAIR(Athenaeum::AbstractBibliographicCollection::TitleRole, "<h1 style='font-size: large'>%1</h1>");
-            tpls << _PAIR(Athenaeum::AbstractBibliographicCollection::SubtitleRole, "<h2 style='font-size: medium'>%1</h2>");
-            tpls << _PAIR(Athenaeum::AbstractBibliographicCollection::AuthorsRole, "<p align='justify' class='authors'>%1.</p>");
-            tpls << _PAIR(Athenaeum::AbstractBibliographicCollection::YearRole, "<p align='justify' class='publication'>%1</p>");
-            tpls << _PAIR(Athenaeum::AbstractBibliographicCollection::AbstractRole, "<p align='justify' class='abstract'>%1</p>");
+            tpls << _PAIR(Athenaeum::AbstractBibliography::TitleRole, "<h1 style='font-size: large'>%1</h1>");
+            tpls << _PAIR(Athenaeum::AbstractBibliography::SubtitleRole, "<h2 style='font-size: medium'>%1</h2>");
+            tpls << _PAIR(Athenaeum::AbstractBibliography::AuthorsRole, "<p align='justify' class='authors'>%1.</p>");
+            tpls << _PAIR(Athenaeum::AbstractBibliography::YearRole, "<p align='justify' class='publication'>%1</p>");
+            tpls << _PAIR(Athenaeum::AbstractBibliography::AbstractRole, "<p align='justify' class='abstract'>%1</p>");
         }
 
         bool needNewPreview = articlePreviewIndex != index;
@@ -1113,9 +1396,9 @@ namespace Papyro
                 QString html;
                 foreach (const _PAIR & pair, tpls) {
                     switch (pair.first) {
-                    case Athenaeum::AbstractBibliographicCollection::AuthorsRole: {
+                    case Athenaeum::AbstractBibliography::AuthorsRole: {
                         QStringList names;
-                        foreach (const QString & author, index.data(Athenaeum::AbstractBibliographicCollection::AuthorsRole).toStringList()) {
+                        foreach (const QString & author, index.data(Athenaeum::AbstractBibliography::AuthorsRole).toStringList()) {
                             names << (author.section(", ", 1) + " " + author.section(", ", 0, 0));
                         }
                         if (!names.isEmpty()) {
@@ -1123,21 +1406,21 @@ namespace Papyro
                         }
                         break;
                     }
-                    case Athenaeum::AbstractBibliographicCollection::YearRole: {
+                    case Athenaeum::AbstractBibliography::YearRole: {
                         QStringList publication;
 
-                        QString publicationTitle = index.data(Athenaeum::AbstractBibliographicCollection::PublicationTitleRole).toString();
+                        QString publicationTitle = index.data(Athenaeum::AbstractBibliography::PublicationTitleRole).toString();
                         if (!publicationTitle.isEmpty()) {
                             publication << "<span class='publicationTitle'>\"" + publicationTitle + "\"</span>";
                         }
 
-                        QString year = index.data(Athenaeum::AbstractBibliographicCollection::YearRole).toString();
+                        QString year = index.data(Athenaeum::AbstractBibliography::YearRole).toString();
                         if (!year.isEmpty()) {
                             publication << "<span class='year'>(" + year + ")</span>";
                         }
 
-                        QString volume = index.data(Athenaeum::AbstractBibliographicCollection::VolumeRole).toString();
-                        QString issue = index.data(Athenaeum::AbstractBibliographicCollection::IssueRole).toString();
+                        QString volume = index.data(Athenaeum::AbstractBibliography::VolumeRole).toString();
+                        QString issue = index.data(Athenaeum::AbstractBibliography::IssueRole).toString();
                         QString volumeIssue;
                         if (!volume.isEmpty()) {
                             volumeIssue += "<span class='volume'>" + volume + "</span>";
@@ -1152,8 +1435,8 @@ namespace Papyro
                             publication << volumeIssue;
                         }
 
-                        QString pogeFrom = index.data(Athenaeum::AbstractBibliographicCollection::PageFromRole).toString();
-                        QString pageTo = index.data(Athenaeum::AbstractBibliographicCollection::PageToRole).toString();
+                        QString pogeFrom = index.data(Athenaeum::AbstractBibliography::PageFromRole).toString();
+                        QString pageTo = index.data(Athenaeum::AbstractBibliography::PageToRole).toString();
                         QString pages;
                         if (!pogeFrom.isEmpty()) {
                             if (!pageTo.isEmpty()) {
@@ -1173,7 +1456,7 @@ namespace Papyro
                             publication << pages;
                         }
 
-                        QString publisher = index.data(Athenaeum::AbstractBibliographicCollection::PublisherRole).toString();
+                        QString publisher = index.data(Athenaeum::AbstractBibliography::PublisherRole).toString();
                         if (!publisher.isEmpty()) {
                             publication << "<span class='publisher'>" + publisher + "</span>";
                         }
@@ -1215,6 +1498,16 @@ namespace Papyro
         articlePreviewIndex = index;
     }
 
+    void PapyroWindowPrivate::copySelectedArticlesToLibrary()
+    {
+        foreach (const QModelIndex & index, articleResultsView->selectionModel()->selectedIndexes()) {
+            if (Athenaeum::Bibliography * master = dynamic_cast< Athenaeum::Bibliography * >(libraryModel->master())) {
+                Athenaeum::CitationHandle item = index.data(Athenaeum::AbstractBibliography::ItemRole).value< Athenaeum::CitationHandle >();
+                master->appendItem(item);
+            }
+        }
+    }
+
     void PapyroWindowPrivate::onArticleViewCustomContextMenuRequested(const QPoint & pos)
     {
         // For use in plurals
@@ -1233,11 +1526,17 @@ namespace Papyro
             }
 
             menu.addAction("Open", this, SLOT(openSelectedArticles()));
-            //menu.addAction("Delete", this, SLOT(deleteSelectedArticles()));
+            //menu.addAction("Open in New Window", this, SLOT(openSelectedArticlesInNewWindow()));
+
+//            if (libraryModel->everything().data(LibraryModel::ModelRole).value< QAbstractItemModel * >() == ) {
+//                menu.addAction("Copy to Library", this, SLOT(copySelectedArticlesToLibrary()));
+//            }
+
             menu.addSeparator();
             if (!exporters.isEmpty()) {
                 menu.addAction("Export Selected Citation"+s+"...", this, SLOT(exportCitationsOfSelectedArticles()));
             }
+            menu.addAction("Remove from Library", this, SLOT(deleteSelectedArticles()));
 
             menu.exec(articleResultsView->viewport()->mapToGlobal(pos));
         }
@@ -1256,8 +1555,8 @@ namespace Papyro
 
     void PapyroWindowPrivate::onCornerButtonClicked(bool checked)
     {
-        if (QToolButton * button = qobject_cast< QToolButton * >(sender())) {
-            changeToLayerState(checked ? SearchState : DocumentState);
+        if (/* QToolButton * button = */ qobject_cast< QToolButton * >(sender())) {
+            changeToLayerState(checked ? LibraryState : DocumentState);
         }
     }
 
@@ -1287,10 +1586,6 @@ namespace Papyro
             updateTabInfo();
             // Make sure UI matches the document
             onTabDocumentChanged();
-            // Make sure we're out of search mode
-            if (toLayerState == PapyroWindowPrivate::SearchState) {
-                changeToLayerState(PapyroWindowPrivate::DocumentState);
-            }
 
             emit currentTabChanged();
         }
@@ -1298,6 +1593,12 @@ namespace Papyro
 
     void PapyroWindowPrivate::onFilterRequested(const QString & text, Athenaeum::BibliographicSearchBox::SearchDomain searchDomain)
     {
+        // Filter can only be done on collections
+        if (libraryView->currentIndex() == libraryModel->searchIndex()) {
+            filterProxyModel->setFilter(0);
+            return;
+        }
+
         // Apply filter to article view
         if (text.isEmpty()) {
             filterProxyModel->setFilter(0);
@@ -1309,7 +1610,10 @@ namespace Papyro
             }
             filterProxyModel->setFilter(standardFilters.value(searchDomain, 0));
         }
+
+        updateSearchFilterUI();
     }
+
     void PapyroWindowPrivate::onHighlightingModeOptionsRequested()
     {
         int top = highlightingModeButton->mapToGlobal(highlightingModeButton->rect().topRight()).y();
@@ -1327,6 +1631,99 @@ namespace Papyro
         }
         highlightingModeButton->click();
         updateHighlightingModeButton();
+    }
+
+    void PapyroWindowPrivate::onLibraryCustomContextMenu(const QPoint & pos)
+    {
+        QMenu menu;
+
+        libraryContextIndex = libraryView->indexAt(pos);
+        if (libraryContextIndex == libraryModel->everything()) {
+            // Something here?
+        } else {
+            bool isEditable = (libraryContextIndex.flags() & Qt::ItemIsEditable);
+            libraryContextModel = libraryContextIndex.data(Athenaeum::LibraryModel::ModelRole).value< QAbstractItemModel * >();
+            if (libraryContextModel) {
+                if (isEditable) {
+                    menu.addAction("Rename", this, SLOT(onLibraryRename()));
+                }
+                menu.addAction("Export...", this, SLOT(onLibraryExport()));
+                if (isEditable) {
+                    menu.addSeparator();
+                    menu.addAction("Delete", this, SLOT(onLibraryDelete()));
+                }
+            }
+        }
+
+        menu.addSeparator();
+        menu.addAction("New collection", this, SLOT(onLibraryNewCollection()));
+        menu.exec(libraryView->mapToGlobal(pos));
+    }
+
+    void PapyroWindowPrivate::onLibraryDelete()
+    {
+        if (libraryContextModel) {
+            libraryModel->removeModel(libraryContextModel);
+        }
+    }
+
+    void PapyroWindowPrivate::onLibraryExport()
+    {
+        if (libraryContextModel) {
+            QItemSelection selection(libraryContextModel->index(0, 0),
+                                     libraryContextModel->index(libraryContextModel->rowCount()-1, 0));
+            exportArticleCitations(selection);
+        }
+    }
+
+    void PapyroWindowPrivate::onLibraryNewCollection()
+    {
+        QModelIndex newIndex = libraryModel->newCollection("Untitled");
+
+//        QCoreApplication::processEvents();
+/*
+        libraryView->setModel(0);
+        libraryView->setModel(libraryModel);
+        for (int i = 1; i < libraryModel->columnCount(); ++i) {
+            libraryView->setColumnHidden(i, true);
+        }
+        libraryView->header()->setResizeMode(0, QHeaderView::Stretch);
+        libraryView->collapseAll();
+        libraryView->expandAll();
+*/
+
+        if (newIndex.isValid()) {
+            libraryView->edit(newIndex);
+        }
+    }
+
+    void PapyroWindowPrivate::onLibraryRename()
+    {
+        if (libraryContextIndex.isValid()) {
+            libraryView->edit(libraryContextIndex);
+        }
+    }
+
+    void PapyroWindowPrivate::onLibrarySelected(const QModelIndex & current, const QModelIndex & /*previous*/)
+    {
+        if (current == libraryModel->everything()) { // remote search
+            filterProxyModel->setSourceModel(aggregatingProxyModel);
+            filterProxyModel->setFilter(0);
+        } else if (QAbstractItemModel * model = current.data(Athenaeum::LibraryModel::ModelRole).value< QAbstractItemModel * >()) {
+            filterProxyModel->setSourceModel(model);
+            onFilterRequested(searchBox->text(), searchBox->searchDomain());
+        }
+
+        updateSearchFilterUI();
+    }
+
+    void PapyroWindowPrivate::onLibraryToggled(bool checked)
+    {
+        if (toLayerState == SearchState && checked) {
+            changeToLayerState(LibraryState);
+        } else if (toLayerState == LibraryState && !checked) {
+            changeToLayerState(SearchState);
+        }
     }
 
     void PapyroWindowPrivate::onModeChange(int mode_as_int)
@@ -1387,13 +1784,13 @@ namespace Papyro
 
     void PapyroWindowPrivate::onPrimaryToolButtonClicked(int idx)
     {
-        if (PapyroTab * tab = currentTab()) {
+        if (/* PapyroTab * tab = */ currentTab()) {
             switch (idx) {
             case -1: // Reset to select
                 activePrimaryToolAction = 0;
                 break;
             case -2: // Show search layer
-                actionShowSearch->trigger();
+                //actionShowSearch->trigger();
                 return;
             default:
                 activePrimaryToolAction = selectionProcessorActions.at(idx);
@@ -1410,12 +1807,12 @@ namespace Papyro
         }
     }
 
-    void PapyroWindowPrivate::onRemoteSearchStateChanged(Athenaeum::AbstractBibliographicCollection::State /*state*/)
+    void PapyroWindowPrivate::onRemoteSearchStateChanged(Athenaeum::AbstractBibliography::State state)
     {
         bool busy = false;
         // Check all the remote searches and decide upon a state
-        foreach (Athenaeum::RemoteQueryBibliographicModel * remoteSearch, remoteSearches) {
-            if (remoteSearch->state() == Athenaeum::AbstractBibliographicCollection::BusyState) {
+        foreach (Athenaeum::RemoteQueryBibliography * remoteSearch, remoteSearches) {
+            if (remoteSearch->state() == Athenaeum::AbstractBibliography::BusyState) {
                 busy = true;
                 break;
             }
@@ -1423,13 +1820,20 @@ namespace Papyro
 
         if (busy) {
             remoteSearchLabelSpinner->start();
+            remoteSearchLabelSpinner->show();
         } else {
             remoteSearchLabelSpinner->stop();
+            remoteSearchLabelSpinner->hide();
         }
     }
 
     void PapyroWindowPrivate::onSearchRequested(const QString & text, Athenaeum::BibliographicSearchBox::SearchDomain searchDomain)
     {
+        // Search only works when "Search the Internet" is chosen
+        if (libraryView->currentIndex() != libraryModel->searchIndex()) {
+            return;
+        }
+
         // Only work on sensible input
         const QString term = text.trimmed();
         if (term.isEmpty()) {
@@ -1458,6 +1862,9 @@ namespace Papyro
         closeArticlePreview();
         removeRemoteSearch();
 
+        // Make sure the library view is selecting the right entry
+        libraryView->setCurrentIndex(libraryModel->searchIndex());
+
         QDir searchesRoot(Utopia::profile_path());
         if (searchesRoot.cd("library") || (searchesRoot.mkdir("library") && searchesRoot.cd("library"))) {
             if (searchesRoot.cd("searches") || (searchesRoot.mkdir("searches") && searchesRoot.cd("searches"))) {
@@ -1466,21 +1873,23 @@ namespace Papyro
                         // Create a new remote query if none exist
                         QString uuid(QUuid::createUuid().toString());
                         QDir dir = searchesRoot.filePath(uuid.mid(1, uuid.size()-2));
-                        Athenaeum::RemoteQueryBibliographicModel * remoteQuery = new Athenaeum::RemoteQueryBibliographicModel(QString::fromStdString(remoteQueryExtensionName), dir, this);
-                        connect(remoteQuery, SIGNAL(stateChanged(Athenaeum::AbstractBibliographicCollection::State)),
-                                this, SLOT(onRemoteSearchStateChanged(Athenaeum::AbstractBibliographicCollection::State)));
+                        Athenaeum::RemoteQueryBibliography * remoteQuery = new Athenaeum::RemoteQueryBibliography(QString::fromStdString(remoteQueryExtensionName), this);
+                        connect(remoteQuery, SIGNAL(stateChanged(Athenaeum::AbstractBibliography::State)),
+                                this, SLOT(onRemoteSearchStateChanged(Athenaeum::AbstractBibliography::State)));
+                        remoteSearches.append(remoteQuery);
                         aggregatingProxyModel->appendSourceModel(remoteQuery);
                         filterProxyModel->setSourceModel(aggregatingProxyModel);
+                        //filterProxyModel->setSourceModel(remoteQuery);
                         remoteQuery->setQuery(query);
                         remoteQuery->setTitle("pubmed: " + term);
-                        remoteSearches.append(remoteQuery);
                     }
                 }
-                static const QString searchTpl("<span>Search results for: <strong>%1</strong></span>");
+                static const QString searchTpl("Searched: %1");
                 remoteSearchLabel->setText(searchTpl.arg(term));
-                remoteSearchLabelFrame->show();
             }
         }
+
+        updateSearchFilterUI();
 
         // FIXME what about errors?
         // FIXME use searchDomain properly
@@ -1492,6 +1901,19 @@ namespace Papyro
         PapyroTab * tab = qobject_cast< PapyroTab * >(tabLayout->widget(focus));
         if (tab && focus >= 0) {
             QMenu menu;
+            if (tab->citation()) {
+                if (tab->citation()->isKnown()) {
+                    menu.addAction("Remove from Library", tab, SLOT(removeFromLibrary()));
+                } else {
+                    menu.addAction("Save to Library", tab, SLOT(addToLibrary()));
+                }
+                if (tab->citation()->isStarred()) {
+                    menu.addAction("Unstar this Article", tab, SLOT(unstar()));
+                } else {
+                    menu.addAction(QString("Star this Article") + (tab->citation()->isKnown() ? "" : " (and Save to Library)"), tab, SLOT(star()));
+                }
+            }
+            menu.addSeparator();
             if (focus != tabBar->currentIndex()) {
                 QSignalMapper * mapper = new QSignalMapper(&menu);
                 QAction * action = menu.addAction("Raise Tab", mapper, SLOT(map()));
@@ -1527,15 +1949,36 @@ namespace Papyro
         qDebug() << "PapyroWindowPrivate::onTabContextMenu";
     }
 
+    void PapyroWindowPrivate::onTabKnownChanged(bool /*ignored*/)
+    {
+        onTabCitationChanged();
+    }
+
+    void PapyroWindowPrivate::onTabCitationChanged()
+    {
+        // Default assumption: coming from a signal
+        PapyroTab * tab = qobject_cast< PapyroTab * >(sender());
+        // If not from a signal, then assume it's the current tab we care about
+        if (!tab) { tab = currentTab(); }
+
+        if (tab) {
+            // Enable / disable menu item(s)
+            actionSaveToLibrary->setEnabled(tab->citation() && !tab->citation()->isKnown());
+        }
+    }
+
     void PapyroWindowPrivate::onTabDocumentChanged()
     {
-        if (PapyroTab * tab = currentTab()) {
+        // Default assumption: coming from a signal
+        PapyroTab * tab = qobject_cast< PapyroTab * >(sender());
+        // If not from a signal, then assume it's the current tab we care about
+        if (!tab) { tab = currentTab(); }
+
+        if (tab) {
             // Enable / disable menu items
+            actionSaveToLibrary->setEnabled(tab->citation() && !tab->citation()->isKnown());
             actionSave->setEnabled(!tab->isEmpty());
             actionPrint->setEnabled(!tab->isEmpty());
-        } else {
-            actionSave->setEnabled(false);
-            actionPrint->setEnabled(false);
         }
         updateTabVisibility();
     }
@@ -1579,13 +2022,13 @@ namespace Papyro
 
     void PapyroWindowPrivate::onTabUrlChanged(const QUrl & url)
     {
-        if (url.isValid()) {
+        if (url.isValid() && url.isLocalFile()) {
             uiManager->addRecentFile(url);
         }
         updateTabInfo();
     }
 
-    void PapyroWindowPrivate::onUrlRequested(const QUrl & url, const QString & targetString)
+    static QVariantMap parse_target(const QString & targetString)
     {
         static QRegExp paramSplitter("\\s*;\\s*");
         static QRegExp keyValueSplitter("\\s*=\\s*");
@@ -1594,11 +2037,10 @@ namespace Papyro
         QRegExp textSplitter("\\[([^\\]]+)\\]");
 
         QStringList sections(targetString.split(paramSplitter));
-        QString target;
         QMap< QString, QString > params;
         QVariantMap showParams;
         if (!sections.isEmpty()) {
-            target = sections.at(0);
+            showParams["target"] = sections.at(0);
             for (int i = 1; i < sections.size(); ++i) {
                 QString section(sections.at(i));
                 params[section.section(keyValueSplitter, 0, 0).toLower()] = section.section(keyValueSplitter, 1, 1);
@@ -1623,20 +2065,68 @@ namespace Papyro
         } else if (params.contains("anchor")) {
             showParams["anchor"] = params.value("anchor");
         } else if (textSplitter.exactMatch(params.value("text"))) {
-            showParams["text"] = QUrl::fromPercentEncoding(textSplitter.cap(1).toAscii());
+            showParams["text"] = QUrl::fromPercentEncoding(textSplitter.cap(1).toUtf8());
         }
 
+        return showParams;
+    }
+
+    void PapyroWindowPrivate::onCitationsActivated(const QVariantList & citations, const QString & targetString)
+    {
+        QVariantMap params = parse_target(targetString);
+        PapyroWindow::OpenTarget target;
+        if (params.value("target").toString() == "window") {
+            target = PapyroWindow::NewWindow;
+        } else {
+            bool raise = ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0);
+            target = (raise ? PapyroWindow::ForegroundTab : PapyroWindow::BackgroundTab);
+        }
+
+        window()->open(citations, target, params);
+    }
+
+    void PapyroWindowPrivate::onUrlRequested(const QUrl & url, const QString & targetString)
+    {
+        PapyroTab * tab = qobject_cast< PapyroTab * >(sender());
+        if (!tab) {
+            tab = currentTab();
+        }
+        QVariantMap params = parse_target(targetString);
+
+        // Check this logic to make sure it makes perfect sense FIXME
+        //qDebug() << "++++ " << url << url.isRelative() << targetString << tab;
+
+        QString target = params.value("target").toString();
         if (target == "tab" || target == "pdf") {
-            if (!url.isRelative()) {
+            if (url.isRelative() || !url.isValid()) {
+                if (tab) {
+                    tab->documentView()->showPage(params);
+                }
+            } else if (!url.isRelative()) {
                 bool raise = ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0);
-                window()->open(url, raise, showParams);
-            } else if (PapyroTab * tab = currentTab()) {
-                tab->documentView()->showPage(showParams);
+                window()->open(url, raise ? PapyroWindow::ForegroundTab : PapyroWindow::BackgroundTab, params);
+            }
+        } else if (target == "sidebar") {
+            // Visualise an annotation according to its anchor
+            if (url.isRelative() && tab) {
+                QString anchor(url.fragment());
+                // Find the appropriate anchored annotation
+                Spine::AnnotationHandle annotation;
+                foreach (Spine::AnnotationHandle candidate, tab->documentView()->document()->annotations()) {
+                    if (candidate->getFirstProperty("property:anchor") == unicodeFromQString(anchor)) {
+                        annotation = candidate;
+                        break;
+                    }
+                }
+                if (annotation) {
+                    Spine::AnnotationSet annotations;
+                    annotations.insert(annotation);
+                    tab->visualiseAnnotations(annotations);
+                }
             }
         } else if (target == "window") {
-            PapyroWindow * window = new PapyroWindow;
-            window->open(url, true, showParams);
-        } else {
+            window()->open(url, PapyroWindow::NewWindow, params);
+        } else if (url.scheme().startsWith("http")) {
             QDesktopServices::openUrl(url);
         }
     }
@@ -1646,6 +2136,10 @@ namespace Papyro
         foreach (const QModelIndex & index, articleResultsView->selectionModel()->selectedIndexes()) {
             onArticleActivated(index);
         }
+    }
+
+    void PapyroWindowPrivate::openSelectedArticlesInNewWindow()
+    {
     }
 
     void PapyroWindowPrivate::rebuildMenus()
@@ -1668,42 +2162,33 @@ namespace Papyro
         }
 
         // Populate Edit menu
-        menuEdit->clear();
-        menuEdit->addAction(actionCopy);
-        menuEdit->addSeparator();
         if (PapyroTab * tab = currentTab()) {
-            menuEdit->addAction(tab->action(PapyroTab::QuickSearch));
-            menuEdit->addAction(tab->action(PapyroTab::QuickSearchNext));
-            menuEdit->addAction(tab->action(PapyroTab::QuickSearchPrevious));
-            menuEdit->addSeparator();
-        } else {
-            // FIXME Library menu items
+            menuLayout->setProxied(tab->documentView()->layoutMenu());
+            menuZoom->setProxied(tab->documentView()->zoomMenu());
+            actionQuickSearch->setProxied(tab->action(PapyroTab::QuickSearch));
+            actionQuickSearchNext->setProxied(tab->action(PapyroTab::QuickSearchNext));
+            actionQuickSearchPrevious->setProxied(tab->action(PapyroTab::QuickSearchPrevious));
+            actionToggleSidebar->setProxied(tab->action(PapyroTab::ToggleSidebar));
+            actionToggleLookupBar->setProxied(tab->action(PapyroTab::ToggleLookupBar));
+            actionTogglePager->setProxied(tab->action(PapyroTab::TogglePager));
+            actionToggleImageBrowser->setProxied(tab->action(PapyroTab::ToggleImageBrowser));
         }
-        menuEdit->addAction(uiManager->actionPreferences());
+    }
 
-        // Populate View menu
-        menuView->clear();
-        if (PapyroTab * tab = currentTab()) {
-            menuView->addMenu(tab->documentView()->layoutMenu());
-            menuView->addMenu(tab->documentView()->zoomMenu());
-            menuView->addSeparator();
-            menuView->addAction(tab->action(PapyroTab::ToggleSidebar));
-            menuView->addAction(tab->action(PapyroTab::ToggleLookupBar));
-            menuView->addAction(tab->action(PapyroTab::TogglePager));
-            menuView->addAction(tab->action(PapyroTab::ToggleImageBrowser));
-            menuView->addSeparator();
-        } else {
-            // FIXME Library menu items
+    void PapyroWindowPrivate::receiveFromBus(const QString & sender, const QVariant & data)
+    {
+        QVariantMap map(data.toMap());
+        QString action(map.value("action").toString());
+        if (action == "searchRemote") {
+            QString term(map.value("term").toString());
+            if (!term.isEmpty()) {
+                searchBox->search(term);
+                showSearch();
+            }
+        } else if (action == "showPreferences") {
+            QString pane(map.value("pane").toString());
+            uiManager->showPreferences(pane, map);
         }
-        menuView->addSeparator();
-        menuView->addAction(actionNextTab);
-        menuView->addAction(actionPreviousTab);
-        menuView->addSeparator();
-        menuView->addAction(actionShowDocuments);
-        menuView->addAction(actionShowSearch);
-#ifdef UTOPIA_BUILD_DEBUG // Only needed once library is in place
-        menuView->addAction(actionShowLibrary);
-#endif
     }
 
     void PapyroWindowPrivate::removeRemoteSearch()
@@ -1713,13 +2198,44 @@ namespace Papyro
         aggregatingProxyModel->clear();
 
         // Remove the bar from the UI
-        remoteSearchLabelFrame->hide();
+        remoteSearchLabel->setText(QString());
+        updateSearchFilterUI();
 
         // Delete the remoteQuery, purging it along the way
-        foreach (Athenaeum::RemoteQueryBibliographicModel * remoteSearch, remoteSearches) {
-            remoteSearch->purge();
+        foreach (Athenaeum::RemoteQueryBibliography * remoteSearch, remoteSearches) {
+            //remoteSearch->purge();
+            delete remoteSearch;
         }
         remoteSearches.clear();
+    }
+
+    void PapyroWindowPrivate::setInitialGeometry()
+    {
+        // Work out sensible geometry for the window
+        QRect availableGeometry = QApplication::desktop()->availableGeometry(window());
+        QSize availableGeometrySize = availableGeometry.size();
+#ifndef Q_OS_MAC
+        availableGeometrySize *= 0.9;
+#endif
+
+        window()->show();
+        window()->setGeometry(availableGeometry);
+        window()->layout()->invalidate();
+
+        if (PapyroTab * tab = currentTab()) {
+            QSize documentSize = tab->documentView()->viewport()->size();
+            QSize crudSize = window()->size() - documentSize;
+            QSize availableDocumentSize = availableGeometrySize - crudSize;
+            QSize modelPageSize(100, 141);
+            modelPageSize.scale(availableDocumentSize, Qt::KeepAspectRatio);
+            QSize bestSize = modelPageSize + crudSize;
+            bestSize.scale(availableGeometrySize, Qt::KeepAspectRatio);
+            QRect bestGeometry(QPoint(0, 0), bestSize);
+            bestGeometry.moveCenter(availableGeometry.center());
+            availableGeometry = bestGeometry;
+        }
+
+        window()->setGeometry(availableGeometry);
     }
 
     void PapyroWindowPrivate::showDocuments()
@@ -1727,12 +2243,20 @@ namespace Papyro
         changeToLayerState(DocumentState);
     }
 
-    void PapyroWindowPrivate::showLibrary()
+    void PapyroWindowPrivate::showLibrary(bool checked)
     {
+        //libraryView->setCurrentIndex(libraryModel->masterIndex());
+        //libraryButton->setChecked(true);
+        if (checked) {
+            changeToLayerState(LibraryState);
+        } else {
+            changeToLayerState(DocumentState);
+        }
     }
 
     void PapyroWindowPrivate::showSearch()
     {
+        //libraryButton->setChecked(false);
         changeToLayerState(SearchState);
     }
 
@@ -1763,6 +2287,19 @@ namespace Papyro
         return 0;
     }
 
+    void PapyroWindowPrivate::toggleFavouriteActionName()
+    {
+        if (QAction * action = (QAction *) sender()) {
+            // Favourite this tab's citation
+            if (PapyroTab * tab = qobject_cast< PapyroTab * >(action->parent())) {
+                tab->setStarred(action->isChecked());
+                action->setText(action->isChecked() ?
+                                "Unfavourite this article" :
+                                "Favourite this article");
+            }
+        }
+    }
+
     void PapyroWindowPrivate::updateHighlightingModeButton()
     {
         QPixmap pixmap(":/processors/highlighting/icon.png");
@@ -1787,6 +2324,51 @@ namespace Papyro
             tabBar->setFixedHeight(qMax(layers[SearchControlLayer]->geometry().top() - sliver->geometry().height(), 0));
         }
         cornerFrame->move(0, window()->height() - cornerFrame->height());
+    }
+
+    void PapyroWindowPrivate::updateSearchFilterUI()
+    {
+        window()->setUpdatesEnabled(false);
+
+        // What should we be doing?
+        const bool shouldBeSearching = (libraryView->currentIndex() == libraryModel->searchIndex());
+        const bool shouldBeFiltering = !shouldBeSearching;
+
+        // Current state
+        bool isSearched = shouldBeSearching && !remoteSearchLabel->text().isEmpty();
+        int filtered = filterProxyModel->sourceModel() ? (filterProxyModel->sourceModel()->rowCount() - filterProxyModel->rowCount()) : 0;
+        bool isFiltered = shouldBeFiltering && (filtered > 0);
+
+        if (!isSearched && !isFiltered) {
+            remoteSearchLabelFrame->hide();
+        }
+
+        // What ARE we doing?
+        if (shouldBeFiltering) {
+            QString s(filtered == 1 ? "" : "s");
+            filterLabel->setText(QString("(%1 article%2 hidden)").arg(filtered).arg(s));
+            if (libraryView->currentIndex().parent() == libraryModel->collectionParentIndex()) {
+                searchLabel->setText(QString("Search my <strong>%1</strong> collection").arg(libraryView->currentIndex().data(Qt::DisplayRole).toString()));
+            } else if (libraryView->currentIndex() == libraryModel->starredIndex()) {
+                searchLabel->setText("Search my starred articles");
+            } else if (libraryView->currentIndex() == libraryModel->recentIndex()) {
+                searchLabel->setText("Search my recently imported articles");
+            } else {
+                searchLabel->setText("Search my library");
+            }
+        } else { // should be searching
+            searchLabel->setText("Search online");
+        }
+
+        remoteSearchLabel->setVisible(shouldBeSearching);
+        remoteSearchLabelSpinner->setVisible(shouldBeSearching);
+        filterLabel->setVisible(shouldBeFiltering);
+
+        if (isSearched || isFiltered) {
+            remoteSearchLabelFrame->show();
+        }
+
+        window()->setUpdatesEnabled(true);
     }
 
     void PapyroWindowPrivate::updateTabInfo()
@@ -1889,6 +2471,7 @@ namespace Papyro
         U_D(PapyroWindow);
         d->initialise();
         d->emptyTab();
+        d->setInitialGeometry();
     }
 
     PapyroWindow::PapyroWindow(PapyroTab * tab, QWidget * parent, Qt::WindowFlags f)
@@ -1897,12 +2480,11 @@ namespace Papyro
         U_D(PapyroWindow);
         d->initialise();
         d->addTab(tab);
+        d->setInitialGeometry();
     }
 
     PapyroWindow::~PapyroWindow()
     {
-        U_D(PapyroWindow);
-
         clear();
     }
 
@@ -1944,17 +2526,6 @@ namespace Papyro
         event->accept();
     }
 
-    void PapyroWindow::dragEnterEvent(QDragEnterEvent * event)
-    {
-        U_D(PapyroWindow);
-        if (event->source() == 0) { // External drag source
-            QList< QUrl > supportedUrls(d->checkForSupportedUrls(event->mimeData()));
-            if (!supportedUrls.isEmpty() || event->mimeData()->hasFormat("application/pdf")) {
-                event->acceptProposedAction();
-            }
-        }
-    }
-
     PapyroTab * PapyroWindow::currentTab() const
     {
         U_D(const PapyroWindow);
@@ -1974,13 +2545,91 @@ namespace Papyro
         // FIXME should really show last active window
     }
 
+    void PapyroWindow::dragEnterEvent(QDragEnterEvent * event)
+    {
+        U_D(PapyroWindow);
+        if (event->source() == 0) { // External drag source
+            QList< QUrl > supportedUrls(d->checkForSupportedUrls(event->mimeData()));
+            if (!supportedUrls.isEmpty() || event->mimeData()->hasFormat("application/pdf")) {
+                event->acceptProposedAction();
+                d->dropOverlay->setGeometry(rect());
+                d->dropOverlay->raise();
+                d->dropOverlay->show();
+            }
+        }
+    }
+
+    void PapyroWindow::dragLeaveEvent(QDragLeaveEvent * event)
+    {
+        U_D(PapyroWindow);
+        d->dropOverlay->hide();
+    }
+
+    void PapyroWindow::dragMoveEvent(QDragMoveEvent * event)
+    {
+        U_D(PapyroWindow);
+        if (d->dropIntoLibrary->geometry().contains(event->pos())) {
+            if (!d->dropIntoLibrary->property("hover").toBool()) {
+                d->dropIntoLibrary->setStyleSheet("QWidget { color: white; border-color: white }");
+                d->dropIntoLibrary->setProperty("hover", true);
+                d->dropIntoLibrary->update();
+                d->dropIntoDocument->setStyleSheet("QWidget { color: #333; border-color: #333 }");
+                d->dropIntoDocument->setProperty("hover", false);
+                d->dropIntoDocument->update();
+            }
+        } else {
+            if (!d->dropIntoDocument->property("hover").toBool()) {
+                d->dropIntoDocument->setStyleSheet("QWidget { color: white; border-color: white }");
+                d->dropIntoDocument->setProperty("hover", true);
+                d->dropIntoDocument->update();
+                d->dropIntoLibrary->setStyleSheet("QWidget { color: #333; border-color: #333 }");
+                d->dropIntoLibrary->setProperty("hover", false);
+                d->dropIntoLibrary->update();
+            }
+        }
+    }
+
     void PapyroWindow::dropEvent(QDropEvent * event)
     {
         U_D(PapyroWindow);
+        d->dropOverlay->hide();
 
         if (event->source() == 0) {
-            QList< QUrl > supportedUrls(d->checkForSupportedUrls(event->mimeData()));
-            if (!supportedUrls.isEmpty()) {
+            if (d->dropIntoLibrary->geometry().contains(event->pos())) {
+                QList< QUrl > supportedUrls(d->checkForSupportedUrls(event->mimeData()));
+                if (event->mimeData()->hasFormat("application/pdf")) {
+                    // Saving PDF data
+                    event->acceptProposedAction();
+                    Athenaeum::CitationHandle citation = Athenaeum::CitationHandle(new Athenaeum::Citation);
+                    Athenaeum::Bibliography * master = d->libraryModel->master();
+                    master->appendItem(citation);
+                    citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
+                    QByteArray data = event->mimeData()->data("application/pdf");
+                    d->libraryModel->saveObjectFile(citation, data, ".pdf");
+                }
+                if (!supportedUrls.isEmpty()) {
+                    // Saving PDF URLs
+                    event->acceptProposedAction();
+                    QListIterator< QUrl > urls(supportedUrls);
+                    while (urls.hasNext()) {
+                        QUrl url(urls.next());
+                        // If this is a local URL, copy the file
+                        if (url.isLocalFile()) {
+                            Athenaeum::CitationHandle citation = Athenaeum::CitationHandle(new Athenaeum::Citation);
+                            citation->setField(Athenaeum::AbstractBibliography::OriginatingUriRole, url);
+                            citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
+                            Athenaeum::Bibliography * master = d->libraryModel->master();
+                            master->appendItem(citation);
+                            QFile file(url.toLocalFile());
+                            if (file.open(QIODevice::ReadOnly)) {
+                                QByteArray data = file.readAll();
+                                d->libraryModel->saveObjectFile(citation, data, ".pdf");
+                            }
+                        } else { // Else fetch it first then save it
+                        }
+                    }
+                }
+            } else {
                 QList< QUrl > supportedUrls(d->checkForSupportedUrls(event->mimeData()));
                 if (!supportedUrls.isEmpty()) {
                     event->acceptProposedAction();
@@ -1989,14 +2638,14 @@ namespace Papyro
                         PapyroRecentUrlHelper::instance()->activateRecentUrl(urls.next());
                     }
                 }
-            }
 
-            if (event->mimeData()->hasFormat("application/pdf")) {
-                QByteArray data = event->mimeData()->data("application/pdf");
-                QBuffer buffer(&data);
-                open(&buffer);
-                event->acceptProposedAction();
+                if (event->mimeData()->hasFormat("application/pdf")) {
+                    QByteArray data = event->mimeData()->data("application/pdf");
+                    QBuffer buffer(&data);
+                    open(&buffer);
+                }
             }
+            event->acceptProposedAction();
         }
     }
 
@@ -2050,7 +2699,6 @@ namespace Papyro
 
     void PapyroWindow::modelSet()
     {
-        U_D(PapyroWindow);
         if (model()) {
             Spine::DocumentHandle document(DocumentFactory::load(model()));
             if (document) {
@@ -2064,51 +2712,121 @@ namespace Papyro
         return new PapyroWindow;
     }
 
-    void PapyroWindow::open(Spine::DocumentHandle document, bool raise, const QVariantMap & params)
+    void PapyroWindow::open(Spine::DocumentHandle document, OpenTarget target, const QVariantMap & params)
     {
         U_D(PapyroWindow);
-        PapyroTab * tab = d->emptyTab();
-        tab->setTitle("Loading...");
-        if (raise) {
-            raiseTab(d->tabBar->indexOf(tab));
-        }
-        tab->open(document, params);
-    }
-
-    void PapyroWindow::open(QIODevice * io, bool raise, const QVariantMap & params)
-    {
-        U_D(PapyroWindow);
-        PapyroTab * tab = d->emptyTab();
-        tab->setTitle("Loading...");
-        if (raise) {
-            raiseTab(d->tabBar->indexOf(tab));
-        }
-        tab->open(io, params);
-    }
-
-    void PapyroWindow::open(const QString & filename, bool raise, const QVariantMap & params)
-    {
-        U_D(PapyroWindow);
-        PapyroTab * tab = d->emptyTab();
-        tab->setTitle("Loading...");
-        if (raise) {
-            raiseTab(d->tabBar->indexOf(tab));
-        }
-        tab->open(filename, params);
-    }
-
-    void PapyroWindow::open(const QUrl & url, bool raise, const QVariantMap & params)
-    {
-        U_D(PapyroWindow);
-        if (url.scheme() == "file") {
-            open(url.toLocalFile());
+        if (target == NewWindow) {
+            PapyroWindow * window = new PapyroWindow;
+            window->open(document, BackgroundTab, params);
         } else {
             PapyroTab * tab = d->emptyTab();
-            if (raise) {
+            tab->setTitle("Loading...");
+            if (target == ForegroundTab) {
                 raiseTab(d->tabBar->indexOf(tab));
             }
-            tab->open(url, params);
-            tab->setTitle("Fetching...");
+            tab->open(document, params);
+        }
+    }
+
+    void PapyroWindow::open(QIODevice * io, OpenTarget target, const QVariantMap & params)
+    {
+        U_D(PapyroWindow);
+        if (target == NewWindow) {
+            PapyroWindow * window = new PapyroWindow;
+            window->open(io, BackgroundTab, params);
+        } else {
+            PapyroTab * tab = d->emptyTab();
+            tab->setTitle("Loading...");
+            if (target == ForegroundTab) {
+                raiseTab(d->tabBar->indexOf(tab));
+            }
+            tab->open(io, params);
+        }
+    }
+
+    void PapyroWindow::open(const QString & filename, OpenTarget target, const QVariantMap & params)
+    {
+        U_D(PapyroWindow);
+        if (target == NewWindow) {
+            PapyroWindow * window = new PapyroWindow;
+            window->open(filename, BackgroundTab, params);
+        } else {
+            PapyroTab * tab = d->emptyTab();
+            tab->setTitle("Loading...");
+            if (target == ForegroundTab) {
+                raiseTab(d->tabBar->indexOf(tab));
+            }
+            tab->open(filename, params);
+        }
+    }
+
+    void PapyroWindow::open(const QUrl & url, OpenTarget target, const QVariantMap & params)
+    {
+        U_D(PapyroWindow);
+        if (target == NewWindow) {
+            PapyroWindow * window = new PapyroWindow;
+            window->open(url, BackgroundTab, params);
+        } else {
+            if (url.scheme() == "file") {
+                open(url.toLocalFile(), target, params);
+            } else {
+                PapyroTab * tab = d->emptyTab();
+                if (target == ForegroundTab) {
+                    raiseTab(d->tabBar->indexOf(tab));
+                }
+                tab->open(url, params);
+                tab->setTitle("Fetching...");
+            }
+        }
+    }
+
+    void PapyroWindow::open(const QVariantMap & citation, OpenTarget target, const QVariantMap & params)
+    {
+        QVariantList citations;
+        citations << citation;
+        open(citations, target, params);
+    }
+
+    void PapyroWindow::open(const QVariantList & citations, OpenTarget target, const QVariantMap & params)
+    {
+        U_D(PapyroWindow);
+        if (target == NewWindow) {
+            PapyroWindow * window = new PapyroWindow;
+            window->open(citations, BackgroundTab, params);
+        } else {
+            foreach (QVariant citation, citations) {
+                PapyroTab * tab = d->emptyTab();
+                tab->setTitle("Loading...");
+                if (target == ForegroundTab) {
+                    raiseTab(d->tabBar->indexOf(tab));
+                }
+                tab->open(Athenaeum::Citation::fromMap(citation.toMap()), params);
+            }
+        }
+    }
+
+    void PapyroWindow::open(Athenaeum::CitationHandle citation, OpenTarget target, const QVariantMap & params)
+    {
+        QList< Athenaeum::CitationHandle > citations;
+        citations << citation;
+        open(citations, target, params);
+    }
+
+    void PapyroWindow::open(QList< Athenaeum::CitationHandle > citations, OpenTarget target, const QVariantMap & params)
+    {
+        U_D(PapyroWindow);
+        if (target == NewWindow) {
+            PapyroWindow * window = new PapyroWindow;
+            window->open(citations, BackgroundTab, params);
+        } else {
+            foreach (Athenaeum::CitationHandle citation, citations) {
+                PapyroTab * tab = d->emptyTab();
+                tab->setTitle("Loading...");
+                if (target == ForegroundTab) {
+                    raiseTab(d->tabBar->indexOf(tab));
+                }
+                tab->open(citation, params);
+            }
         }
     }
 
@@ -2126,7 +2844,6 @@ namespace Papyro
     void PapyroWindow::openUrl()
     {
         U_D(PapyroWindow);
-        bool ok;
         QString defaultUrl;
         QList< QUrl > clipboardUrls(d->checkForSupportedUrls(QApplication::clipboard()->mimeData()));
         if (!clipboardUrls.isEmpty()) {
@@ -2210,6 +2927,13 @@ namespace Papyro
                     }
                 }
             }
+        }
+    }
+
+    void PapyroWindow::saveToLibrary()
+    {
+        if (PapyroTab * tab = currentTab()) {
+            tab->addToLibrary();
         }
     }
 

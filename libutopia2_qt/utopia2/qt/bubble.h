@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -304,7 +304,6 @@ namespace Utopia
                 } else {
                     available = QRect(WidgetBase::window()->geometry()).adjusted(4, 4, -4, -4);
                 }
-                QPoint availableCenter(available.center());
                 if (_d.showOrientation == Qt::Vertical) {
                     setCalloutPosition(radius() + PIPWIDTH / 2);
                     if (available.right() - WidgetBase::width() > _d.showGlobalPos.x() + 6) {
@@ -342,7 +341,6 @@ namespace Utopia
             if (!_d.showGlobalPos.isNull()) {
                 int left, top;
                 QRect available(QApplication::desktop()->availableGeometry(_d.showGlobalPos));
-                QPoint availableCenter(available.center());
                 if (_d.showOrientation == Qt::Vertical) {
                     setCalloutPosition(radius() + PIPWIDTH / 2);
                     if (available.right() - WidgetBase::width() > _d.showGlobalPos.x() + 6) {
@@ -557,7 +555,7 @@ namespace Utopia
                 _d.calloutSide == TopCallout ? PIPLENGTH : 0,
                 _d.calloutSide == RightCallout ? -PIPLENGTH : 0,
                 _d.calloutSide == BottomCallout ? -PIPLENGTH : 0
-                ).adjusted(-0.5, 0.5, -0.5, -0.5);
+                ).adjusted(0.5, 0.5, -0.5, -0.5);
             if (_d.hiddenPadding)
             {
                 _d.bubbleRect.adjust(0, 0, -1, -1);

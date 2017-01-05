@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ namespace Papyro
 {
 
     PrinterThread::PrinterThread(QObject * parent, Spine::DocumentHandle document, QPrinter * printer)
-        : QThread(parent), document(document), cancelled(false), mutex(QMutex::Recursive), printer(printer)
+        : QThread(parent), document(document), printer(printer), cancelled(false), mutex(QMutex::Recursive)
     {}
 
     void PrinterThread::cancel()
@@ -110,7 +110,7 @@ namespace Papyro
 #ifdef _WIN32
         char env_c_str[1024] = { 0 };
         int status = GetEnvironmentVariable("UTOPIA_PRINTER_FLAGS", env_c_str, sizeof(env_c_str));
-        if (status != 0) { env_c_str[0] = 0; }
+        if (status == 0) { env_c_str[0] = 0; }
 #else
         char * env_c_str = ::getenv("UTOPIA_PRINTER_FLAGS");
 #endif

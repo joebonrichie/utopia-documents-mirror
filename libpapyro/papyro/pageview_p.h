@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -38,17 +38,21 @@
 #include <papyro/embeddedframe.h>
 #include <papyro/pageview.h>
 #include <papyro/phraselookup.h>
-#include <spine/Annotation.h>
-#include <spine/BoundingBox.h>
-#include <spine/Block.h>
-#include <spine/Line.h>
-#include <spine/Word.h>
-#include <spine/Character.h>
-#include <spine/Document.h>
-#include <spine/Area.h>
-#include <spine/Region.h>
-#include <spine/TextIterator.h>
-#include <spine/TextSelection.h>
+
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#  include <spine/BoundingBox.h>
+#  include <spine/Block.h>
+#  include <spine/Line.h>
+#  include <spine/Word.h>
+#  include <spine/Character.h>
+#  include <spine/Document.h>
+#  include <spine/Area.h>
+#  include <spine/Region.h>
+#  include <spine/TextIterator.h>
+#  include <spine/TextSelection.h>
+#endif
+
 #include <utopia2/auth/qt/conversation.h>
 #include <utopia2/networkaccessmanager.h>
 #include <utopia2/qt/cache.h>
@@ -74,6 +78,7 @@
 #include <QThread>
 #include <QTime>
 #include <QTimer>
+#include <QTransform>
 
 class QSignalMapper;
 
@@ -134,15 +139,32 @@ namespace Papyro
         Spine::CursorHandle cursor;
         boost::scoped_ptr< DocumentSignalProxy > documentSignalProxy;
 
+        // Transformations
+        QRectF mediaRect() const;
+        QSizeF mediaSize() const;
+        QRectF pageRect() const;
+        QSizeF pageSize() const;
+        int userTransformDegrees;
+        QTransform userTransform;
+        QTransform userTransformInverse;
+        QRectF transformedPageRect;
+        void setUserTransform(int degrees);
+        QPointF applyUserTransform(const QPointF & rect);
+        QRectF applyUserTransform(const QRectF & rect);
+        QSizeF applyUserTransform(const QSizeF & size);
+        QPointF unapplyUserTransform(const QPointF & rect);
+        QRectF unapplyUserTransform(const QRectF & rect);
+        QSizeF unapplyUserTransform(const QSizeF & size);
+        QSignalMapper * rotateMapper;
+        QMenu * rotateMenu;
+
         // Decorations
         PageView::PageDecorations decorations;
 
         // Image cache
-        QPixmap pageImage;
-        bool dirtyImage;
         QString cacheName;
         boost::scoped_ptr< PageViewRenderThread > renderThread;
-        Utopia::Cache< QImage > imageCache;
+        Utopia::Cache< QPixmap > imageCache;
 
         // Mouse press/release variables
         QPoint mousePressPos;

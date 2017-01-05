@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -35,8 +35,11 @@
 #include <papyro/config.h>
 #include <utopia2/qt/abstractwindow.h>
 #include <utopia2/busagent.h>
-#include <spine/Annotation.h>
-#include <spine/Document.h>
+#include <papyro/citation.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#  include <spine/Document.h>
+#endif
 #include <string>
 
 #include <QUrl>
@@ -65,6 +68,13 @@ namespace Papyro
         U_DECLARE_PRIVATE(PapyroWindow)
 
     public:
+        typedef enum {
+            ForegroundTab,
+            BackgroundTab,
+            NewWindow,
+            DefaultOpenTarget = ForegroundTab
+        } OpenTarget;
+
         PapyroWindow(QWidget * parent = 0, Qt::WindowFlags f = 0);
         virtual ~PapyroWindow();
 
@@ -86,10 +96,14 @@ namespace Papyro
 
     public slots:
         // Document management
-        void open(Spine::DocumentHandle document, bool raise = true, const QVariantMap & params = QVariantMap());
-        void open(QIODevice * io, bool raise = true, const QVariantMap & params = QVariantMap());
-        void open(const QString & filename, bool raise = true, const QVariantMap & params = QVariantMap());
-        void open(const QUrl & url, bool raise = true, const QVariantMap & params = QVariantMap());
+        void open(Spine::DocumentHandle document, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(QIODevice * io, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(const QString & filename, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(const QUrl & url, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(const QVariantMap & citation, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(const QVariantList & citations, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(Athenaeum::CitationHandle citation, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
+        void open(QList< Athenaeum::CitationHandle > citations, OpenTarget target = DefaultOpenTarget, const QVariantMap & params = QVariantMap());
 
         // UI actions
         void openFile();
@@ -97,6 +111,7 @@ namespace Papyro
         void openUrl();
         void requestUrl(const QUrl & url, const QString & target = QString());
         void saveFile();
+        void saveToLibrary();
         void searchRemote(const QString & text);
         void showHelp();
         void showAbout();
@@ -113,6 +128,8 @@ namespace Papyro
         // Events
         void closeEvent(QCloseEvent * event);
         void dragEnterEvent(QDragEnterEvent * event);
+        void dragLeaveEvent(QDragLeaveEvent * event);
+        void dragMoveEvent(QDragMoveEvent * event);
         void dropEvent(QDropEvent * event);
         void keyPressEvent(QKeyEvent * event);
         void keyReleaseEvent(QKeyEvent * event);

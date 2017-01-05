@@ -1,0 +1,16 @@
+Description: Disable check for new upstream release on startup 
+ After a new release utopia-documents will instruct the user to install
+ the new release from their package manager. This will not be possible
+ if the release has not been backported to their distribution. This
+ patch disables the check.
+Author: James Marsh <debian@jamesmarsh.net>
+--- a/data/defaults.conf
++++ b/data/defaults.conf
+@@ -2,6 +2,6 @@
+ service_uri = https://utopia.cs.manchester.ac.uk/kend/0.7/services
+ service_method = kend
+ ; update notifications
+-updates = http://utopia.cs.manchester.ac.uk/softwareupdate/
++; updates = http://utopia.cs.manchester.ac.uk/softwareupdate/
+ ; welcome screen
+ welcome = http://utopiadocs.com/redirect.php?to=welcome

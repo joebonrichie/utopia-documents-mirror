@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -30,8 +30,6 @@
 ###############################################################################
 
 project(utopia2-python)
-
-add_subdirectory(common)
 
 file(GLOB SCRIPTS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} core/*.py)
 file(GLOB SCRIPTS_3RDPARTY RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 3rdparty/*.py)

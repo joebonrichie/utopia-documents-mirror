@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2014 Lost Island Labs
+#        Copyright (c) 2008-2016 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,10 +33,7 @@ project(papyro-graffiti)
 
 set(SOURCES
   papyro.cpp
-  )
-
-set(MOC_HEADERS
-  graffitipanefactory.h
+  tablify.cpp
   )
 
 include_directories(
@@ -50,10 +47,12 @@ include_directories(
   ${QT_INCLUDE_DIR}
   )
 
-QT4_WRAP_CPP(MOC_SOURCES ${MOC_HEADERS} )
+qt5_wrap_cpp(SOURCES graffitipanefactory.h)
 
-add_utopia_plugin( ${PROJECT_NAME} MODULE ${SOURCES} ${MOC_SOURCES})
+qt5_add_resources(SOURCES graffiti_plugins_papyro.qrc)
+add_utopia_plugin( ${PROJECT_NAME} MODULE ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt papyro spine graffiti ${QT_LIBRARIES} utf8 )
+target_link_libraries(${PROJECT_NAME} utopia2 utopia2_qt papyro spine graffiti utf8)
+qt5_use_modules(${PROJECT_NAME} Xml Network)
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})

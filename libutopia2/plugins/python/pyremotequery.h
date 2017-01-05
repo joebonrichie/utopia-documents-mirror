@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 #include <Python.h>
 
-#include <athenaeum/remotequery.h>
+#include <papyro/remotequery.h>
 #include <string>
 #include <iostream>
 
@@ -68,7 +68,6 @@ public:
     void set_property(python::object key, python::object value);
 
 protected:
-    long _thread_id;
     QVariantMap _query;
     int _offset;
     int _limit;
@@ -78,7 +77,7 @@ protected:
 
 
 PyRemoteQuery::PyRemoteQuery(std::string extensionClassName)
-    : Athenaeum::RemoteQuery(), PyExtension("utopia.library.RemoteQuery", extensionClassName), _thread_id(0)
+    : Athenaeum::RemoteQuery(), PyExtension("utopia.library.RemoteQuery", extensionClassName)
 {
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
@@ -97,16 +96,7 @@ PyRemoteQuery::PyRemoteQuery(std::string extensionClassName)
 
 PyRemoteQuery::~PyRemoteQuery()
 {
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-
-    if (_thread_id > 0) {
-        PyObject * exc = PyErr_NewException((char *) "utopia.Cancellation", 0, 0);
-        int count = PyThreadState_SetAsyncExc(_thread_id, exc);
-        _thread_id = 0;
-    }
-
-    PyGILState_Release(gstate);
+    cancel();
 
     wait();
 }
@@ -147,17 +137,10 @@ void PyRemoteQuery::run()
     bool success = false;
     if (extensionObject())
     {
+        makeCancellable();
+
         PyGILState_STATE gstate;
         gstate = PyGILState_Ensure();
-
-        PyObject * threadName = PyString_FromString("thread");
-        PyObject * thread = PyImport_Import(threadName);
-        Py_DECREF(threadName);
-        PyObject * get_ident = PyObject_GetAttrString(thread, "get_ident");
-        PyObject * ident = PyObject_CallObject(get_ident, 0);
-        Py_DECREF(get_ident);
-        _thread_id = PyInt_AsLong(ident);
-        Py_DECREF(ident);
 
         // Make sure fetch() is present and callable
         if (PyObject_HasAttrString(extensionObject(), "fetch") && PyCallable_Check(PyObject_GetAttrString(extensionObject(), "fetch"))) {
@@ -185,8 +168,6 @@ void PyRemoteQuery::run()
                 Py_DECREF(pyquery);
             }
         }
-
-        _thread_id = 0;
 
         PyGILState_Release(gstate);
 

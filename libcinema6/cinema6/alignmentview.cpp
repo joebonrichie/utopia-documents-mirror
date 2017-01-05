@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -45,11 +45,13 @@
 #include <QActionGroup>
 #include <QApplication>
 #include <QChildEvent>
+#include <QDrag>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QList>
 #include <QMap>
+#include <QMimeData>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QScrollBar>
@@ -290,12 +292,12 @@ namespace CINEMA6
             d->interactionModes->addAction(action);
             addAction(action);
             QObject::connect(action, SIGNAL(triggered()), this, SLOT(activateAnnotateMode()));
-            
+
             action = new QAction("Zoom In", this);
         	d->interactionModes->addAction(action);
         	addAction(action);
         	QObject::connect(action, SIGNAL(triggered()), this, SLOT(zoomIn()));
-        	
+
         	action = new QAction("Zoom Out", this);
         	d->interactionModes->addAction(action);
         	addAction(action);
@@ -1098,7 +1100,6 @@ namespace CINEMA6
             {
                 QPoint componentPos = mapTo(d->interactionComponent, pos);
                 int alignmentIndex = componentPos.x() / unitSize();
-                int sequenceIndex = d->interactionComponent->sequence()->mapToSequence(alignmentIndex);
                 if (d->interaction == Gapping)
                 {
                     if (d->sequenceIndexPress >= 0)
@@ -1139,8 +1140,8 @@ namespace CINEMA6
                     QPair< int, AspectPosition > logical = aspectPosition(aspect);
                     d->dragAspectIndex = logical.first;
                     d->dragAspectPosition = logical.second;
-                    QRect geometry = aspect->geometry();
 #if defined(Q_WS_MAC) || defined(Q_WS_WIN)
+                    QRect geometry = aspect->geometry();
                     dragImage = QImage(geometry.width(), viewport()->height(), QImage::Format_ARGB32);
                     render(&dragImage, QPoint(0, 0), geometry.translated(1, 0));
                     hotSpot = QPoint(d->dragStartPosition.x() - geometry.left(), d->dragStartPosition.y());

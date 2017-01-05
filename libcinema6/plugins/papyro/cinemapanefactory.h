@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2014 Lost Island Labs
+ *       Copyright (c) 2008-2016 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -40,11 +40,15 @@
 #include <cinema6/sequence.h>
 #include <cinema6/sequencecomponent.h>
 #include <cinema6/titleaspect.h>
-#include <spine/Annotation.h>
+#if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
+#  include <spine/Annotation.h>
+#endif
 #include <papyro/embeddedpanefactory.h>
 #include <papyro/utils.h>
 #include <utopia2/networkaccessmanager.h>
 #include <utopia2/fileformat.h>
+#include <utopia2/parser.h>
+#include <math.h>
 
 #include <QBuffer>
 #include <QEventLoop>
@@ -79,11 +83,6 @@ class CinemaPane : public QWidget, public Utopia::NetworkAccessManagerMixin
             // QNetworkAccessManager stuff for getting update information
             _checker.setInterval(1000);
             connect(&_checker, SIGNAL(timeout()), this, SLOT(check()));
-
-            // Shrink font
-            QFont f(font());
-            f.setPixelSize(10);
-            setFont(f);
 
             // Widget stuff
             setMouseTracking(true);
@@ -497,8 +496,8 @@ class CinemaPaneFactory : public Papyro::EmbeddedPaneFactory
                         QStringList pairs(encoded.split("&"));
                         foreach(QString pair, pairs)
                         {
-                            QString key(QUrl::fromPercentEncoding(pair.section('=', 0, 0).toAscii()));
-                            QString value(QUrl::fromPercentEncoding(pair.section('=', 1, 1).toAscii()));
+                            QString key(QUrl::fromPercentEncoding(pair.section('=', 0, 0).toUtf8()));
+                            QString value(QUrl::fromPercentEncoding(pair.section('=', 1, 1).toUtf8()));
                             if (key == "src") url = value;
                             else if (key == "name") name = value;
                         }
