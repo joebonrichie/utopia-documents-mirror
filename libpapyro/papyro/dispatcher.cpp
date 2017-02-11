@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -109,7 +109,9 @@ namespace Papyro
             foreach (Spine::AnnotationHandle annotation, annotations) {
                 // Give each a cssId
                 annotation->setProperty("session:cssId", unicodeFromQString(QString("result-") + QString("000000000000%1").arg(qrand()).right(8)));
-                //qDebug() << "+++++++" << qStringFromUnicode(annotation->getFirstProperty("session:cssId"));
+                // Make sure they know where they came from
+                annotation->setProperty("session:origin", "explore");
+                annotation->setProperty("session:exploredTerm", unicodeFromQString(terms.first()));
                 // Decorate
                 foreach (Decorator * decorator, d->decorators) {
                     if (engine->detached()) { return; }

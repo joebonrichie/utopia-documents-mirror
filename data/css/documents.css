@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -420,9 +420,12 @@ Papyro--Sliver QLabel
   margin: 0;
 }
 
-#document_wide_header {
+#document_wide_header,
+#results-view-header,
+#web-page-header {
   background: #f8f8f8;
   border-bottom: 1px solid #eee;
+  min-height: 30px;
 }
 
 Papyro--Sidebar QLabel {

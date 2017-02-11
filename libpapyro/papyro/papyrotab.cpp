@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -1161,6 +1161,13 @@ namespace Papyro
         }
     }
 
+    void PapyroTabPrivate::explore(const QString & term)
+    {
+        if (!term.isEmpty()) {
+            dispatcher->lookupOLD(document(), term);
+        }
+    }
+
     void PapyroTabPrivate::onLookupStarted()
     {
         if (lookupButton->text() == "Explore") {
@@ -1198,9 +1205,11 @@ namespace Papyro
         QUrl redirectedUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
         if (redirectedUrl.isValid()) {
             if (redirectedUrl.isRelative()) {
-                QUrl oldUrl = reply->url();
-                redirectedUrl.setScheme(oldUrl.scheme());
-                redirectedUrl.setAuthority(oldUrl.authority());
+                QString redirectedAuthority = redirectedUrl.authority();
+                redirectedUrl = reply->url().resolved(redirectedUrl);
+                if (!redirectedAuthority.isEmpty()) {
+                    redirectedUrl.setAuthority(redirectedAuthority);
+                }
             }
             if (redirects > 0) {
                 QNetworkRequest request = reply->request();
@@ -1671,18 +1680,22 @@ namespace Papyro
 
     void PapyroTabPrivate::visualiseAnnotations(Spine::AnnotationSet annotations)
     {
+        QStringList terms;
         Spine::AnnotationSet ignore;
         foreach (Spine::AnnotationHandle annotation, annotations) {
-//            qDebug() << "-------";
-//            typedef std::pair< std::string, std::string > _PAIR;
-//            foreach (_PAIR item, annotation->properties()) {
-//                qDebug() << qStringFromUnicode(item.first) << "=" << qStringFromUnicode(item.second);
-//            }
+            // Ignore items that are supposed to be embedded
             if (annotation->getFirstProperty("property:embedded") == "1" ||
                 annotation->getFirstProperty("property:demo_logo") == "1") {
                 ignore.insert(annotation);
+            } else {
+                // Compile a list of searchable terms
+                Spine::TextExtentSet extents(annotation->extents());
+                if (!extents.empty()) {
+                    terms.push_back(qStringFromUnicode((*extents.begin())->text()).toLower());
+                }
             }
         }
+        terms.removeDuplicates();
         foreach (Spine::AnnotationHandle annotation, ignore) {
             annotations.erase(annotation);
         }
@@ -1691,6 +1704,9 @@ namespace Papyro
             actionToggleSidebar->setChecked(true);
             sidebar->setMode(Sidebar::Results);
             sidebar->resultsView()->clear();
+            if (!terms.isEmpty()) {
+                sidebar->resultsView()->setExploreTerm(terms.first());
+            }
             foreach (Spine::AnnotationHandle annotation, annotations) {
                 if (annotation->capable< SummaryCapability >()) {
                     sidebar->resultsView()->addResult(new AnnotationResultItem(annotation));
@@ -1861,6 +1877,8 @@ namespace Papyro
                     this, SIGNAL(urlRequested(const QUrl &, const QString &)));
             connect(d->sidebar, SIGNAL(citationsActivated(const QVariantList &, const QString &)),
                     this, SIGNAL(citationsActivated(const QVariantList &, const QString &)));
+            connect(d->sidebar, SIGNAL(termExplored(const QString &)),
+                    d, SLOT(explore(const QString &)));
         }
 
         // Manual lookup bar

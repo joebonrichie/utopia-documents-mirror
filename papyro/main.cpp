@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -34,11 +34,13 @@
 #include <spine/Document.h>
 #include <utopia2/global.h>
 #include <utopia2/node.h>
+#include <utopia2/networkaccessmanager.h>
 #include <utopia2/parser.h>
 #include <utopia2/initializer.h>
 #include <utopia2/qt/uimanager.h>
 #include <utopia2/qt/hidpi.h>
 #include <utopia2/qt/preferencesdialog.h>
+#include <utopia2/qt/webview.h>
 
 #include "qtsingleapplication.h"
 
@@ -251,6 +253,13 @@ int main(int argc, char *argv[])
     app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
     app.setApplicationName("Utopia Documents");
+    app.setApplicationVersion(Utopia::versionString());
+
+    //QSettings::setDefaultFormat(QSettings::IniFormat);
+
+    // Set user agent string for the application's networking layers
+    boost::shared_ptr< Utopia::NetworkAccessManager > nam = Utopia::NetworkAccessManagerMixin().networkAccessManager();
+    nam->setUserAgentString(Utopia::WebView().userAgentForUrl(QUrl()));
 
     // Initialise!
     Utopia::init();

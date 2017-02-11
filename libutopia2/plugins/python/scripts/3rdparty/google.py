@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2016 Lost Island Labs
+#        Copyright (c) 2008-2017 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -90,7 +90,7 @@ class GoogleScholarResolver(utopia.library.Resolver):
                 'url': 'http://scholar.google.com/scholar?{0}'.format(urllib.urlencode({'q': displayTextStripped.encode('utf8')})),
                 'mime': 'text/html',
                 'title': 'Search for article...',
-                'name': 'Search',
+                'type': 'search',
                 ':weight': 100,
                 ':whence': 'google',
                 })

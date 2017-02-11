@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,7 +33,6 @@ html, body {
     line-height: 120%;
     -webkit-user-select: text;
     overflow-x: hidden;
-    overflow-y: hidden;
     font-family: sans-serif;
 }
 
@@ -46,15 +45,15 @@ html, body {
     outline: none;
 }
 
-html {
-    padding: 0 2px 0 0;
-}
-
 body {
     overflow-y: auto;
-    height: 100%;
-    padding: 6px 6px 6px 6px;
+    padding: 2px 0;
     background-color: white;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 2px;
 }
 
 body.results-view {
@@ -74,10 +73,47 @@ img {
 
 
 
+#-papyro-internal-active {
+    padding: 0;
+}
+
+.-papyro-internal-explored .-papyro-internal-legend {
+    text-align: center;
+    padding: 1ex;
+}
+
+.-papyro-internal-explored .-papyro-internal-legend a {
+    color: #66b !important;
+}
+
+.-papyro-internal-explored .-papyro-internal-legend:last-child > *:before {
+    content: 'Explore “';
+}
+
+.-papyro-internal-explored .-papyro-internal-legend:last-child > *:after {
+    content: '”…';
+}
+
+.-papyro-internal-explored .-papyro-internal-legend > *:before {
+    content: 'More about “';
+}
+
+.-papyro-internal-explored .-papyro-internal-legend > *:after {
+    content: '”:';
+}
+
 .-papyro-internal-result {
     padding: 0;
-    margin: 0;
+    margin: 6px 4px 0 6px;
     background-color: #fff;
+}
+
+.-papyro-internal-result ~ .-papyro-internal-result {
+    margin-top: 0;
+}
+
+.-papyro-internal-result:last-of-type {
+    margin-bottom: 6px;
 }
 
 body.results-view .-papyro-internal-result {
@@ -179,6 +215,7 @@ body.results-view .-papyro-internal-result.collapsed .-papyro-internal-header {
 
 .-papyro-internal-result .-papyro-internal-header .-papyro-internal-graphics img {
     max-width: 30px;
+    display: block;
 }
 
 .-papyro-internal-result .-papyro-internal-body {

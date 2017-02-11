@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -70,8 +70,11 @@ namespace Papyro
         virtual QString cssId() const;
         virtual bool defaultness() const;
         virtual bool headless() const;
-        virtual QString highlight() const; // Bit of a HACK for Roche
+        virtual QString highlight() const;
         virtual int weight() const;
+
+        virtual QStringList values(const QString & key) const = 0;
+        virtual QString value(const QString & key) const;
 
         virtual State contentState() const = 0;
         virtual QStringList content(const QString & key) const = 0;

@@ -2,10 +2,10 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: utopia-documents
 Source: <http://utopiadocs.com>
 Upstream-Contact: info@utopiadocs.com
-Copyright: 2008-2016 Lost Island Labs
+Copyright: 2008-2017 Lost Island Labs
 
 Files: *
-Copyright: 2008-2016 Lost Island Labs
+Copyright: 2008-2017 Lost Island Labs
 License: GPL-3.0 with OpenSSL exception
 
 Files: libutf8/utf8/utf8cpp/*
@@ -14,7 +14,7 @@ License: Boost
 
 Files: libutf8/utf8/unicode.h libathenaeum/plugins/athenaeum/ris/main.cpp
 Copyright: 2008-2012 Advanced Interfaces Group
-           2008-2016 Lost Island Labs
+           2008-2017 Lost Island Labs
 License: GPL-3.0 with OpenSSL exception
 
 Files: libutf8/utf8/utf8proc/*
@@ -31,12 +31,12 @@ License: Unicode
 
 Files: libspine/* libcrackle/*
 Copyright: 2008-2012 Advanced Interfaces Group
-           2008-2016 Lost Island Labs
+           2008-2017 Lost Island Labs
 License: AGPL-3.0
 
 Files: libcrackle/crackle/CrackleTextOutputDev.* libcrackle/crackle/PDFFontCollection.*
 Copyright: 1996-2011 Glyph & Cog, LLC.
-           2008-2016 Lost Island Labs
+           2008-2017 Lost Island Labs
 License: GPL-3.0
 
 Files: libcrackle/crackle/libxpdf/*
@@ -113,7 +113,7 @@ Copyright: 2001 Dmitry A. Rozmanov
 License: LGPL-3.0+
 
 Files: */CMakeLists.txt
-Copyright: 2008-2016 Lost Island Labs
+Copyright: 2008-2017 Lost Island Labs
 License: GPL-3.0 with OpenSSL exception
 
 Files: libutopia2/plugins/python/scripts/3rdparty/Annotator3dmNG.zip/*

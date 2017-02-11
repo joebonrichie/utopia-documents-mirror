@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2016 Lost Island Labs
+#        Copyright (c) 2008-2017 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -565,6 +565,7 @@ class LazarusAnnotator(utopia.document.Annotator):
                                         var exp_div = exp_divs[idx];
                                         var expression = exp_div.data('expression');
                                         expression.related = result.related;
+                                        delete expression.related[%s];
 
                                         split = expression.sentence.split(expression.context);
                                         pre = split[0];
@@ -638,7 +639,7 @@ class LazarusAnnotator(utopia.document.Annotator):
                         $('#lazarus-expression > p.more > a.more').on('click', append_five).click();
                     });
                 </script>
-            ''' % (json.dumps(expressions), json.dumps(document.fingerprints()), json.dumps(self.lazRelUrl))
+            ''' % (json.dumps(expressions), json.dumps(document.fingerprints()), json.dumps(self.lazRelUrl), json.dumps(this_doi))
             print(js.encode('utf8'))
 
             html = u'''

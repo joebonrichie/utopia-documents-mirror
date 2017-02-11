@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -133,8 +133,7 @@ namespace Utopia
     {
         QNetworkRequest request(req);
         if (!request.hasRawHeader("User-Agent")) {
-            const static QByteArray agentString(QString("Utopia/" + Utopia::versionString() + " Qt/" + QString(qVersion())).toUtf8());
-            request.setRawHeader("User-Agent", agentString);
+            request.setRawHeader("User-Agent", userAgentString().toLatin1());
         }
 
         QNetworkReply *	reply = QNetworkAccessManager::createRequest(op, request, outgoingData);
@@ -296,6 +295,16 @@ namespace Utopia
                 timer->start();
             }
         }
+    }
+
+    void NetworkAccessManager::setUserAgentString(const QString & userAgentString)
+    {
+        d->userAgentString = userAgentString;
+    }
+
+    QString NetworkAccessManager::userAgentString() const
+    {
+        return d->userAgentString;
     }
 
 

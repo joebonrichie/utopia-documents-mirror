@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2016 Lost Island Labs
+#        Copyright (c) 2008-2017 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -61,6 +61,7 @@ set(SOURCES
     documentsignalproxy.cpp
     documentview.cpp
     embeddedframe.cpp
+    embeddedpane.cpp
     embeddedpanefactory.cpp
     exporter.cpp
     filters.cpp

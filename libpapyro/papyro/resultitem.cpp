@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -74,6 +74,15 @@ namespace Papyro
     int ResultItem::weight() const
     {
         return 0;
+    }
+
+    QString ResultItem::value(const QString & key) const
+    {
+        QStringList all(values(key));
+        if (!all.isEmpty()) {
+            return all.first();
+        }
+        return QString();
     }
 
 }

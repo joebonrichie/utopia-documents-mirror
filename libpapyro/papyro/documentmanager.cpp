@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -111,9 +111,11 @@ namespace Papyro
         QUrl redirectedUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
         if (redirectedUrl.isValid()) {
             if (redirectedUrl.isRelative()) {
-                QUrl oldUrl = reply->url();
-                redirectedUrl.setScheme(oldUrl.scheme());
-                redirectedUrl.setAuthority(oldUrl.authority());
+                QString redirectedAuthority = redirectedUrl.authority();
+                redirectedUrl = reply->url().resolved(redirectedUrl);
+                if (!redirectedAuthority.isEmpty()) {
+                    redirectedUrl.setAuthority(redirectedAuthority);
+                }
             }
             if (redirects > 0) {
                 QNetworkRequest request = reply->request();

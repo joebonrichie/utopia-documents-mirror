@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2016 Lost Island Labs
+#        Copyright (c) 2008-2017 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_BINARY_DIR}
     ${utopia2_INCLUDE_DIR}
+    ${utopia2_qt_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
     ${utf8_INCLUDE_DIR}
     ${CMAKE_BINARY_DIR}
@@ -59,10 +60,10 @@ endif()
 install(FILES "${CMAKE_SWIG_OUTDIR}/utopiabridge.py" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/" COMPONENT "${COMPONENT}")
 if(APPLE)
     install(TARGETS _utopiabridge DESTINATION "${PLUGIN_INSTALL_DIR}" COMPONENT "${COMPONENT}")
-    SWIG_LINK_LIBRARIES(utopiabridge utf8 utopia2 stdc++)
+    SWIG_LINK_LIBRARIES(utopiabridge utf8 utopia2 utopia2_qt stdc++)
 else()
     install(TARGETS _utopiabridge DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/" COMPONENT "${COMPONENT}")
-    SWIG_LINK_LIBRARIES(utopiabridge utf8 ${PYTHON_LIBRARIES} utopia2 stdc++)
+    SWIG_LINK_LIBRARIES(utopiabridge utf8 ${PYTHON_LIBRARIES} utopia2 utopia2_qt stdc++)
 endif()
 
 ADD_DEPENDENCIES(build _utopiabridge)

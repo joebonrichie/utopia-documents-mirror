@@ -1,4 +1,4 @@
-// Molecules javascriptfor creating interactive molecule visualisations in the
+// Molecules javascript for creating interactive molecule visualisations in the
 // sidebar of Utopia Documents
 
 // Set up the molecules plugin
@@ -190,11 +190,11 @@
                 // Compute the URL of the data
                 getUrl: function () {
                     // Start by trying to work out what the URL would be
-                    var url = settings.url || this.viewer.data('url');
+                    var url = settings.url || this.viewer.data('data').url;
                     if (!url) {
                         // Generate a URL according to the database and id
-                        var db = settings.db || this.viewer.data('db');
-                        var id = settings.id || this.viewer.data('id');
+                        var db = settings.db || this.viewer.data('data').db;
+                        var id = settings.id || this.viewer.data('data').id;
                         if (id && !db) {
                             var parts = id.split(':');
                             db = parts.shift();
@@ -208,41 +208,55 @@
                 },
                 // Load data
                 load: function () {
+                    // PDB requires a macromolecular viewer
+                    setup_macro_viewer(ctx.viewer);
+                    // Parse data
+                    var bytes = ctx.viewer.data('data').bytes;
+                    var parser = new ChemDoodle.io.PDBInterpreter();
+                    parser.deduceResidueBonds = true;
+                    ctx.molecule = parser.read(bytes);
+                    ctx.viewer.data('live', true).find('canvas').each(function () {
+                        $(this).css({width:'100%'}).data('canvas').loadMolecule(ctx.molecule);
+                    });
                 },
                 // Parsed molecule
                 molecule: null,
-                // Fetch then load the data
-                fetch: function () {
+                // Set up the UI
+                setup: function () {
                     // Setup the hud with a spinner
                     setup_hud(ctx.viewer);
-                    // Fetch the data from the url
-                    $.ajax({
-                        url: this.getUrl(),
-                        success: function (data) {
-                            // PDB requires a macromolecular viewer
-                            setup_macro_viewer(ctx.viewer);
-                            var parser = new ChemDoodle.io.PDBInterpreter();
-                            parser.deduceResidueBonds = true;
-                            ctx.molecule = parser.read(data);
-                            ctx.viewer.data('live', true).find('canvas').each(function () {
-                                $(this).css({width:'100%'}).data('canvas').loadMolecule(ctx.molecule);
-                            });
-                        },
-                        error: function () {
-                            var loading = $('.loading', ctx.viewer);
-                            loading.addClass('error');
-                            loading.text('Something went wrong fetching the data!');
-                            loading.append($('<br>'));
-                            loading.append($('<a href="#">').on('click', function (e) {
-                                e.preventDefault();
-                                ctx.fetch();
-                            }).text('Try again...'));
-                        },
-                    });
+                },
+                // Fetch then load the data
+                fetch: function () {
+                    // If we already have data, no need to fetch it
+                    if (typeof ctx.viewer.data('data').bytes === "undefined") {
+                        // Fetch the data from the url
+                        $.ajax({
+                            url: this.getUrl(),
+                            success: function (data) {
+                                ctx.viewer.data('data').bytes = data;
+                                ctx.load();
+                            },
+                            error: function () {
+                                var loading = $('.loading', ctx.viewer);
+                                loading.addClass('error');
+                                loading.text('Something went wrong fetching the data!');
+                                loading.append($('<br>'));
+                                loading.append($('<a href="#">').on('click', function (e) {
+                                    e.preventDefault();
+                                    ctx.fetch();
+                                }).text('Try again...'));
+                            },
+                        });
+                    } else {
+                        ctx.load();
+                    }
                 }
             };
 
             ctx.viewer.data('ctx', ctx); // For easier debug
+
+            ctx.setup();
             ctx.fetch();
         });
     };
@@ -257,9 +271,8 @@
     });
 }(jQuery));
 
-function molify (selector, id) {
-    console.log(selector, id);
+function molify(selector, data) {
     var viewer = jQuery(selector);
-    viewer.data('id', id);
+    viewer.data('data', data);
     viewer.molify();
 }

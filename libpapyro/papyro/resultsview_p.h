@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -87,6 +87,8 @@ namespace Papyro
         QString sourceIcon() const;
         QWebElement thumbnailElement(const QString & thumbnailClass) const;
         QString title() const;
+        Q_INVOKABLE QString value(const QString & key) const;
+        Q_INVOKABLE QStringList values(const QString & key) const;
         int weight() const;
 
     signals:
@@ -167,6 +169,7 @@ namespace Papyro
         void activateCitations(const QVariantList & citation, const QString & target);
         void activateLink(const QString & href, const QString & target);
         void activateSource(QObject * obj);
+        void explore(const QString & term);
         void onLoadComplete();
         void searchRemote(const QString & term);
 
@@ -174,6 +177,7 @@ namespace Papyro
         void citationsActivated(const QVariantList & citation, const QString & target);
         void linkClicked(const QUrl & href, const QString & target);
         void resultAdded(QObject * result);
+        void termExplored(const QString & term);
 
     protected:
         ResultsViewPrivate * d;
@@ -203,12 +207,13 @@ namespace Papyro
         bool ready;
         QEventLoop wait;
 
+        QStringList terms;
+
     public slots:
         void setupJavaScriptWindowObject();
         void addResult();
 
     signals:
-        void citationsActivated(const QVariantList & citation, const QString & target);
         void linkClicked(const QUrl & href, const QString & target);
         void runningChanged(bool running);
         void resultAdded(QObject * result);

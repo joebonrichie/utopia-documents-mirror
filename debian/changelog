@@ -1,3 +1,9 @@
+utopia-documents (3.0.1-1) unstable; urgency=medium
+  * Fix embedded molecules not appearing in sidebar.
+  * Fix html doctype for older versions of webkit.
+  
+ -- James Marsh <debian@jamesmarsh.net>  Wed, 08 Feb 2017 15:31:16 +0000
+ 
 utopia-documents (3.0.0-1) unstable; urgency=medium
 
   * New upstream release.

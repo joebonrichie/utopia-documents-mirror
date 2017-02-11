@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -51,6 +51,8 @@ namespace Papyro
 
         void addResult(ResultItem * result);
         bool isRunning() const;
+        void setExploreTerms(const QStringList & terms);
+        void setExploreTerm(const QString & term);
 
     public slots:
         void clear();
@@ -59,6 +61,7 @@ namespace Papyro
         void citationsActivated(const QVariantList & citation, const QString & target);
         void linkClicked(const QUrl & href, const QString & target);
         void runningChanged(bool running);
+        void termExplored(const QString & term);
 
     private:
         ResultsViewPrivate * d;

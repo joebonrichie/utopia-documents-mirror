@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -186,6 +186,16 @@ namespace Papyro
         element().evaluateJavaScript("utopia.toggleSlide(this)");
     }
 
+    QString ResultItemControl::value(const QString & key) const
+    {
+        return item()->value(key);
+    }
+
+    QStringList ResultItemControl::values(const QString & key) const
+    {
+        return item()->values(key);
+    }
+
     int ResultItemControl::weight() const
     {
         return item()->weight();
@@ -317,6 +327,12 @@ namespace Papyro
         return d->cslengine->defaultStyle();
     }
 
+    void ResultsViewControl::explore(const QString & term)
+    {
+        // Set off an explore
+        emit termExplored(term);
+    }
+
     QString ResultsViewControl::formatCitation(const QVariantMap & metadata, const QString & style)
     {
         return d->cslengine->format(convert_to_cslengine(metadata), style);
@@ -327,6 +343,15 @@ namespace Papyro
         //qDebug() << "ResultsViewControl::onLoadComplete()";
         d->ready = true;
         d->wait.quit();
+
+        QStringList encoded;
+        if (!d->terms.isEmpty()) {
+            foreach (QString term, d->terms) {
+                encoded << term.replace("\\", "\\\\").replace("'", "\'");
+            }
+            QString command = "jQuery(function () { utopia.setExploreTerms(['" + encoded.join("', '") + "']); });";
+            d->view->page()->mainFrame()->evaluateJavaScript(command);
+        }
     }
 
     QObject * ResultsViewControl::resolveMetadata(const QVariantMap & metadata, const QString & purpose)
@@ -369,6 +394,8 @@ namespace Papyro
                 this, SIGNAL(linkClicked(const QUrl &, const QString &)));
         connect(control, SIGNAL(citationsActivated(const QVariantList &, const QString &)),
                 view, SIGNAL(citationsActivated(const QVariantList &, const QString &)));
+        connect(control, SIGNAL(termExplored(const QString &)),
+                view, SIGNAL(termExplored(const QString &)));
     }
 
     void ResultsViewPrivate::addResult()
@@ -402,7 +429,7 @@ namespace Papyro
         // Attach sidebar control
         view->page()->mainFrame()->addToJavaScriptWindowObject("control", control);
         view->page()->mainFrame()->evaluateJavaScript(
-            "window.onload = function() { jQuery('body').addClass('" + classes.join(" ").replace("'", "\'") + "'); }"
+            "window.onload = function() { jQuery('body').addClass('" + classes.join(" ").replace("\\", "\\\\").replace("'", "\'") + "'); }"
         );
     }
 
@@ -461,6 +488,27 @@ namespace Papyro
     bool ResultsView::isRunning() const
     {
         return !d->resultQueue.isEmpty();
+    }
+
+    void ResultsView::setExploreTerms(const QStringList & terms)
+    {
+        d->terms = terms;
+
+        if (d->ready) {
+            QStringList encoded;
+            foreach (QString term, d->terms) {
+                encoded << term.replace("\\", "\\\\").replace("'", "\'");
+            }
+            QString command = "jQuery(function () { utopia.setExploreTerms(['" + encoded.join("', '") + "']); });";
+            page()->mainFrame()->evaluateJavaScript(command);
+        }
+    }
+
+    void ResultsView::setExploreTerm(const QString & term)
+    {
+        QStringList terms;
+        terms << term;
+        setExploreTerms(terms);
     }
 
 }

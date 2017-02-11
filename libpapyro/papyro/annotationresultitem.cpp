@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -191,6 +191,27 @@ namespace Papyro
         bool ok;
         int parsed = defaultness.toInt(&ok);
         return ok ? parsed : 0;
+    }
+
+    QString AnnotationResultItem::value(const QString & key) const
+    {
+        std::string qKey(unicodeFromQString(key));
+        if (d->annotation->hasProperty(qKey)) {
+            return qStringFromUnicode(d->annotation->getFirstProperty(qKey));
+        }
+        return QString();
+    }
+
+    QStringList AnnotationResultItem::values(const QString & key) const
+    {
+        QStringList all;
+        std::string qKey(unicodeFromQString(key));
+        if (d->annotation->hasProperty(qKey)) {
+            foreach (const std::string & value, d->annotation->getProperty(qKey)) {
+                all << qStringFromUnicode(value);
+            }
+        }
+        return all;
     }
 
     void AnnotationResultItem::generateContent()

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -266,8 +266,9 @@ namespace Papyro
         // General management slots
         void activateChemicalImage(int i);
         void activateImage(int i);
-        void exploreSelection();
         void executeAnnotator(int);
+        void explore(const QString & term);
+        void exploreSelection();
         void focusChanged(PageView * pageView, QPointF pagePos);
         void loadChemicalImage(int i);
         void loadImage(int i);

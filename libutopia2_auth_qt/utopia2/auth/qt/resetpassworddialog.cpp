@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -136,7 +136,7 @@ namespace Kend
             QUrl url(service->resourceUrl(Service::AuthenticationResource));
             url.setPath(url.path() + "/backends/" + service->authenticationMethod() + "/request-password-reset");
             QUrlQuery query(url.query());
-            query.addQueryItem("user_id", email->text());
+            query.addQueryItem("user_id", email->text().replace("+", "%2B"));
             url.setQuery(query);
 
             QEventLoop commitLoop;

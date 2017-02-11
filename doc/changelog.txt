@@ -1,3 +1,30 @@
+Version 3.0.1
+  * Updated the sciencedirect plugin to correctly deal with protocol-relative redirects.
+  * Fixed embedded molecular visualisation issues.
+  * Account registration / password reset now correctly deals with email addresses that contain '+' symbols.
+  * Exploring terms can now be done from activated annotation.
+  * Some minor improvements and bug fixes.
+
+Version 3.0.0
+  * Utopia Library now allows articles to be managed from within Utopia.
+  * Added the Lazarus plugin.
+  * Removed SciBite plugin.
+  * Images / selected areas can now be popped out as separate windows.
+  * 3D molecular structure visualisation is now done by ChemDoodle.
+  * Fixed a few leftover hiDPI problems in the user interface.
+  * General UI and performance improvements.
+
+Version 2.5.0 [never publicly released]
+  * Page rotation now fully supported.
+  * Remote searches are now launchable from javascript in the sidebar.
+  * Citation resolution is now available everywhere in the application.
+  * All plugins updated to most recent services.
+  * Removed Mendeley plugin.
+  * Fixed many hiDPI problems in the user interface.
+  * Table scraping plugin added.
+  * PDF rendering can now done by Poppler (the new default).
+  * General UI and performance improvements.
+
 Version 2.4.4
   * Fixed a memory leak in the Python interpreter bridge.
 

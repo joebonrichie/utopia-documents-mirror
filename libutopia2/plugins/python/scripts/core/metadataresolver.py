@@ -1,7 +1,7 @@
 ###############################################################################
 #   
 #    This file is part of the Utopia Documents application.
-#        Copyright (c) 2008-2016 Lost Island Labs
+#        Copyright (c) 2008-2017 Lost Island Labs
 #            <info@utopiadocs.com>
 #    
 #    Utopia Documents is free software: you can redistribute it and/or modify
@@ -122,18 +122,14 @@ class TitleScrapingResolver(utopia.library.Resolver):
     '''Scrape a title from this document.'''
 
     def resolve(self, metadata, document = None):
-        import pprint
-        pp = pprint.PrettyPrinter(indent=4).pprint
-        pp(metadata)
-        pp(document)
         update = {}
-        ids = metadata.get('identifiers', {})
-        if 'title' not in metadata and len(ids) == 0 and document is not None:
-            title = utopialib.title.scrape(document)
-            if title is not None:
-                print('scraper: title: ' + (title and title.encode('utf8')))
-                update['title'] = title
-
+        if document is not None:
+            ids = metadata.get('identifiers', {})
+            if 'title' not in metadata and len(ids) == 0:
+                title = utopialib.title.scrape(document)
+                if title is not None:
+                    print('scraper: title: ' + (title and title.encode('utf8')))
+                    update['title'] = title
         return update
 
     def purposes(self):
@@ -148,14 +144,14 @@ class DOIScrapingResolver(utopia.library.Resolver):
 
     def resolve(self, metadata, document = None):
         update = {}
-        ids = metadata.get('identifiers', {})
-        if 'doi' not in ids and len(ids) == 0 and document is not None:
-            doi = utopialib.doi.scrape(document)
-            if doi is not None:
-                print('scraper: doi:' + (doi and doi.encode('utf8')))
-                ids['doi'] = doi
-                update['identifiers'] = ids
-
+        if document is not None:
+            ids = metadata.get('identifiers', {})
+            if 'doi' not in ids and len(ids) == 0:
+                doi = utopialib.doi.scrape(document)
+                if doi is not None:
+                    print('scraper: doi:' + (doi and doi.encode('utf8')))
+                    ids['doi'] = doi
+                    update['identifiers'] = ids
         return update
 
     def purposes(self):
@@ -170,13 +166,14 @@ class ArXivScrapingResolver(utopia.library.Resolver):
 
     def resolve(self, metadata, document = None):
         update = {}
-        ids = metadata.get('identifiers', {})
-        if 'arxiv' not in ids and document is not None:
-            arxivid = utopialib.arxiv.scrape(document)
-            if arxivid is not None:
-                print('scraper: arxivid:', (arxivid and arxivid.encode('utf8')))
-                ids['arxiv'] = arxivid
-                update['identifiers'] = ids
+        if document is not None:
+            ids = metadata.get('identifiers', {})
+            if 'arxiv' not in ids:
+                arxivid = utopialib.arxiv.scrape(document)
+                if arxivid is not None:
+                    print('scraper: arxivid:', (arxivid and arxivid.encode('utf8')))
+                    ids['arxiv'] = arxivid
+                    update['identifiers'] = ids
         return update
 
     def purposes(self):
@@ -218,26 +215,29 @@ class CrossRefIdentifier(utopia.library.Resolver):
                                 if doi.startswith('http://dx.doi.org/'):
                                     doi = doi[18:]
             if doi is not None:
-                # What is this DOI's article's title according to crossref?
-                try:
-                    xref_results = utopialib.crossref.resolve(doi)
-                    xref_title = xref_results.get('title', '')
-                    if len(xref_title) > 0:
-                        print 'crossref: resolved title:', xref_title.encode('utf8')
-                        if re.sub(r'[^\w]+', ' ', title).strip() == re.sub(r'[^\w]+', ' ', xref_title).strip(): # Fuzzy match
-                            print 'crossref: titles match precisely'
-                            update.update(xref_results)
-                        else:
-                            # Accept the crossref title over the scraped title, if present in the document
-                            matches = document.findInContext('', xref_title, '') # Fuzzy match
-                            if len(matches) > 0:
+                if None not in (document, title):
+                    # What is this DOI's article's title according to crossref?
+                    try:
+                        xref_results = utopialib.crossref.resolve(doi)
+                        xref_title = xref_results.get('title', '')
+                        if len(xref_title) > 0:
+                            print 'crossref: resolved title:', xref_title.encode('utf8')
+
+                            if re.sub(r'[^\w]+', ' ', title).strip() == re.sub(r'[^\w]+', ' ', xref_title).strip(): # Fuzzy match
+                                print 'crossref: titles match precisely'
                                 update.update(xref_results)
-                                print 'crossref: overriding scraped title with crossref title'
                             else:
-                                print 'crossref: ignoring resolved metadata'
-                                # FIXME should we discard the DOI at this point?
-                except Exception as e:
-                    traceback.print_exc()
+                                # Accept the crossref title over the scraped title, if present in the document
+                                matches = document.findInContext('', xref_title, '') # Fuzzy match
+                                if len(matches) > 0:
+                                    update.update(xref_results)
+                                    print 'crossref: overriding scraped title with crossref title'
+                                else:
+                                    print 'crossref: ignoring resolved metadata'
+                                    # FIXME should we discard the DOI at this point?
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
 
         if doi is not None:
             ids['doi'] = doi
@@ -596,7 +596,7 @@ class ScienceDirectResolver(utopia.library.Resolver):
                     dom = etree.parse(StringIO(html), parser)
 
                     # look for the PDF link
-                    download_pdf_urls = dom.xpath('//a[@id="pdfLink"][@pdfurl]/@href')
+                    download_pdf_urls = dom.xpath('//a[@id="pdfLink"]/@href')
                     for pdf_url in download_pdf_urls:
                         pdf_url = urlparse.urljoin(url, pdf_url)
                         if pdf_url != resource.geturl(): # Check for cyclic references

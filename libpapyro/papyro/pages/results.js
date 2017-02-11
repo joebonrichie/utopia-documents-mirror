@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@
 var utopia = {
 
     searchRemote:
-        control.searchRemote,
+        window.control.searchRemote,
 
     citation:
         {
@@ -54,7 +54,7 @@ var utopia = {
 
             _resolveMetadata: function (metadata, purpose, fn) {
                 // Begin resolution
-                var future = control.resolveMetadata(metadata, purpose);
+                var future = window.control.resolveMetadata(metadata, purpose);
                 // Lock the future and test for completion
                 future.lock();
                 if (future.ready) {
@@ -258,7 +258,7 @@ var utopia = {
             });
 
             // Get element references and template nodes
-            var results = utopia.elements['results'] = $('#-papyro-internal-results').first();
+            utopia.elements['active'] = $('#-papyro-internal-active').first();
             utopia.templates['result'] = $('#-papyro-internal-result_template').first().detach();
 
             // Hijack link actions on an element
@@ -284,7 +284,7 @@ var utopia = {
             $('body').on('error', 'img', function () { $(this).remove(); });
 
             // Set up connections
-            control.resultAdded.connect(utopia.onResultItemAdded);
+            window.control.resultAdded.connect(utopia.onResultItemAdded);
 
             // Look out for new spinners
             $(document).on('DOMNodeInserted', function(e) {
@@ -302,19 +302,38 @@ var utopia = {
             });
 
             // Inform the control that we're done setting everything up
-            control.onLoadComplete();
+            window.control.onLoadComplete();
         },
 
     registerPolisher:
         // Assign fn as a handler for papyro:polish
         function (fn) {
-            $('#-papyro-internal-results').on('papyro:polish', '.-papyro-internal-content', fn);
+            $('#-papyro-internal-active').on('papyro:polish', '.-papyro-internal-content', fn);
         },
 
     clear:
         // Clear all results from list FIXME
         function () {
-            $('.-papyro-internal-result').remove();
+            $('.-papyro-internal-active').empty();
+            $('.-papyro-internal-explored').empty();
+        },
+
+    setExploreTerms:
+        // Remove all explore sections and set up new ones
+        function (terms) {
+            $.each(terms, function (i, term) {
+                $('.-papyro-internal-explored').remove();
+                $('#-papyro-internal-papyro').append(
+                    $('<div class="-papyro-internal-explored"></div>').append(
+                        $('<div class="-papyro-internal-legend"></div>').append(
+                            $('<a href="#"></a>').text(term).on('click', function () {
+                                $(this).wrapInner('<span/>').children().unwrap();
+                                window.control.explore(term);
+                            })
+                        )
+                    )
+                );
+            });
         },
 
     result:
@@ -354,14 +373,20 @@ var utopia = {
             utopia.result(result, obj);
 
             // Insert it into the tree (at the top for defaultly open results)
-            subsequent = $('.-papyro-internal-result', utopia.elements['results']).filter(function (idx) {
+            var section;
+            if (obj.value('session:origin') == 'explore') {
+                section = $('.-papyro-internal-explored').first();
+            } else {
+                section = utopia.elements['active'];
+            }
+            subsequent = $('.-papyro-internal-result', section).filter(function (idx) {
                 var candidate = utopia.result(this);
                 return (obj.headless || !candidate.headless) && (candidate.weight < obj.weight);
             });
             if (subsequent.length > 0) {
                 subsequent.first().before(result);
             } else {
-                utopia.elements['results'].append(result);
+                section.append(result);
             }
 
             // Connect content handler
@@ -377,13 +402,13 @@ var utopia = {
                     // Stop event from reaching the parent
                     event.stopPropagation();
                     // Send the result object off to be activated
-                    control.activateSource(utopia.result(this));
+                    window.control.activateSource(utopia.result(this));
                 });
                 $('.-papyro-internal-header .-papyro-internal-graphics img.-papyro-internal-author', result).on('click', function (event) {
                     // Stop event from reaching the parent
                     event.stopPropagation();
                     // Send the result object off to be activated
-                    control.activateAuthor(utopia.result(this));
+                    window.control.activateAuthor(utopia.result(this));
                 });
 
                 // Set visible information

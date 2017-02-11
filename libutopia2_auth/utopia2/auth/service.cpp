@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -229,9 +229,11 @@ namespace Kend
         QUrl redirectedUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
         if (redirectedUrl.isValid()) {
             if (redirectedUrl.isRelative()) {
-                QUrl oldUrl = reply->url();
-                redirectedUrl.setScheme(oldUrl.scheme());
-                redirectedUrl.setAuthority(oldUrl.authority());
+                QString redirectedAuthority = redirectedUrl.authority();
+                redirectedUrl = reply->url().resolved(redirectedUrl);
+                if (!redirectedAuthority.isEmpty()) {
+                    redirectedUrl.setAuthority(redirectedAuthority);
+                }
             }
             if (redirects++ < 4) {
                 QNetworkRequest request = reply->request();
@@ -470,7 +472,8 @@ namespace Kend
             resources.next();
             const char* key = metaEnum.valueToKey((int) resources.key());
             conf.beginGroup(key);
-            conf.setValue("url", resources.value());
+            // The encoding here is to fix a bug on OS X that incorrectly stores a QVariant URL
+            conf.setValue("url", QString(resources.value().toEncoded()));
             conf.setValue("capabilities", resourceCapabilities.value(resources.key()));
             if (resources.key() == Service::AuthenticationResource) {
                 conf.beginWriteArray("backends");
@@ -603,6 +606,7 @@ namespace Kend
             QString key = QUrl::fromPercentEncoding(encodedKey.toUtf8());
             QVariant value = conf.value(encodedKey);
             if (value.isValid()) {
+                //qDebug() << "---> loadFrom" << key.toUtf8().constData() << "=" << value;
                 setProperty(key.toUtf8().constData(), value);
             }
         }
@@ -707,7 +711,17 @@ namespace Kend
         while (propertyNames.hasNext()) {
             QByteArray key = propertyNames.next();
             if (!key.startsWith("_")) {
-                conf.setValue(QUrl::toPercentEncoding(key), property(key.constData()));
+                QVariant value = property(key.constData());
+                switch (value.type()) {
+                // Special hack for QUrls that aren't properly serialised on OS X
+                case QVariant::Url:
+                    conf.setValue(QUrl::toPercentEncoding(key), QString(value.toUrl().toEncoded()));
+                    break;
+                default:
+                    conf.setValue(QUrl::toPercentEncoding(key), value);
+                    break;
+                }
+                //qDebug() << "---> saveTo" << key << "=" << value;
             }
         }
         const QMetaObject * metaObject(this->metaObject());
@@ -717,7 +731,16 @@ namespace Kend
             if (metaProperty.isWritable() && metaProperty.isStored() && metaProperty.name()[0] != '_') {
                 QVariant value(metaProperty.read(this));
                 if (!value.isNull()) {
-                    conf.setValue(QUrl::toPercentEncoding(metaProperty.name()), value);
+                    switch (value.type()) {
+                    // Special hack for QUrls that aren't properly serialised on OS X
+                    case QVariant::Url:
+                        conf.setValue(QUrl::toPercentEncoding(metaProperty.name()), QString(value.toUrl().toEncoded()));
+                        break;
+                    default:
+                        conf.setValue(QUrl::toPercentEncoding(metaProperty.name()), value);
+                        break;
+                    }
+                    //qDebug() << "---> saveTo" << metaProperty.name() << "=" << value;
                 }
             }
         }

@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 #include <utopia2/global.h>
 #include <utopia2/pacproxyfactory.h>
 #include <utopia2/networkaccessmanager.h>
+#include <utopia2/qt/webview.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -160,6 +161,17 @@ std::string checksumSD(const std::string & query)
     std::string salted = query + "S1kclGPeB62(5phgVWw-YmJmqRddM-Gs";
     hasher.addData(salted.c_str(), salted.size());
     return hasher.result().toHex().constData();
+}
+
+/* Work out a sensible user agent */
+std::string userAgent()
+{
+    static QString userAgent;
+    if (userAgent.isEmpty()) {
+        Utopia::WebPage page;
+        userAgent = page.userAgentForUrl(QUrl());
+    }
+    return userAgent.toUtf8().constData();
 }
 
 %}
@@ -303,17 +315,17 @@ def proxyUrllib2():
         https_request = http_request
 
     passwordMgr = UtopiaProxyPasswordMgr()
-    opener = urllib2.build_opener(urllib2.HTTPHandler(debuglevel=debug and 1 or 0),
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookielib.CookieJar()),
+                                  urllib2.HTTPHandler(debuglevel=debug and 1 or 0),
                                   urllib2.HTTPSHandler(debuglevel=debug and 1 or 0),
                                   UtopiaProxyHandler(),
                                   UtopiaProxyBasicAuthHandler(passwordMgr),
                                   UtopiaProxyDigestAuthHandler(passwordMgr),
                                   UtopiaProxyNtlmAuthHandler(passwordMgr),
-                                  RequestContextHandler(),
-                                  urllib2.HTTPCookieProcessor(cookielib.CookieJar()))
+                                  RequestContextHandler())
     # relying on Python's standard user agent string breaks some fetching attempts
-    #opener.addheaders = [('User-agent', agent_string + ' ' + dict(opener.addheaders).get('User-agent', '')).strip())]
-    opener.addheaders = [('User-Agent', agent_string.strip())]
+    #opener.addheaders = [('User-Agent', (dict(opener.addheaders).get('User-agent', '') + ' ' + agent_string).strip())]
+    opener.addheaders = [('User-Agent', userAgent())]
     #opener.addheaders = [('Accept-Encoding', "gzip,deflate")]
     urllib2.install_opener(opener)
 

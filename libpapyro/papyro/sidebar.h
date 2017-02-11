@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -69,6 +69,7 @@ namespace Papyro
     signals:
         void citationsActivated(const QVariantList & citation, const QString & target);
         void selectionChanged();
+        void termExplored(const QString & term);
         void urlRequested(const QUrl & url, const QString & target);
 
     public slots:

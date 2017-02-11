@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -87,24 +87,21 @@ namespace Papyro
 
         // Redirect?
         QUrl redirectedUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        if (redirectedUrl.isValid())
-        {
-            if (redirectedUrl.isRelative())
-            {
-                QUrl oldUrl = reply->url();
-                redirectedUrl.setScheme(oldUrl.scheme());
-                redirectedUrl.setAuthority(oldUrl.authority());
+        if (redirectedUrl.isValid()) {
+            if (redirectedUrl.isRelative()) {
+                QString redirectedAuthority = redirectedUrl.authority();
+                redirectedUrl = reply->url().resolved(redirectedUrl);
+                if (!redirectedAuthority.isEmpty()) {
+                    redirectedUrl.setAuthority(redirectedAuthority);
+                }
             }
-            if (redirects > 0)
-            {
+            if (redirects > 0) {
                 QNetworkRequest request = reply->request();
                 request.setUrl(redirectedUrl);
                 QNetworkReply * reply = networkAccessManager()->get(request);
                 reply->setProperty("__target", target);
                 connect(reply, SIGNAL(finished()), this, SLOT(linkClickedFinished()));
-            }
-            else
-            {
+            } else {
                 // TOO MANY REDIRECTS
             }
             reply->deleteLater();
@@ -254,7 +251,7 @@ namespace Papyro
             QFrame * headerFrame = new QFrame;
             QHBoxLayout * headerFrameLayout = new QHBoxLayout(headerFrame);
             headerFrameLayout->setSpacing(6);
-            headerFrameLayout->setContentsMargins(6, 6, 6, 6);
+            headerFrameLayout->setContentsMargins(6, 0, 6, 0);
             headerFrame->setObjectName("document_wide_header");
             d->headerLabel = new QLabel;
             connect(d->headerLabel, SIGNAL(linkActivated(const QString &)),
@@ -309,19 +306,22 @@ namespace Papyro
                 d, SLOT(onResultsViewRunningChanged(bool)));
         connect(d->resultsView, SIGNAL(selectionChanged()),
                 this, SLOT(onSelectionChanged()));
+        connect(d->resultsView, SIGNAL(termExplored(const QString &)),
+                this, SIGNAL(termExplored(const QString &)));
         d->resultsViewWidget = new QWidget;
         QVBoxLayout * resultsViewLayout = new QVBoxLayout(d->resultsViewWidget);
         resultsViewLayout->setContentsMargins(0, 0, 0, 0);
         resultsViewLayout->setSpacing(0);
         QFrame * headerFrame = new QFrame;
-        headerFrame->setObjectName("resultsHeader");
+        headerFrame->setObjectName("results-view-header");
         QHBoxLayout * headerLayout = new QHBoxLayout(headerFrame);
-        headerLayout->setContentsMargins(0, 0, 0, 0);
+        headerLayout->setContentsMargins(6, 0, 6, 0);
+        headerLayout->setSpacing(6);
         QPushButton * backButton = new QPushButton("Back");
         headerLayout->addWidget(backButton, 0, Qt::AlignLeft | Qt::AlignVCenter);
         d->searchTermLabel = new Utopia::ElidedLabel;
         d->searchTermLabel->setAlignment(Qt::AlignCenter);
-        headerLayout->addWidget(d->searchTermLabel, 1);
+        headerLayout->addWidget(d->searchTermLabel, 1, Qt::AlignCenter);
         d->resultsViewSpinner = new Utopia::Spinner;
         d->resultsViewSpinner->setFixedSize(4, 4);
         headerLayout->addWidget(d->resultsViewSpinner, 0, Qt::AlignRight | Qt::AlignVCenter);
@@ -338,11 +338,15 @@ namespace Papyro
         webViewLayout->setContentsMargins(0, 0, 0, 0);
         webViewLayout->setSpacing(0);
         headerFrame = new QFrame;
-        headerFrame->setObjectName("webpageHeader");
+        headerFrame->setObjectName("web-page-header");
         headerLayout = new QHBoxLayout(headerFrame);
-        headerLayout->setContentsMargins(0, 0, 0, 0);
+        headerLayout->setContentsMargins(6, 0, 6, 0);
+        headerLayout->setSpacing(6);
         backButton = new QPushButton("Back");
         headerLayout->addWidget(backButton, 0, Qt::AlignLeft | Qt::AlignVCenter);
+        Utopia::Spinner * hidden = new Utopia::Spinner;
+        hidden->setFixedSize(4, 4);
+        headerLayout->addWidget(hidden, 0, Qt::AlignRight | Qt::AlignVCenter);
         connect(backButton, SIGNAL(clicked()), d->slideLayout, SLOT(pop()));
         webViewLayout->addWidget(headerFrame, 0);
         webViewLayout->addWidget(d->webView, 1);

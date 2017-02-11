@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  
  *   This file is part of the Utopia Documents application.
- *       Copyright (c) 2008-2016 Lost Island Labs
+ *       Copyright (c) 2008-2017 Lost Island Labs
  *           <info@utopiadocs.com>
  *   
  *   Utopia Documents is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@
 #define MOLECULESPANEFACTORY_H
 
 #include <papyro/embeddedpanefactory.h>
+#include <papyro/embeddedpane.h>
 #include <papyro/utils.h>
 #include <utopia2/networkaccessmanager.h>
 #include <utopia2/fileformat.h>
@@ -59,51 +60,39 @@
 #include <QWidget>
 #include <QWebFrame>
 
-class MoleculesPane : public QWidget, public Utopia::NetworkAccessManagerMixin
+class MoleculesPane : public Papyro::EmbeddedPane
 {
     Q_OBJECT
 
 public:
     MoleculesPane(QString code, QWidget * parent = 0)
-        : QWidget(parent), _code(code), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false), _downloaded(false), _retries(3), _redirects(0)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::Launchable, parent), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false)
     {
-        _layout = new QVBoxLayout(this);
-        _layout->setContentsMargins(0, 0, 0, 0);
-        _layout->setSpacing(0);
-
-        // QNetworkAccessManager stuff for getting update information
-        _checker.setInterval(1000);
-        connect(&_checker, SIGNAL(timeout()), this, SLOT(check()));
-
-        // Widget stuff
-        setMouseTracking(true);
-        resize(400, 400);
-
-        // Start download
-        restart();
+        init();
+        QVariantMap map;
+        map["id"] = code;
+        setData(map);
     }
 
-    MoleculesPane(QByteArray pdbfile, QWidget * parent = 0)
-        : QWidget(parent), _pdbFile(pdbfile), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false), _downloaded(false), _retries(3), _redirects(0)
+    MoleculesPane(QByteArray bytes, QWidget * parent = 0)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::Launchable, parent), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false)
     {
-        _layout = new QVBoxLayout(this);
-        _layout->setContentsMargins(0, 0, 0, 0);
-        _layout->setSpacing(0);
-
-        // QNetworkAccessManager stuff for getting update information
-        _checker.setInterval(1000);
-        connect(&_checker, SIGNAL(timeout()), this, SLOT(check()));
-
-        // Widget stuff
-        setMouseTracking(true);
-        resize(400, 400);
-
-        // Start download
-        restart();
+        init();
+        QVariantMap map;
+        map["bytes"] = bytes;
+        setData(map);
     }
 
     MoleculesPane(QUrl url, QWidget * parent = 0)
-        : QWidget(parent), _url(url), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false), _downloaded(false), _retries(3)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::Launchable, parent), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false)
+    {
+        init();
+        QVariantMap map;
+        map["url"] = url;
+        setData(map);
+    }
+
+    void init()
     {
         _layout = new QVBoxLayout(this);
         _layout->setContentsMargins(0, 0, 0, 0);
@@ -127,11 +116,18 @@ public:
     }
 
 public slots:
-    void setupJavaScriptWindowObject()
+    void molify()
     {
-        QString command(QString("jQuery(function () { molify('#molecule-viewer', 'pdb:%1'); });").arg(_code));
+        QString command;
+        QVariantMap map = data().toMap();
+        if (!map.value("bytes").isNull()) {
+            command = QString("jQuery(function () { molify('#molecule-viewer', {'bytes': '%1'}); });").arg(map.value("bytes").toString().replace("\\", "\\\\").replace("'", "\'"));
+        } else if (!map.value("url").isNull()) {
+            command = QString("jQuery(function () { molify('#molecule-viewer', {'url': '%1'}); });").arg(map.value("url").toString().replace("\\", "\\\\").replace("'", "\'"));
+        } else if (!map.value("id").isNull()) {
+            command = QString("jQuery(function () { molify('#molecule-viewer', {'id': 'pdb:%1'}); });").arg(map.value("id").toString().replace("\\", "\\\\").replace("'", "\'"));
+        }
         _webView->page()->mainFrame()->evaluateJavaScript(command);
-
     }
 
 protected slots:
@@ -150,99 +146,36 @@ protected slots:
         }
     }
 
-    void getCompleted()
+protected:
+    void download()
     {
-        _reply->deleteLater();
-
-        // If this is a redirect, follow it transparently, but only to a maximum of (arbitrarily)
-        // four redirections
-        QUrl redirectedUrl = _reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        if (redirectedUrl.isValid()) {
-            if (redirectedUrl.isRelative()) {
-                QUrl oldUrl = _reply->url();
-                redirectedUrl.setScheme(oldUrl.scheme());
-                redirectedUrl.setAuthority(oldUrl.authority());
+#if 0 // Skip this code, as it's duplicated inside the Javascript
+        QVariantMap conf(data().toMap());
+        // Don't bother with the download step if we already have the data
+        if (!conf.contains("bytes")) {
+            // Otherwise construct a URL...
+            QUrl url;
+            if (conf.contains("url")) {
+                url = conf.value("url").toUrl();
+            } else if (conf.contains("id")) {
+                QString urlStr = "http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId=";
+                urlStr += conf.value("id").toString();
+                url = QUrl::fromEncoded(urlStr.toUtf8());
             }
-            if (_redirects++ < 4) {
-                QNetworkRequest request = _reply->request();
-                request.setUrl(redirectedUrl);
-                _reply = networkAccessManager()->get(request);
-                connect(_reply.data(), SIGNAL(finished()), this, SLOT(getCompleted()));
-                connect(_reply.data(), SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(getFailed(QNetworkReply::NetworkError)));
-                connect(_reply.data(), SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(getProgressed(qint64, qint64)));
-                return;
+            // ... and download it
+            if (url.isValid()) {
+                startDownload(url);
             }
         }
+#endif
 
-        // Reset redirect count and make sure those who care deal with this reply finishing
-        _redirects = 0;
-        _progress = 1.0;
-        _checker.stop();
-
-        _downloaded = true;
-
-        _replyData = _reply->readAll();
-
-        if (isVisible()) {
-            load();
-        }
-
-        update();
-    }
-
-    void getFailed(QNetworkReply::NetworkError code)
-    {
-        switch (code)
-        {
-        case QNetworkReply::ContentNotFoundError:
-            _errorMessage = "Requested data not available";
-            break;
-        case QNetworkReply::HostNotFoundError:
-            _errorMessage = "Host not found (www.rcsb.org)";
-            break;
-        case QNetworkReply::ConnectionRefusedError:
-            _errorMessage = "Connection refused (www.rcsb.org)";
-            break;
-        case QNetworkReply::RemoteHostClosedError:
-            _errorMessage = "Unexpected disconnection (www.rcsb.org)";
-            break;
-        case QNetworkReply::ProtocolFailure:
-            _errorMessage = "Malformed response (www.rcsb.org)";
-            break;
-        case QNetworkReply::ProxyAuthenticationRequiredError:
-        case QNetworkReply::AuthenticationRequiredError:
-            _errorMessage = "Authentication failed (www.rcsb.org)";
-            break;
-        case QNetworkReply::OperationCanceledError:
-        case QNetworkReply::TimeoutError:
-            _errorMessage = "Network timeout occurred";
-            break;
-        default:
-            _errorMessage = "Unknown data download error";
-            break;
-        }
-
-        if (isHidden() && --_retries > 0)
-        {
-            QTimer::singleShot(1000, this, SLOT(restart()));
-        }
-    }
-
-    void getProgressed(qint64 progress, qint64 total)
-    {
-        if (total > 0)
-        {
-            _progress = qBound(0.0, progress / (double) total, 1.0);
-        }
-        _lastUpdate.restart();
-
+        skipDownload();
         update();
     }
 
     void load()
     {
-        if (_webView == 0)
-        {
+        if (_webView == 0) {
             _webView = new Utopia::WebView();
 
             _webView->setRenderHint(QPainter::Antialiasing, true);
@@ -263,44 +196,18 @@ protected slots:
         }
     }
 
+    QVariant parseDownload(QNetworkReply * reply)
+    {
+        QVariantMap map(data().toMap());
+        map["bytes"] = reply->readAll();
+        return map;
+    }
+
     void restart()
     {
         if (isVisible()) {
             load();
         }
-
-        return;
-
-
-
-
-        _errorMessage = QString();
-
-        if (_pdbFile.isEmpty()) {
-            _progress = -1.0;
-            _checker.start();
-            _lastUpdate.start();
-            _started.start();
-            _downloaded = false;
-
-            if (!_code.isEmpty()) {
-                _url = QUrl(QString("http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId=") + _code);
-                _reply = networkAccessManager()->get(QNetworkRequest(_url));
-                connect(_reply.data(), SIGNAL(finished()), this, SLOT(getCompleted()));
-                connect(_reply.data(), SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(getFailed(QNetworkReply::NetworkError)));
-                connect(_reply.data(), SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(getProgressed(qint64, qint64)));
-            }
-        } else {
-            _progress = -1.0;
-            _downloaded = true;
-
-            _replyData = _pdbFile;
-            if (isVisible()) {
-                load();
-            }
-        }
-
-        update();
     }
 
 protected:
@@ -448,14 +355,6 @@ protected:
         p.drawText(messageRect, Qt::AlignCenter, message);
     }
 
-    void showEvent(QShowEvent * event)
-    {
-        if (_downloaded && _webView == 0)
-        {
-            QTimer::singleShot(0, this, SLOT(load()));
-        }
-    }
-
 private:
     QString _code;
     QByteArray _pdbFile;
@@ -500,7 +399,7 @@ public:
         std::string concept = annotation->getFirstProperty("concept");
         std::string identifier = annotation->getFirstProperty("property:identifier");
         std::vector< std::string > media = annotation->getProperty("session:media");
-        if (concept == "DatabaseEntry" && identifier.substr(0, 23)=="http://bio2rdf.org/pdb:")
+        if (concept == "DatabaseEntry" && identifier.substr(0, 23) == "http://bio2rdf.org/pdb:")
         {
             std::string code(identifier.substr(23));
             pane = new MoleculesPane(Papyro::qStringFromUnicode(code), parent);
