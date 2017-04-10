@@ -344,15 +344,22 @@ std::string Crackle::PDFDocument::_addAnchor( Object *obj, std::string name)
     return result;
 }
 
-static Spine::BoundingBox rotateRect(const Spine::BoundingBox & rect, int rotation, double pageWidth, double pageHeight)
+static Spine::BoundingBox rotateRect(Spine::BoundingBox rect, int rotation, const Spine::BoundingBox & pageBox)
 {
     Spine::BoundingBox rotated;
+
+    // translate according to the page box offset
+    rect.x1 -= pageBox.x1;
+    rect.x2 -= pageBox.x1;
+    rect.y1 -= pageBox.y1;
+    rect.y2 -= pageBox.y1;
+
     switch (rotation) {
     case 0:
         rotated.x1 = rect.x1;
-        rotated.y1 = pageHeight - rect.y2;
+        rotated.y1 = pageBox.height() - rect.y2;
         rotated.x2 = rect.x2;
-        rotated.y2 = pageHeight - rect.y1;
+        rotated.y2 = pageBox.height() - rect.y1;
         break;
     case 90:
         rotated.x1 = rect.y1;
@@ -361,20 +368,21 @@ static Spine::BoundingBox rotateRect(const Spine::BoundingBox & rect, int rotati
         rotated.y2 = rect.x2;
         break;
     case 180:
-        rotated.x1 = pageWidth - rect.x2;
+        rotated.x1 = pageBox.width() - rect.x2;
         rotated.y1 = rect.y1;
-        rotated.x2 = pageWidth - rect.x1;
+        rotated.x2 = pageBox.width() - rect.x1;
         rotated.y2 = rect.y2;
         break;
     case 270:
-        rotated.x1 = pageWidth - rect.y2;
-        rotated.y1 = pageHeight - rect.x2;
-        rotated.x2 = pageWidth - rect.y1;
-        rotated.y2 = pageHeight - rect.x1;
+        rotated.x1 = pageBox.width() - rect.y2;
+        rotated.y1 = pageBox.height() - rect.x2;
+        rotated.x2 = pageBox.width() - rect.y1;
+        rotated.y2 = pageBox.height() - rect.x1;
         break;
     default:
         break;
     }
+
     return rotated;
 }
 
@@ -410,13 +418,11 @@ std::string Crackle::PDFDocument::_addAnchor(LinkDest * dest, std::string name)
 
         const PDFPage &pdfpage((*this)[page-1]);
         Spine::BoundingBox pageArea(pdfpage.boundingBox());
-        double pageWidth = pageArea.x2;
-        double pageHeight = pageArea.y2;
         Spine::BoundingBox destArea(Spine::BoundingBox(dest->getLeft(),
                                                        dest->getTop(),
                                                        dest->getRight(),
                                                        dest->getBottom()));
-        destArea = rotateRect(destArea, pdfpage.rotation(), pageWidth, pageHeight);
+        destArea = rotateRect(destArea, pdfpage.rotation(), pageArea);
 
         // be sure to convert y coordinate!
         Spine::BoundingBox area(pageArea);
@@ -592,8 +598,7 @@ void Crackle::PDFDocument::_extractLinks()
             link->getRect(&x1, &y1, &x2, &y2);
             Spine::BoundingBox linkArea(rotateRect(Spine::BoundingBox(x1, y1, x2, y2),
                                                    pdfpage.rotation(),
-                                                   pageArea.x2,
-                                                   pageArea.y2));
+                                                   pageArea));
 
             LinkAction *action(link->getAction());
 

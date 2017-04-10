@@ -190,11 +190,11 @@
                 // Compute the URL of the data
                 getUrl: function () {
                     // Start by trying to work out what the URL would be
-                    var url = settings.url || this.viewer.data('data').url;
+                    var url = settings.url || this.viewer.data('url') || (this.viewer.data('data') && this.viewer.data('data').url);
                     if (!url) {
                         // Generate a URL according to the database and id
-                        var db = settings.db || this.viewer.data('data').db;
-                        var id = settings.id || this.viewer.data('data').id;
+                        var db = settings.db || this.viewer.data('db') || (this.viewer.data('data') && this.viewer.data('data').db);
+                        var id = settings.id || this.viewer.data('id') || (this.viewer.data('data') && this.viewer.data('data').id);
                         if (id && !db) {
                             var parts = id.split(':');
                             db = parts.shift();
@@ -228,6 +228,9 @@
                 },
                 // Fetch then load the data
                 fetch: function () {
+                    if (typeof ctx.viewer.data('data') === "undefined") {
+                        ctx.viewer.data('data', {});
+                    }
                     // If we already have data, no need to fetch it
                     if (typeof ctx.viewer.data('data').bytes === "undefined") {
                         // Fetch the data from the url

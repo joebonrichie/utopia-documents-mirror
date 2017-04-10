@@ -49,7 +49,7 @@ endif(POLICY CMP0046)
 # Utopia versioning
 set(VERSION_MAJOR "3")
 set(VERSION_MINOR "0")
-set(VERSION_PATCH "1")
+set(VERSION_PATCH "2")
 
 # Extra checks
 set(HARDENED_FLAGS "-fstack-protector -Wformat -Wformat-security -Wall -Wno-unused-local-typedef")

@@ -1371,7 +1371,7 @@ namespace Papyro
     void PageView::recomputeDarkness()
     {
         // Darken whole page
-        d->darkness.addRect(pageRect().adjusted(0, 0, 1, 1));
+        d->darkness.addRect(pageRect().translated(-pageRect().topLeft()).adjusted(0, 0, 1, 1));
 
         if (spotlights().size() > 0)
         {

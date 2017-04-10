@@ -120,9 +120,14 @@ namespace Spine
     {
     public:
         bool operator () (const boost::shared_ptr< Extent > & lhs, const boost::shared_ptr< Extent > & rhs) const
-            {
-                return *lhs < *rhs;
+        {
+            if (lhs->first == rhs->first) {
+                return rhs->second < lhs->second;
+            } else {
+                return lhs->first < rhs->first;
             }
+            //return *lhs < *rhs;
+        }
     };
 
 

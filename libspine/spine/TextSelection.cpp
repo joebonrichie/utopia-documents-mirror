@@ -289,7 +289,7 @@ namespace Spine
                             offset = match_offset + match_length;
                         }
                         if (match_length > 0) {
-                            //std::cerr << "match " << i << " from " << match_offset << " length " << match_length << std::endl;
+                            //std::cerr << "match " << i << " from " << match_offset << " length " << match_length << "       " << TextExtentHandle(subExtentUtf8(match_offset, match_length))->text() << std::endl;
                             matches.insert(TextExtentHandle(subExtentUtf8(match_offset, match_length)));
                         } else if (i == 0) {
                             break;
@@ -376,7 +376,12 @@ namespace Spine
 
 bool operator < (const Spine::TextExtentHandle & lhs, const Spine::TextExtentHandle & rhs)
 {
-    return *lhs < *rhs;
+    if (lhs->first == rhs->first) {
+        return rhs->second < lhs->second;
+    } else {
+        return lhs->first < rhs->first;
+    }
+    //return *lhs < *rhs;
 }
 
 #include <spine/Annotation.h>

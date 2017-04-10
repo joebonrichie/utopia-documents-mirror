@@ -308,7 +308,7 @@ var utopia = {
     registerPolisher:
         // Assign fn as a handler for papyro:polish
         function (fn) {
-            $('#-papyro-internal-active').on('papyro:polish', '.-papyro-internal-content', fn);
+            $('#-papyro-internal-papyro').on('papyro:polish', '.-papyro-internal-content', fn);
         },
 
     clear:

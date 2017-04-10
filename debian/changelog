@@ -1,4 +1,15 @@
+utopia-documents (3.0.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * More fixes for embedded molecular visualisation.
+  * Fix page rendering for PDFs with non-origin crop boxes.
+  * Improve ordering of search results.
+
+ -- James Marsh <debian@jamesmarsh.net>  Mon, 10 Apr 2017 13:13:10 +0100
+
 utopia-documents (3.0.1-1) unstable; urgency=medium
+
+  * New upstream release.
   * Fix embedded molecules not appearing in sidebar.
   * Fix html doctype for older versions of webkit.
   

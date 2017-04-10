@@ -1,3 +1,8 @@
+Version 3.0.2
+  * Fixed embedded molecular visualisation issues.
+  * Fixed some issues with page rendering for PDFs with non-origin crop boxes.
+  * Modifed the ordering of text extents to ensure PDFDocument::search() results order correctly.
+
 Version 3.0.1
   * Updated the sciencedirect plugin to correctly deal with protocol-relative redirects.
   * Fixed embedded molecular visualisation issues.
