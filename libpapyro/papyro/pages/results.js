@@ -92,11 +92,17 @@ var utopia = {
 
                     function renderCitation(citation) {
                         // Save the citation data for later use
+                        var initial_citation = container.data('citation');
+                        container.data('initial_citation', initial_citation);
+                        citation.label = initial_citation.label;
+                        citation.order = initial_citation.order;
+                        console.log(citation.unstructured, citation.label);
+                        if (citation.unstructured && citation.label) {
+                            citation.unstructured = citation.unstructured.replace(new RegExp('^[^a-z0-9]*'+citation.label+'[^a-z0-9]*', 'i'), '');
+                        }
                         container.data('citation', citation);
                         // Format and add content
-                        if (content.html() == '') {
-                            content.html(utopia.citation.format(citation));
-                        }
+                        utopia.citation.reformat(container);
                         // Include links
                         if (include_links) {
                             links.append(utopia.citation._renderLinks(citation));
@@ -210,10 +216,21 @@ var utopia = {
                 $('.-papyro-internal-citation').each(function () {
                     var container = $(this);
                     if (container.data('status') == 'live') {
-                        var citation = container.data('citation');
-                        var content = container.find('.content');
-                        content.html(utopia.citation.format(citation));
+                        this.reformat(container);
                     }
+                });
+            },
+            reformat: function (container) {
+                var citation = container.data('citation');
+                var content = container.find('.content');
+                var oldHeight = container.height();
+                console.log(container);
+                var html = this.format(citation);
+                content.html(html);
+                var newHeight = container.height();
+                container.height(oldHeight);
+                container.animate({height: newHeight}, 'fast', function() {
+                    container.height('auto');
                 });
             },
 
@@ -258,6 +275,7 @@ var utopia = {
             });
 
             // Get element references and template nodes
+            utopia.elements['sections'] = $('#-papyro-internal-sections').first();
             utopia.elements['active'] = $('#-papyro-internal-active').first();
             utopia.templates['result'] = $('#-papyro-internal-result_template').first().detach();
 
@@ -315,24 +333,57 @@ var utopia = {
         // Clear all results from list FIXME
         function () {
             $('.-papyro-internal-active').empty();
-            $('.-papyro-internal-explored').empty();
+            $('.-papyro-internal-section').empty();
+        },
+
+    setExploreTerm:
+        function (term, explore) {
+            // What's the section's term?
+            var section_term = $.trim(term.toLowerCase());
+
+            // Remove duplicate section(s) if present
+            var section = $('.-papyro-internal-section').filter(function (i, div) {
+                if ($(div).data('term') == section_term) {
+                    if (i == 0) {
+                        return true; // The first occurrance that matches stays
+                    } else {
+                        $(div).remove(); // Duplicates need to be removed
+                    }
+                }
+                return false;
+            }).empty();
+
+            // If there are none at all, we need to create a section
+            if (section.length == 0) {
+                section = $('<div class="-papyro-internal-section"></div>');
+                section.data({'term': section_term});
+                $('#-papyro-internal-sections').append(section);
+            }
+
+            section.append(
+                $('<div class="-papyro-internal-legend"></div>').text(section_term)
+            ).append(
+                $('<div class="-papyro-internal-active"></div>')
+            ).append(
+                $('<div class="-papyro-internal-sub-legend"></div>').text('')
+            ).append(
+                $('<div class="-papyro-internal-explored"></div>')
+            );
+
+            if (explore) {
+                $(function () {
+                    window.control.explore(term);
+                });
+            }
+
+            return section;
         },
 
     setExploreTerms:
         // Remove all explore sections and set up new ones
-        function (terms) {
+        function (terms, explore) {
             $.each(terms, function (i, term) {
-                $('.-papyro-internal-explored').remove();
-                $('#-papyro-internal-papyro').append(
-                    $('<div class="-papyro-internal-explored"></div>').append(
-                        $('<div class="-papyro-internal-legend"></div>').append(
-                            $('<a href="#"></a>').text(term).on('click', function () {
-                                $(this).wrapInner('<span/>').children().unwrap();
-                                window.control.explore(term);
-                            })
-                        )
-                    )
-                );
+                utopia.setExploreTerm(term, explore);
             });
         },
 
@@ -372,21 +423,37 @@ var utopia = {
             result = obj.element = utopia.templates['result'].clone().get(0);
             utopia.result(result, obj);
 
-            // Insert it into the tree (at the top for defaultly open results)
+            // Generic sorting info
+            var section_term = '';
+            var is_explored = (obj.value('session:origin') == 'explore');
+            var semantic_term = obj.value('session:semanticTerm');
+
+            // Into which section should this be inserted?
             var section;
-            if (obj.value('session:origin') == 'explore') {
-                section = $('.-papyro-internal-explored').first();
-            } else {
-                section = utopia.elements['active'];
+            if (is_explored) {
+                section_term = $.trim(obj.value('session:exploredTerm').toLowerCase());
+            } else if (semantic_term) {
+                section_term = semantic_term.toLowerCase();
+            } else if (obj.context.term) {
+                section_term = obj.context.term.toLowerCase();
             }
-            subsequent = $('.-papyro-internal-result', section).filter(function (idx) {
+            section = $('.-papyro-internal-section').filter(function (i, div) {
+                return $(div).data('term') == section_term;
+            }).first();
+            if (section.length == 0) {
+                section = utopia.setExploreTerm(section_term, !is_explored);
+            }
+
+            // Into which container within the section should this be inserted?
+            var container = $('.-papyro-internal-'+(is_explored ? 'explored' : 'active'), section);
+            subsequent = $('.-papyro-internal-result', container).filter(function (idx) {
                 var candidate = utopia.result(this);
                 return (obj.headless || !candidate.headless) && (candidate.weight < obj.weight);
             });
             if (subsequent.length > 0) {
                 subsequent.first().before(result);
             } else {
-                section.append(result);
+                container.append(result);
             }
 
             // Connect content handler
@@ -457,10 +524,11 @@ var utopia = {
             // HACK to set the highlight colour
             if (obj.highlight) {
                 //alert(obj.highlight);
-                $('.-papyro-internal-header', result).css({'borderLeft': 'solid 4px ' + obj.highlight, 'paddingLeft': '6px'});
+                //$('.-papyro-internal-header', result).css({'borderLeft': 'solid 4px ' + obj.highlight, 'paddingLeft': '6px'});
             }
 
             if (obj.headless) {
+                $(result).addClass('headless');
                 $('.-papyro-internal-header', result).remove();
             }
         },
@@ -481,7 +549,6 @@ var utopia = {
                 var expandable = $(this);
                 var caption = $('<div class="caption"></div>');
 
-                caption.prepend($('<img src="qrc:/icons/expandable_arrow.png" width="10" height="10" class="arrow">'));
                 caption.append(expandable.attr('title'));
                 caption.on('click', function () {
                     expandable.trigger('papyro:expandable:toggle');
@@ -496,13 +563,11 @@ var utopia = {
                 }).on('papyro:expandable:expand', function () {
                     if (expandable.hasClass('collapsed')) {
                         expandable.removeClass('collapsed').addClass('expanded');
-                        expandable.find('> .caption img.arrow').rotate({ angle: 0, animateTo: 90, duration: 200 });
                         expandable.find('> .expansion').css({opacity: 0}).slideDown(100).animate({opacity: 1}, 100);
                     }
                 }).on('papyro:expandable:collapse', function () {
                     if (expandable.hasClass('expanded')) {
                         expandable.removeClass('expanded').addClass('collapsed');
-                        expandable.find('> .caption img.arrow').rotate({ angle: 90, animateTo: 0, duration: 200 });
                         expandable.find('> .expansion').animate({opacity: 0}, 100).slideUp(100);
                     }
                 });

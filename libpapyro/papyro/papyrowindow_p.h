@@ -129,7 +129,7 @@ namespace Papyro
     class AnnotationProcessor;
     class Decorator;
     class Dispatcher;
-    class DocumentSignalProxy;
+    class DocumentProxy;
     class HelpWidget;
     class Pager;
     class PapyroRecentUrlHelper;

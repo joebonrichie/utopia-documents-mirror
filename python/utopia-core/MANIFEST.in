@@ -1,0 +1,8 @@
+include LICENSE.md
+include README.md
+include utopia/tools/__init__.py
+include utopia/tools/converters/Annotation.py
+include utopia/tools/converters/Extent.py
+include utopia/tools/converters/PageBox.py
+include utopia/tools/converters/__init__.py
+include utopia/tools/utils.py

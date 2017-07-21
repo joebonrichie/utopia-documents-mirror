@@ -428,6 +428,45 @@ Papyro--Sliver QLabel
   min-height: 30px;
 }
 
+#lookup-search-box {
+  background: white;
+  border-top: 1px solid #eee;
+  min-height: 30px;
+  padding: 0;
+  margin: 0;
+}
+
+#lookup-search-box QLineEdit {
+  border: 1px solid #d8d8d8;
+  border-radius: 12px;
+  margin: 0;
+  padding: 1px 6px 1px 6px;
+  height: 20px;
+}
+
+#lookup-search-box QLineEdit:focus {
+  background: #f8f8f8;
+}
+
+#lookup-search-box QPushButton {
+  border: 1px solid #d8d8d8;
+  background-color: #f8f8f8;
+  margin: 0;
+  padding: 1px 6px;
+  border-top-right-radius: 11px;
+  border-bottom-right-radius: 11px;
+  border-left-width: 0;
+  height: 20px;
+  color: #666;
+}
+
+#lookup-search-box QPushButton:pressed {
+  background-color: #405D8D;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: #ccc;
+  color: #666;
+}
+
 Papyro--Sidebar QLabel {
   color: #444;
   margin: 4px 6px;

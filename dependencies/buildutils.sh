@@ -62,7 +62,7 @@
 source "VERSIONS"
 source "dependencies.env"
 
-function build_deps {
+function build_deps() {
     for d in $@; do
         USE="USE_SYSTEM_${d}"
         if [[ "${!USE}" = "OFF" ]]; then
@@ -71,4 +71,11 @@ function build_deps {
             echo "Skipping system dependency ${d}"
         fi
     done
+}
+
+function patch2() {
+    PATCH=`cat`
+    if (echo "$PATCH" | patch -N -p1 --quiet --dry-run 2> /dev/null); then
+        echo "$PATCH" | patch -N -p1
+    fi
 }

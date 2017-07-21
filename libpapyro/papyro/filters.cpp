@@ -208,9 +208,9 @@ namespace Athenaeum
 
     bool StarredFilter::accepts(const QModelIndex & index) const
     {
-        AbstractBibliography::ItemFlags flags =
-            index.data(AbstractBibliography::ItemFlagsRole).value< AbstractBibliography::ItemFlags >();
-        return flags & AbstractBibliography::StarredItemFlag;
+        Citation::Flags flags =
+            index.data(Citation::FlagsRole).value< Citation::Flags >();
+        return flags & Citation::StarredFlag;
     }
 
 

@@ -1,0 +1,69 @@
+<!--
+    
+     This file is part of the Utopia Documents application.
+         Copyright (c) 2008-2017 Lost Island Labs
+             <info@utopiadocs.com>
+     
+     Utopia Documents is free software: you can redistribute it and/or modify
+     it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+     published by the Free Software Foundation.
+     
+     Utopia Documents is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+     Public License for more details.
+     
+     In addition, as a special exception, the copyright holders give
+     permission to link the code of portions of this program with the OpenSSL
+     library under certain conditions as described in each individual source
+     file, and distribute linked combinations including the two.
+     
+     You must obey the GNU General Public License in all respects for all of
+     the code used other than OpenSSL. If you modify file(s) with this
+     exception, you may extend this exception to your version of the file(s),
+     but you are not obligated to do so. If you do not wish to do so, delete
+     this exception statement from your version.
+     
+     You should have received a copy of the GNU General Public License
+     along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+    
+-->
+
+<p>
+  Lazarus uncovers inter-connections buried in scientific literature by reading articles alongside you and identifying the most important concepts in the research presented.
+</p>
+<p>
+  <a href="http://utopiadocs.com/lazarus">Learn more about Lazarus...</a>
+</p>
+<p>
+  To help Lazarus achieve this goal, it needs permission from you to allow it to access the articles you read and learn what is important. All data collected is entirely anonymous.
+</p>
+
+<table>
+  <col class="minimum">
+  <col>
+  <tr>
+    <td><input name="permission" id="permission" type="checkbox" /></td>
+    <td><label for="permission">I agree to allow Lazarus, through Utopia Documents,
+	  to gather anonymous information about my reading experience.</label></td>
+  </tr>
+  <tr>
+    <td><input name="noprompt" id="noprompt" type="checkbox" /></td>
+    <td><label for="noprompt">Do not prompt me again.</label></td>
+  </tr>
+  <tr>
+    <td><input name="nowelcome" id="nowelcome" type="checkbox" /></td>
+    <td><label for="nowelcome">Do not show me a welcome window.</label></td>
+  </tr>
+</table>
+
+<script>
+$(function () {
+    $('#permission').on('change', function (event) {
+        $('#noprompt').prop('disabled', this.checked);
+        $('#noprompt').closest('tr').css('opacity', this.checked ? 0.3 : 1.0);
+        $('#nowelcome').prop('disabled', this.checked);
+        $('#nowelcome').closest('tr').css('opacity', this.checked ? 0.3 : 1.0);
+    });
+});
+</script>

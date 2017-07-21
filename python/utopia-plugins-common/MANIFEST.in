@@ -1,0 +1,15 @@
+include LICENSE.md
+include README.md
+include utopia/plugins/__init__.py
+include utopia/plugins/common/acs.py
+include utopia/plugins/common/arxiv.py
+include utopia/plugins/common/cited.py
+include utopia/plugins/common/crossref.py
+include utopia/plugins/common/html.py
+include utopia/plugins/common/ieee.py
+include utopia/plugins/common/kend.py
+include utopia/plugins/common/nature.py
+include utopia/plugins/common/pmc.py
+include utopia/plugins/common/pubmed.py
+include utopia/plugins/common/sciencedirect.py
+include utopia/plugins/common/wiley.py

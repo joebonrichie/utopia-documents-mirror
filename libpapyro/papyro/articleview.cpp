@@ -183,45 +183,6 @@ namespace Athenaeum
         emit articleActivated(index, false);
     }
 
-/*
-    void ArticleViewPrivate::activateArticle(const QModelIndex & index, Papyro::PapyroWindow * window)
-    {
-        // Choose this window by default
-        if (window == 0) {
-            window = qobject_cast< Papyro::PapyroWindow * >(view->window());
-        }
-
-        // Only bother trying to launch an idle article
-        AbstractBibliography::ItemState state = index.data(AbstractBibliography::ItemStateRole).value< AbstractBibliography::ItemState >();
-        if (state == AbstractBibliography::IdleItemState) {
-            if (CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >()) {
-                // It is the job of this method to do something useful and expected when a user
-                // activates (double-clicks) an article.
-                bool raise = ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0);
-
-                // If the record includes a local filename, launch that PDF file
-                QFileInfo objectFile(index.data(AbstractBibliography::ObjectFileRole).toUrl().toLocalFile());
-                if (objectFile.exists()) {
-                    window->open(objectFile.canonicalFilePath(), raise ? Papyro::PapyroWindow::ForegroundTab : Papyro::PapyroWindow::BackgroundTab);
-                } else {
-                    // If no local file is found, we must attempt to generate or find a URL with
-                    // which to search for the article. Sometimes such a URL is already provided
-                    // in the citation record. If not, we must fall back to some intelligent
-                    // guesswork
-                    QVariantMap metadata = citation->toMap();
-                    metadata["__index"] = QVariant::fromValue(index);
-                    metadata["__raise"] = raise;
-
-                    citation->setField(AbstractBibliography::ItemStateRole, QVariant::fromValue(AbstractBibliography::BusyItemState));
-
-                    QPointer< ResolverRunnable > runnable(ResolverRunnable::resolve(metadata, this, SLOT(onResolverRunnableCompleted(QVariantMap))));
-                    connect(this, SIGNAL(cancellationRequested()), runnable, SLOT(cancel()));
-                }
-            }
-        }
-    }
-*/
-
     void ArticleViewPrivate::cancelRunnables()
     {
         emit cancellationRequested();
@@ -232,25 +193,36 @@ namespace Athenaeum
         bool raise = metadata.value("__raise").toBool();
         QModelIndex index = metadata.value("__index").value< QModelIndex >();
 
-        view->model()->setData(index, AbstractBibliography::IdleItemState, AbstractBibliography::ItemStateRole);
+        view->model()->setData(index, AbstractBibliography::IdleState, Citation::StateRole);
 
         emit articleActivated(index, raise);
     }
 
+    QModelIndexList ArticleViewPrivate::selectedIndexes() const
+    {
+        QModelIndexList indexes;
+        foreach (QModelIndex index, view->selectionModel()->selectedIndexes()) {
+            if (index.column() == 0) {
+                indexes << index;
+            }
+        }
+        return indexes;
+    }
+
     void ArticleViewPrivate::openSelectedArticles()
     {
-        emit articlesActivated(view->selectionModel()->selectedIndexes(), false);
+        emit articlesActivated(selectedIndexes(), false);
     }
 
     void ArticleViewPrivate::openSelectedArticlesInNewWindow()
     {
-        emit articlesActivated(view->selectionModel()->selectedIndexes(), true);
+        emit articlesActivated(selectedIndexes(), true);
     }
 
     void ArticleViewPrivate::removeSelectedArticlesFromLibrary()
     {
         // Get all the articles doomed for deletion
-        QModelIndexList doomed = view->selectionModel()->selectedIndexes();
+        QModelIndexList doomed = selectedIndexes();
         if (doomed.isEmpty()) {
             QMessageBox::information(view, "Oops...",
                                      "There are no articles selected, so nothing"
@@ -264,7 +236,7 @@ namespace Athenaeum
         // Do any have related PDF files?
         size_t pdfsFound = 0;
         foreach (const QModelIndex & index, doomed) {
-            QUrl path(index.data(AbstractBibliography::ObjectFileRole).toUrl());
+            QUrl path(index.data(Citation::ObjectFileRole).toUrl());
             if (path.isLocalFile()) {
                 QFileInfo info(path.toLocalFile());
                 if (info.exists()) {
@@ -302,10 +274,10 @@ namespace Athenaeum
         if (box.result() == QDialog::Accepted) {
             bool unlink = unlinkCheck && unlinkCheck->isChecked();
             foreach (const QModelIndex & index, doomed) {
-                CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >();
-                citation->setField(AbstractBibliography::DateImportedRole, QVariant());
+                CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >();
+                citation->setField(Citation::DateImportedRole, QVariant());
                 if (unlink) {
-                    QUrl path(index.data(AbstractBibliography::ObjectFileRole).toUrl());
+                    QUrl path(index.data(Citation::ObjectFileRole).toUrl());
                     if (path.isLocalFile()) {
                         QFile file(path.toLocalFile());
                         if (file.exists()) {
@@ -315,7 +287,7 @@ namespace Athenaeum
                     }
                 }
                 Athenaeum::Bibliography * master = libraryModel->master();
-                citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QVariant());
+                citation->setField(Athenaeum::Citation::DateImportedRole, QVariant());
                 master->removeItem(citation);
             }
         }
@@ -324,8 +296,8 @@ namespace Athenaeum
     void ArticleViewPrivate::saveSelectedArticlesToLibrary()
     {
         QVector< CitationHandle > toBeAdded;
-        foreach (QModelIndex index, view->selectionModel()->selectedIndexes()) {
-            if (CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >()) {
+        foreach (QModelIndex index, selectedIndexes()) {
+            if (CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >()) {
                 if (!citation->isKnown()) {
                     toBeAdded << citation;
                 }
@@ -335,7 +307,7 @@ namespace Athenaeum
             // Add to library
             Bibliography * master = libraryModel->master();
             foreach (CitationHandle citation, toBeAdded) {
-                citation->setField(AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
+                citation->setField(Citation::DateImportedRole, QDateTime::currentDateTime());
             }
             master->prependItems(toBeAdded);
         }
@@ -388,7 +360,7 @@ namespace Athenaeum
             int count_known = 0;
             int count_starred = 0;
             foreach (QModelIndex index, selectionModel()->selectedIndexes()) {
-                CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >();
+                CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >();
                 if (citation->isKnown()) { ++count_known; }
                 if (citation->isStarred()) { ++count_starred; }
             }
@@ -436,11 +408,11 @@ namespace Athenaeum
     {
         QListView::dataChanged(topLeft, bottomRight, roles);
 
-        if (roles.isEmpty() || roles.contains(AbstractBibliography::ItemFlagsRole)) {
+        if (roles.isEmpty() || roles.contains(Citation::FlagsRole)) {
             for (int row = topLeft.row(); row <= bottomRight.row(); ++row) {
                 for (int column = topLeft.column(); column <= bottomRight.column(); ++column) {
                     QModelIndex index(topLeft.sibling(row, column));
-                    CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >();
+                    CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >();
                     if (citation) {
                         bool isStarred = citation->isStarred();
                         bool isKnown = citation->isKnown();
@@ -454,11 +426,11 @@ namespace Athenaeum
                 }
             }
         }
-        if (roles.isEmpty() || roles.contains(AbstractBibliography::ItemStateRole)) {
+        if (roles.isEmpty() || roles.contains(Citation::StateRole)) {
             bool isBusy = false;
             for (int row = 0; row < model()->rowCount(); ++row) {
                 QModelIndex index(model()->index(row, 0));
-                CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >();
+                CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >();
                 if (citation && citation->isBusy()) {
                     isBusy = true;
                     break;

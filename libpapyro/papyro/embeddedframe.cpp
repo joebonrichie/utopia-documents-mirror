@@ -29,6 +29,7 @@
  *  
  *****************************************************************************/
 
+#include <papyro/embeddedpane.h>
 #include <papyro/embeddedframe.h>
 #include <papyro/embeddedframe_p.h>
 #include <papyro/embeddedpanefactory.h>
@@ -59,6 +60,7 @@ namespace Papyro
         bool hover;
         bool awaitingUnhover;
         QTimer unhoverTimer;
+        bool embeddable;
 
         // Visualisation Widgets
         QList< QString > panes;
@@ -82,6 +84,7 @@ namespace Papyro
         d->bounds = bounds;
         d->hover = false;
         d->awaitingUnhover = false;
+        d->embeddable = true;
         d->unhoverTimer.setInterval(800);
         d->unhoverTimer.setSingleShot(true);
         connect(&d->unhoverTimer, SIGNAL(timeout()), this, SLOT(hideControls()));
@@ -232,11 +235,18 @@ namespace Papyro
         }
     }
 
+    void EmbeddedFrame::mouseReleaseEvent(QMouseEvent * event)
+    {
+        if (!d->embeddable) {
+            launchPane(0);
+        }
+        event->ignore();
+    }
+
     void EmbeddedFrame::remask()
     {
         QRegion mask;
-        if (d->hover)
-        {
+        if (d->embeddable && d->hover) {
             mask += d->controls->geometry();
         }
         mask += QRect(0, 0, width(), height() - d->controls->height());
@@ -331,6 +341,7 @@ namespace Papyro
         if (panes.size() > 0)
         {
             frame = new EmbeddedFrame(annotation, bounds, parent);
+            EmbeddedPane * pane = 0;
 
             int idx = 0;
             QMapIterator< QString, QPair< QWidget *, QWidget * > > i(panes);
@@ -341,6 +352,19 @@ namespace Papyro
                 frame->d->widgets.append(i.value().second);
                 frame->d->panes.append(i.key());
                 ++idx;
+
+                pane = qobject_cast< EmbeddedPane * >(i.value().first);
+
+                // HACK to stop multiple panes
+                break;
+            }
+
+            std::string embeddable(annotation->getFirstProperty("property:embeddable"));
+
+            if (pane && embeddable == "no") {
+                pane->setInteractionFlags(pane->interactionFlags() & ~EmbeddedPane::Embeddable);
+                frame->setCursor(Qt::PointingHandCursor);
+                frame->d->embeddable = false;
             }
 
             QWidget * spacer = new QWidget(frame);

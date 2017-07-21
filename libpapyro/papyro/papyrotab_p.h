@@ -77,7 +77,7 @@ namespace Papyro
     class AnnotationProcessor;
     class Dispatcher;
     class DocumentView;
-    class DocumentSignalProxy;
+    class DocumentProxy;
     class PageView;
     class Pager;
     class SearchBar;
@@ -192,7 +192,7 @@ namespace Papyro
 
         // Management of the document
         boost::shared_ptr< DocumentManager > documentManager;
-        DocumentSignalProxy * documentSignalProxy;
+        DocumentProxy * documentProxy;
         boost::shared_ptr< Athenaeum::LibraryModel > libraryModel;
 
         // Management of the flow browser
@@ -282,13 +282,12 @@ namespace Papyro
         void onDocumentAreaSelectionChanged(const std::string & name, const Spine::AreaSet & extents, bool added);
         void onDocumentProcessingFinished();
         void onDocumentTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added);
-        void onDocumentViewAnnotationsActivated(Spine::AnnotationSet annotations, const QPoint & globalPos);
+        void onDocumentViewAnnotationsActivated(Spine::AnnotationSet annotations, const QVariantMap & context);
         void onDocumentViewContextMenu(QMenu * menu, Spine::DocumentHandle document, Spine::CursorHandle cursor);
         //void onDocumentViewManageSelection(Spine::TextSelection selection, bool expand = false);
         //void onDocumentViewManageSelection(Spine::AreaSet areas);
         void onDocumentViewPageFocusChanged(size_t pageNumber);
         void onDocumentViewSpotlightsHidden();
-        void onDocumentViewVisualiseAnnotationsAt(int page, double x, double y);
         void onFilterFinished();
         void onImageBrowserEmptinessChanged(bool empty);
         void onLookupOverride();
@@ -309,7 +308,7 @@ namespace Papyro
         void showImageBrowser(bool show);
         void showSidebar(bool show);
         void showLookupBar(bool show);
-        void visualiseAnnotations(Spine::AnnotationSet annotations);
+        void visualiseAnnotations(Spine::AnnotationSet annotations, const QVariantMap & context);
 
     protected:
         bool eventFilter(QObject * obj, QEvent * event);

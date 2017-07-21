@@ -238,13 +238,13 @@ namespace Utopia
 #error Platform not supported
 #endif
 
-                    QDateTime lastUpdated = QDateTime::fromString(latest.attribute("lastUpdated"), Qt::ISODate);
 
                     // Get each component variant and choose the one that matches this version
                     for (QDomElement component = latest.firstChildElement("component"); !component.isNull(); component = component.nextSiblingElement("component")) {
                         // Only accept the required id
                         if (component.attribute("id") == id) {
                             QString componentName = component.firstChildElement("name").text();
+                            QDateTime lastUpdated = QDateTime::fromString(component.attribute("lastUpdated"), Qt::ISODate);
                             for (QDomElement variant = component.firstChildElement("variant"); !variant.isNull(); variant = variant.nextSiblingElement("variant")) {
                                 // Only deal with matching variants
                                 if (variant.attribute("platforms").split(" ", QString::SkipEmptyParts).contains(platform)) {
@@ -252,11 +252,11 @@ namespace Utopia
                                     QString version = this->_version = variant.firstChildElement("version").text();
                                     QString url = variant.firstChildElement("url").text();
 
-                                    if (settings.contains("Software Update/lastUpdated")) {
-                                        lastUpdated = settings.value("Software Update/lastUpdated").toDateTime();
-                                    }
+                                    //if (settings.contains("Software Update/lastUpdated")) {
+                                    //    lastUpdated = settings.value("Software Update/lastUpdated").toDateTime();
+                                    //}
 
-                                    if (lastUpdated.isValid() && !componentName.isEmpty() && !version.isEmpty() && !url.isEmpty()) {
+                                    if (!componentName.isEmpty() && !version.isEmpty() && !url.isEmpty()) {
                                         if (lessThan(this->_currentVersion, version) && version != settings.value("Software Update/skipVersion").toString()) { // Check if there is something pending
                                             this->_status = update_pending;
                                             QString msg("<p>An update of this software is available (v"+version+").</p>");

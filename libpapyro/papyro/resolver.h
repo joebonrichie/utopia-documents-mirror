@@ -40,7 +40,7 @@
 #endif
 
 #include <QStringList>
-#include <QVariantMap>
+#include <QVariantList>
 
 class QIODevice;
 
@@ -64,7 +64,7 @@ namespace Athenaeum
         typedef Resolver API;
         virtual ~Resolver() {}
 
-        virtual QVariantMap resolve(const QVariantMap & metadata, Spine::DocumentHandle document = Spine::DocumentHandle()) = 0;
+        virtual QVariantList resolve(const QVariantList & citations, Spine::DocumentHandle document = Spine::DocumentHandle()) = 0;
 
         virtual std::string title() = 0;
         virtual int weight() = 0;

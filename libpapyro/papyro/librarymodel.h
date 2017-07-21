@@ -58,7 +58,7 @@ namespace Athenaeum
 
     public:
         // Roles for the various data of the model
-        enum Roles {
+        enum Role {
             // Roles
             ModelRole = Qt::UserRole,
             TitleRole,
@@ -67,7 +67,7 @@ namespace Athenaeum
             UnreadItemCountRole,
             ImportantItemCountRole,
             CanFetchMoreRole
-        }; // enum Roles
+        }; // enum Role
 
         // Destructor
         virtual ~LibraryModel();

@@ -48,7 +48,7 @@ namespace Papyro
     class AnnotationResultItem : public ResultItem
     {
     public:
-        AnnotationResultItem(Spine::AnnotationHandle annotation);
+        AnnotationResultItem(Spine::AnnotationHandle annotation, const QVariantMap & context = QVariantMap());
         ~AnnotationResultItem();
 
         QString title() const;

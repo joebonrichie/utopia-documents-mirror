@@ -1,0 +1,29 @@
+python-crackle (1.0-1utopia4) UNRELEASED; urgency=low
+
+  * Updated to use libssl
+
+ -- James Marsh <james.marsh@manchester.ac.uk>  Fri, 18 Jan 2013 18:53:23 +0000
+
+python-crackle (1.0-1ubuntu3) karmic; urgency=low
+
+  * Added image extraction example
+
+ -- James Marsh <james.marsh@manchester.ac.uk>  Wed, 09 Jun 2010 16:44:34 +0100
+
+python-crackle (1.0-1ubuntu2) karmic; urgency=low
+
+  * Added alternative dependencies for satisfying boost on hardy
+
+ -- James Marsh <james.marsh@manchester.ac.uk>  Tue, 16 Feb 2010 18:24:47 +0000
+
+python-crackle (1.0-1ubuntu1) karmic; urgency=low
+
+  * Updated dependency information
+
+ -- James Marsh <james.marsh@manchester.ac.uk>  Tue, 16 Feb 2010 17:02:43 +0000
+
+python-crackle (1.0-1) unstable; urgency=low
+
+  * Initial release
+
+ -- James Marsh <james.marsh@manchester.ac.uk>  Tue, 16 Feb 2010 16:10:02 +0000

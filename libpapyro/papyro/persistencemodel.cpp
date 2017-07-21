@@ -352,9 +352,9 @@ namespace Athenaeum
                     while (iter.hasNext()) {
                         CitationHandle item = iter.next();
                         if (!incremental || item->isDirty()) {
-                            dirty[item->field(AbstractBibliography::KeyRole).toString().mid(0, 2)].append(item);
+                            dirty[item->field(Citation::KeyRole).toString().mid(0, 2)].append(item);
                         } else {
-                            clean.insert(item->field(AbstractBibliography::KeyRole).toString().mid(0, 2));
+                            clean.insert(item->field(Citation::KeyRole).toString().mid(0, 2));
                         }
                     }
                     clean.subtract(dirty.keys().toSet());
@@ -627,7 +627,7 @@ namespace Athenaeum
                         QVectorIterator< CitationHandle > iter(collection->items());
                         while (iter.hasNext()) {
                             CitationHandle item = iter.next();
-                            QString key = item->field(AbstractBibliography::KeyRole).toString() + "\n";
+                            QString key = item->field(Citation::KeyRole).toString() + "\n";
                             dataFile.write(key.toUtf8());
                         }
                         dataFile.close();

@@ -43,6 +43,7 @@ namespace Papyro
     class EmbeddedPane : public QWidget
     {
         Q_OBJECT
+        Q_ENUMS(Status)
 
     public:
         // What is the current status of this pane
@@ -57,7 +58,6 @@ namespace Papyro
             LoadError,
             Active
         };
-        Q_ENUM(Status);
 
         // What sort of actions are allowed on this pane?
         enum InteractionFlag {
@@ -75,6 +75,7 @@ namespace Papyro
         QString error() const;
         InteractionFlags interactionFlags() const;
         void setData(const QVariant & data);
+        void setInteractionFlags(InteractionFlags flags);
         Status status() const;
 
     protected slots:

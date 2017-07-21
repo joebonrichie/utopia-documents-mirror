@@ -42,19 +42,9 @@
 
 #include <cmath>
 
-#include <QBuffer>
-#include <QEventLoop>
-#include <QMouseEvent>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
 #include <QPainter>
-#include <QPen>
-#include <QPointer>
-#include <QRunnable>
-#include <QThreadPool>
-#include <QTime>
-#include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -66,7 +56,7 @@ class MoleculesPane : public Papyro::EmbeddedPane
 
 public:
     MoleculesPane(QString code, QWidget * parent = 0)
-        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::Launchable, parent), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::DefaultFlags, parent), _webView(0)
     {
         init();
         QVariantMap map;
@@ -75,7 +65,7 @@ public:
     }
 
     MoleculesPane(QByteArray bytes, QWidget * parent = 0)
-        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::Launchable, parent), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::DefaultFlags, parent), _webView(0)
     {
         init();
         QVariantMap map;
@@ -84,7 +74,7 @@ public:
     }
 
     MoleculesPane(QUrl url, QWidget * parent = 0)
-        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::Launchable, parent), _webView(0), _progress(-1.0), _retryHover(false), _retryPressed(false)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::DefaultFlags, parent), _webView(0)
     {
         init();
         QVariantMap map;
@@ -98,16 +88,9 @@ public:
         _layout->setContentsMargins(0, 0, 0, 0);
         _layout->setSpacing(0);
 
-        // QNetworkAccessManager stuff for getting update information
-        _checker.setInterval(1000);
-        connect(&_checker, SIGNAL(timeout()), this, SLOT(check()));
-
         // Widget stuff
         setMouseTracking(true);
-        resize(400, 400);
-
-        // Start download
-        restart();
+        setFixedSize(400, 400);
     }
 
     virtual ~MoleculesPane()
@@ -130,26 +113,11 @@ public slots:
         _webView->page()->mainFrame()->evaluateJavaScript(command);
     }
 
-protected slots:
-    void abort()
-    {
-        // Abort because of timeout
-        _reply->abort();
-        _checker.stop();
-    }
-
-    void check()
-    {
-        if (_lastUpdate.elapsed() > 15000)
-        {
-            abort();
-        }
-    }
-
 protected:
     void download()
     {
-#if 0 // Skip this code, as it's duplicated inside the Javascript
+        // Skip this code, as it's duplicated inside the Javascript
+#if 0
         QVariantMap conf(data().toMap());
         // Don't bother with the download step if we already have the data
         if (!conf.contains("bytes")) {
@@ -203,177 +171,9 @@ protected:
         return map;
     }
 
-    void restart()
-    {
-        if (isVisible()) {
-            load();
-        }
-    }
-
-protected:
-    QRect retryButtonGeometry()
-    {
-        int radius = 20;
-        QRect spinnerRect(0, 0, 2*radius, 2*radius);
-        spinnerRect.moveCenter(rect().center() + QPoint(0, -11) + QPoint(-1, -1));
-        QRect messageRect(0, spinnerRect.bottom() + 10, width(), 12);
-        QString text("Retry");
-        int textWidth = fontMetrics().width(text);
-        int textHeight = fontMetrics().height();
-        QRect retryRect(0, 0, 12 + 6 + textWidth, qMin(12, textHeight));
-        retryRect.moveCenter(rect().center());
-        retryRect.moveTop(messageRect.bottom() + 20);
-        return retryRect;
-    }
-
-    void mouseMoveEvent(QMouseEvent * event)
-    {
-        bool old = _retryHover;
-        _retryHover = retryButtonGeometry().contains(event->pos());
-        if (old != _retryHover)
-        {
-            update();
-        }
-    }
-
-    void mousePressEvent(QMouseEvent * event)
-    {
-        bool old = _retryPressed;
-        _retryPressed = event->buttons(); // & Qt::LeftButton && retryButtonGeometry().contains(event->pos());
-        if (old != _retryPressed)
-        {
-            update();
-        }
-    }
-
-    void mouseReleaseEvent(QMouseEvent * event)
-    {
-        bool old = _retryPressed;
-        _retryPressed = false;
-        if (old) // && retryButtonGeometry().contains(event->pos()))
-        {
-            _retries = 3;
-            restart();
-        }
-        else if (old != _retryPressed)
-        {
-            update();
-        }
-    }
-
-    void paintEvent(QPaintEvent * event)
-    {
-        if (_webView != 0) return;
-
-        QString message;
-        int radius = 20;
-
-        QPainter p(this);
-        p.setRenderHint(QPainter::Antialiasing);
-        p.setRenderHint(QPainter::TextAntialiasing);
-
-        // Background
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(230, 230, 230));
-        p.drawRect(rect());
-        p.setPen(QColor(140, 140, 140));
-
-        // Spinner
-        QRect spinnerRect(0, 0, 2*radius, 2*radius);
-        spinnerRect.moveCenter(rect().center() + QPoint(0, -11) + QPoint(-1, -1));
-        if (!_errorMessage.isEmpty())
-        {
-            message = _errorMessage;
-
-            QPen pen(p.pen());
-            pen.setColor(QColor(180, 140, 140));
-            pen.setWidth(4.0);
-            p.setBrush(Qt::NoBrush);
-            p.setPen(pen);
-            p.drawEllipse(spinnerRect);
-            QRect lineRect(0, 0, 2*radius/sqrt(2), 2*radius/sqrt(2));
-            lineRect.moveCenter(rect().center() + QPoint(0, -11));
-            p.drawLine(lineRect.bottomLeft(), lineRect.topRight());
-
-            // Retry!
-            QRect retryRect = retryButtonGeometry();
-            if (_retryHover || _retryPressed)
-            {
-                pen = p.pen();
-                pen.setWidth(1.0);
-                if (_retryPressed)
-                {
-                    p.setBrush(QColor(230, 200, 200));
-                }
-                else
-                {
-                    p.setBrush(Qt::NoBrush);
-                }
-                p.setPen(pen);
-                p.drawRect(retryRect.adjusted(-3, -3, 3, 3));
-            }
-            p.drawText(retryRect.adjusted(12 + 6, 0, 0, 0), Qt::AlignVCenter, "Retry");
-            pen = p.pen();
-            pen.setWidth(2.0);
-            p.setBrush(Qt::NoBrush);
-            p.setPen(pen);
-            QRect iconRect(retryRect.topLeft(), QSize(12, 12));
-            p.drawArc(iconRect, 16*90.0, -16*135.0);
-            p.drawLine((iconRect.left() + iconRect.right()) / 2, iconRect.top(), 2 + (iconRect.left() + iconRect.right()) / 2, 2 + iconRect.top());
-            p.drawArc(iconRect, 16*270.0, -16*135.0);
-            p.drawLine((iconRect.left() + iconRect.right()) / 2, iconRect.bottom(), -1 + (iconRect.left() + iconRect.right()) / 2, -1 + iconRect.bottom());
-        }
-        else if (_progress >= 0 && _progress < 1.0)
-        {
-            message = "Downloading data...";
-            QPen pen(p.pen());
-            pen.setWidth(1.0);
-            p.setPen(pen);
-            p.setBrush(QColor(140, 140, 140));
-            p.drawPie(spinnerRect, 16*90.0, -16*360.0*_progress);
-            p.setBrush(Qt::NoBrush);
-            p.drawEllipse(spinnerRect);
-        }
-        else if (_progress == 1.0 || _progress == -1.0)
-        {
-            message = _progress == 1.0 ? "Parsing data..." : "Downloading data...";
-            int startAngle = _started.elapsed() * 5;
-            int spanAngle = 120*16*2;
-            QPen pen(p.pen());
-            pen.setWidth(4.0);
-            p.setBrush(Qt::NoBrush);
-            p.setPen(pen);
-            p.drawArc(spinnerRect.adjusted(2, 2, -2, -2), -startAngle, spanAngle);
-            QTimer::singleShot(40, this, SLOT(update()));
-        }
-        else
-        {
-            message = "Initialising visualisation...";
-        }
-
-        QRect messageRect(0, spinnerRect.bottom() + 10, width(), 12);
-        p.drawText(messageRect, Qt::AlignCenter, message);
-    }
-
 private:
-    QString _code;
-    QByteArray _pdbFile;
-    QUrl _url;
-    QString _errorMessage;
     QVBoxLayout * _layout;
     Utopia::WebView * _webView;
-
-    QTimer _checker;
-    QPointer< QNetworkReply > _reply;
-    QByteArray _replyData;
-    double _progress;
-    QTime _lastUpdate;
-    QTime _started;
-    bool _retryHover;
-    bool _retryPressed;
-    bool _downloaded;
-    int _retries;
-    int _redirects;
 };
 
 class MoleculesPaneFactory : public Papyro::EmbeddedPaneFactory

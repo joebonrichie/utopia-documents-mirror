@@ -29,33 +29,24 @@
 #   
 ###############################################################################
 
-
-add_subdirectory( scripts )
-add_subdirectory( spine )
-add_subdirectory( utopia )
-add_subdirectory( utopiabridge )
-add_subdirectory( utopialib )
+# Ensure cmake-controlled Python packages are compiled
+add_subdirectory(spine)
+add_subdirectory(utopiabridge)
 
 project(utopia2-python)
 
 set(SOURCES
     conversion.cpp
     interpreter.cpp
-    python.cpp
-    )
+    python.cpp)
 
-include_directories(
-  ${PROJECT_BINARY_DIR}
-  ${athenaeum_INCLUDE_DIR}
-  ${papyro_INCLUDE_DIR}
-  ${spine_INCLUDE_DIR}
-  ${PYTHON_INCLUDE_PATH}
-  ${utopia2_qt_INCLUDE_DIR}
-  )
+include_directories(${PROJECT_BINARY_DIR}
+                    ${athenaeum_INCLUDE_DIR}
+                    ${papyro_INCLUDE_DIR}
+                    ${spine_INCLUDE_DIR}
+                    ${PYTHON_INCLUDE_PATH}
+                    ${utopia2_qt_INCLUDE_DIR})
 
-if(NOT USE_SYSTEM_Python OR WIN32)
-  add_definitions(-DREMAP_BUNDLED_PYTHON=1)
-endif()
 add_definitions("-DPYTHON_VERSION=\"${PYTHON_VERSION}\"")
 
 if(UTOPIA_BUILD_DOCUMENTS)
@@ -66,33 +57,8 @@ if(UTOPIA_BUILD_LIBRARY)
 endif()
 
 SET(SWIG_RUNTIME "${PROJECT_BINARY_DIR}/swigruntime.h")
-ADD_CUSTOM_COMMAND(
-    OUTPUT ${SWIG_RUNTIME}
-    COMMAND ${SWIG_EXECUTABLE} -python -external-runtime ${SWIG_RUNTIME}
-    )
-
-file(GLOB_RECURSE KEND_SCRIPTS RELATIVE "${CMAKE_SOURCE_DIR}/server/kend/0.7/kend/" "${CMAKE_SOURCE_DIR}/server/kend/0.7/kend/kend/*.py")
-foreach(SCRIPT ${KEND_SCRIPTS})
-  configure_file(${CMAKE_SOURCE_DIR}/server/kend/0.7/kend/${SCRIPT} "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/${SCRIPT}" COPYONLY)
-endforeach()
-file(GLOB_RECURSE AUTHD_SCRIPTS RELATIVE "${CMAKE_SOURCE_DIR}/server/authd/0.3/authd/" "${CMAKE_SOURCE_DIR}/server/authd/0.3/authd/authd/*.py")
-foreach(SCRIPT ${AUTHD_SCRIPTS})
-  configure_file(${CMAKE_SOURCE_DIR}/server/authd/0.3/authd/${SCRIPT} "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/${SCRIPT}" COPYONLY)
-endforeach()
-file(GLOB_RECURSE CODA_SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_SOURCE_DIR}/coda_network/*.py")
-foreach(SCRIPT ${CODA_SCRIPTS})
-  configure_file(${SCRIPT} "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/${SCRIPT}" COPYONLY)
-endforeach()
-install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/kend"
-        DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/"
-        COMPONENT "${COMPONENT}"
-        PATTERN "*.pyc" EXCLUDE
-        PATTERN "*.pyo" EXCLUDE)
-install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/coda_network"
-        DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/"
-        COMPONENT "${COMPONENT}"
-        PATTERN "*.pyc" EXCLUDE
-        PATTERN "*.pyo" EXCLUDE)
+ADD_CUSTOM_COMMAND(OUTPUT ${SWIG_RUNTIME}
+                   COMMAND ${SWIG_EXECUTABLE} -python -external-runtime ${SWIG_RUNTIME})
 
 add_utopia_plugin(${PROJECT_NAME} MODULE ${SWIG_RUNTIME} ${SOURCES})
 
@@ -103,3 +69,86 @@ if(UTOPIA_BUILD_DOCUMENTS)
 endif()
 
 install_utopia_plugin(${PROJECT_NAME} ${COMPONENT})
+
+
+###############################################################################
+## Make sure that the coda_network replacement of urllib2 is correctly copied
+## from the source directory into the build directory
+
+file(GLOB_RECURSE CODA_PTH RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_SOURCE_DIR}/coda_network.pth")
+file(GLOB_RECURSE CODA_SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_SOURCE_DIR}/coda_network/*.py")
+foreach(SCRIPT ${CODA_PTH} ${CODA_SCRIPTS})
+  configure_file(${SCRIPT} "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/${SCRIPT}" COPYONLY)
+endforeach()
+
+
+###############################################################################
+## Make sure that Python dependencies are correctly copied from the build
+## environment into the build directory. On Linux, this isn't necessary, as
+## those dependencies should already be install.
+
+if(NOT OS_LINUX)
+  file(GLOB_RECURSE PTH_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.pth")
+  file(GLOB_RECURSE EGG_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.egg")
+  file(GLOB_RECURSE PY_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.py")
+  file(GLOB_RECURSE SO_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/*.so")
+  file(GLOB_RECURSE DLL_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}" "${PYTHON_LIB_ROOT}/*.dll")
+  file(GLOB_RECURSE PYD_SCRIPTS RELATIVE "${PYTHON_LIB_ROOT}" "${PYTHON_LIB_ROOT}/*.pyd")
+  file(GLOB_RECURSE MAKEFILE RELATIVE "${PYTHON_LIB_ROOT}/" "${PYTHON_LIB_ROOT}/Makefile")
+
+  foreach(SCRIPT ${EGG_SCRIPTS} ${PTH_SCRIPTS} ${PY_SCRIPTS} ${SO_SCRIPTS} ${MAKEFILE} ${PYD_SCRIPTS} ${DLL_SCRIPTS})
+    configure_file("${PYTHON_LIB_ROOT}/${SCRIPT}" "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/${SCRIPT}" COPYONLY)
+  endforeach()
+endif()
+
+
+###############################################################################
+## Compile/install our Python packages
+
+set(PYTHON_SITEPACKAGES_PATH "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages")
+file(MAKE_DIRECTORY "${PYTHON_SITEPACKAGES_PATH}")
+set(ENV{PYTHONPATH} "${PYTHON_SITEPACKAGES_PATH}")
+
+set(PYPACKAGES
+    authd
+    utopia-core
+    utopia-plugins-core)
+
+if(NOT UTOPIA_SKIP_PUBLIC_PYTHON_PACKAGES)
+  list(APPEND PYPACKAGES
+    kend
+    utopia
+    utopia-plugins-common
+    utopia-tools)
+endif(NOT UTOPIA_SKIP_PUBLIC_PYTHON_PACKAGES)
+
+if(NOT USE_SYSTEM_Python)
+  set(EASY_INSTALL "${PYTHON_BIN_ROOT}/bin/easy_install")
+  set(EASY_INSTALL_ARGS "")
+elseif(WIN32)
+  set(EASY_INSTALL "${PYTHON_BIN_ROOT}/easy_install.exe")
+  set(EASY_INSTALL_ARGS "-N")
+else()
+  set(EASY_INSTALL "/usr/bin/easy_install")
+  set(EASY_INSTALL_ARGS "-N")
+endif()
+
+foreach(PYPACKAGE ${PYPACKAGES})
+  execute_process(COMMAND ${EASY_INSTALL} ${EASY_INSTALL_ARGS} --install-dir "${PYTHON_SITEPACKAGES_PATH}" . WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/python/${PYPACKAGE}/)
+endforeach()
+
+###############################################################################
+## On Linux, make sure collected site-packages are installed. On Windows and
+## Apple, the entire Python library needs to be installed.
+
+if(OS_APPLE OR OS_WINDOWS)
+  set(PYTHON_INSTALL_TARGET "lib/python${PYTHON_VERSION}")
+elseif(OS_LINUX)
+  set(PYTHON_INSTALL_TARGET "lib/python${PYTHON_VERSION}/site-packages")
+endif()
+
+install(DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/${PYTHON_INSTALL_TARGET}/"
+        DESTINATION "${PYTHON_INSTALL_DIR}/${PYTHON_INSTALL_TARGET}"
+        COMPONENT "${COMPONENT}"
+        PATTERN "*.pyc" EXCLUDE
+        PATTERN "*.pyo" EXCLUDE)

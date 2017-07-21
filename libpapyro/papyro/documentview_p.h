@@ -35,7 +35,7 @@
 #include <papyro/config.h>
 #include <papyro/overlayrenderer.h>
 #include <papyro/overlayrenderermapper.h>
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 #include <papyro/documentview.h>
 #include <papyro/pageview.h>
 
@@ -155,7 +155,7 @@ namespace Papyro
         // Document View
         DocumentView * documentView;
         Spine::DocumentHandle document;
-        boost::scoped_ptr< DocumentSignalProxy > documentSignalProxy;
+        boost::scoped_ptr< DocumentProxy > documentProxy;
 
         // Which annotation / part there-of is currently being focused on by the user
         struct {
@@ -383,7 +383,7 @@ namespace Papyro
         void onDocumentTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added);
 
     signals:
-        void annotationsActivated(Spine::AnnotationSet annotations, const QPoint & globalPos);
+        void annotationsActivated(Spine::AnnotationSet annotations, const QVariantMap & context);
         void focusChanged(PageView * pageView, const QPointF & pagePos);
         void pageFocusChanged(size_t pageNumber);
         void selectionChanged(Spine::TextSelection selection);

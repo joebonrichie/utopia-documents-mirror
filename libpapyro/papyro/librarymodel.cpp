@@ -185,16 +185,16 @@ namespace Athenaeum
         // If resolution has just happened, rename the object file
         if (sender() == master) {
             // Deal with object file in case its name has changed
-            if (roles.isEmpty() || roles.contains(AbstractBibliography::DateResolvedRole)) {
+            if (roles.isEmpty() || roles.contains(Citation::DateResolvedRole)) {
                 for (int row = from.row(); row <= to.row(); ++row) {
                     QModelIndex index = master->index(row, 0);
-                    CitationHandle citation = index.data(AbstractBibliography::ItemRole).value< CitationHandle >();
-                    QUrl oldObjectPath(citation->field(AbstractBibliography::ObjectFileRole).toUrl());
+                    CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >();
+                    QUrl oldObjectPath(citation->field(Citation::ObjectFileRole).toUrl());
                     QString newObjectPath(m->getObjectFilePath(citation));
                     if (oldObjectPath.isValid() && oldObjectPath.toLocalFile() != newObjectPath) {
                         // Move the file and update the object path
                         if (QFile::rename(oldObjectPath.toLocalFile(), newObjectPath)) {
-                            citation->setField(AbstractBibliography::ObjectFileRole, QUrl::fromLocalFile(newObjectPath));
+                            citation->setField(Citation::ObjectFileRole, QUrl::fromLocalFile(newObjectPath));
                         }
                     }
                 }
@@ -210,8 +210,8 @@ namespace Athenaeum
             if (model == master) {
                 for (int row = start; row <= end; ++row) {
                     QModelIndex index = master->index(start, 0, parent);
-                    master->setData(index, false, AbstractBibliography::KnownRole);
-                    master->setData(index, QVariant::fromValue< AbstractBibliography::ItemFlags >(AbstractBibliography::ItemFlags()), AbstractBibliography::ItemFlagsRole);
+                    master->setData(index, false, Citation::KnownRole);
+                    master->setData(index, QVariant::fromValue< Citation::Flags >(Citation::Flags()), Citation::FlagsRole);
                 }
             }
         }
@@ -225,7 +225,7 @@ namespace Athenaeum
             if (model == master) {
                 for (int row = start; row <= end; ++row) {
                     QModelIndex index = master->index(row, 0, parent);
-                    master->setData(index, true, AbstractBibliography::KnownRole);
+                    master->setData(index, true, Citation::KnownRole);
                 }
             }
         }
@@ -321,7 +321,7 @@ namespace Athenaeum
                 d->recent = new SortFilterProxyModel(this);
                 DateTimeFilter * recentFilter = new DateTimeFilter(d->recent);
                 recentFilter->setDateTimeFrom(QDateTime::currentDateTime().addMonths(-1)); // Arbitrarily see the last 1 month
-                recentFilter->setRole(AbstractBibliography::DateImportedRole);
+                recentFilter->setRole(Citation::DateImportedRole);
                 d->recent->setFilter(recentFilter); // FIXME
                 d->recent->setSourceModel(d->master);
                 d->connectModel(d->recent);
@@ -492,11 +492,11 @@ namespace Athenaeum
                     case COLUMN_TITLE:
                         return starred ? QString("Starred Articles") : recent ? QString("Recently Imported") : collection->title();
                     case COLUMN_ITEM_COUNT:
-                        return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(AbstractBibliography::AllItemFlags);
+                        return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(Citation::AllFlags);
                     case COLUMN_UNREAD_ITEM_COUNT:
-                        return starred || recent ? 0 : collection->itemCount(AbstractBibliography::UnreadItemFlag);
+                        return starred || recent ? 0 : collection->itemCount(Citation::UnreadFlag);
                     case COLUMN_IMPORTANT_ITEM_COUNT:
-                        return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(AbstractBibliography::StarredItemFlag);
+                        return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(Citation::StarredFlag);
                     case COLUMN_CAN_FETCH_MORE:
                         return qaim->canFetchMore(QModelIndex());
                     case COLUMN_STATE:
@@ -515,11 +515,11 @@ namespace Athenaeum
                 case StateRole:
                     return QVariant::fromValue(collection->state());
                 case ItemCountRole:
-                    return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(AbstractBibliography::AllItemFlags);
+                    return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(Citation::AllFlags);
                 case UnreadItemCountRole:
-                    return starred || recent ? 0 : collection->itemCount(AbstractBibliography::UnreadItemFlag);
+                    return starred || recent ? 0 : collection->itemCount(Citation::UnreadFlag);
                 case ImportantItemCountRole:
-                    return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(AbstractBibliography::StarredItemFlag);
+                    return starred ? starred->rowCount() : recent ? recent->rowCount() : collection->itemCount(Citation::StarredFlag);
                 case CanFetchMoreRole:
                     return qaim->canFetchMore(QModelIndex());
                 default:
@@ -662,7 +662,7 @@ namespace Athenaeum
 
         // For that we need the first author's surname...
         QString surname;
-        foreach (const QString & author, citation->field(AbstractBibliography::AuthorsRole).toStringList()) {
+        foreach (const QString & author, citation->field(Citation::AuthorsRole).toStringList()) {
             surname = author.section(',', 0, 0);
             if (!surname.isEmpty()) {
                 break;
@@ -677,7 +677,7 @@ namespace Athenaeum
         tpl_params << surname;
 
         // ...the year in which it was published...
-        QString year = citation->field(AbstractBibliography::YearRole).toString();
+        QString year = citation->field(Citation::YearRole).toString();
         if (!year.isEmpty()) {
             tpl += QString("(%%1) ").arg(tpl_idx++);
             tpl_params << year;
@@ -685,7 +685,7 @@ namespace Athenaeum
         }
 
         // ...and the title.
-        QString title = citation->field(AbstractBibliography::TitleRole).toString();
+        QString title = citation->field(Citation::TitleRole).toString();
         if (title.isEmpty()) {
             title = "Unknown Article";
         } else {
@@ -702,7 +702,7 @@ namespace Athenaeum
                 baseName = baseName.arg(sanitise(param));
             }
         } else {
-            QString key = citation->field(AbstractBibliography::KeyRole).toString();
+            QString key = citation->field(Citation::KeyRole).toString();
             baseName = key;
         }
 
@@ -728,7 +728,7 @@ namespace Athenaeum
     bool LibraryModel::hasObjectFile(CitationHandle citation, const QString & ext)
     {
         // Return the stored file path if present and exists
-        QUrl path(citation->field(AbstractBibliography::ObjectFileRole).toUrl());
+        QUrl path(citation->field(Citation::ObjectFileRole).toUrl());
         if (path.isLocalFile()) {
             return QFileInfo(path.toLocalFile()).exists();
         }
@@ -1066,7 +1066,7 @@ namespace Athenaeum
             if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
                 file.write(data);
                 file.close();
-                citation->setField(Athenaeum::AbstractBibliography::ObjectFileRole, QUrl::fromLocalFile(filePath));
+                citation->setField(Athenaeum::Citation::ObjectFileRole, QUrl::fromLocalFile(filePath));
                 return true;
             }
         }

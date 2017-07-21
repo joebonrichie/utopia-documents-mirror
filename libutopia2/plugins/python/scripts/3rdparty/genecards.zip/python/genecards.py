@@ -39,7 +39,7 @@ import kend.converter.Annotation
 import re
 import spineapi
 import utopia.document
-import utopialib.utils
+import utopia.tools.utils
 
 class GenecardsVisualiser(utopia.document.Visualiser):
 
@@ -105,7 +105,7 @@ class BioLookupGenecardsAnnotator(utopia.document.Annotator):
     @utopia.document.buffer
     def on_ready_event(self, document):
         # Find distinguishing ID
-        pmid = utopialib.utils.metadata(document, 'identifiers[pubmed]')
+        pmid = utopia.tools.utils.metadata(document, 'identifiers[pubmed]')
         if pmid:
             print "Found pmid:", pmid
             for annotation in self.on_explore_event(phrase=pmid, document=document):

@@ -157,7 +157,7 @@ extern "C" void utopia_registerExtensions()
     SAFE_EXEC("sys.stderr = logfile");
     SAFE_EXEC("sys.stdout = logfile");
     SAFE_EXEC("import logging");
-    SAFE_EXEC("logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s')");
+    SAFE_EXEC("logging.basicConfig(format='%(asctime)s.%(msecs)03d %(levelname)s |  %(message)s', level=logging.DEBUG, datefmt='%H:%M:%S')");
 
     // Set up MIME information
     global["_mime_dir"] = unicode(Utopia::resource_path() + "/mime");
@@ -169,7 +169,7 @@ extern "C" void utopia_registerExtensions()
     // Timestamp log
     SAFE_EXEC(
       "import time\n"
-      "print 'Documents started: %s' % time.strftime('%Y %b %d - %H:%M:%S')"
+      "print('Utopia Documents started: %s' % time.strftime('%Y %b %d - %H:%M:%S'))"
       );
 
     // These are the allowed places / names for Python plugins
@@ -223,6 +223,7 @@ extern "C" void utopia_registerExtensions()
     // Resolve all plugins found in the above specified plugins paths.
     // FIXME deleting unused ones?
     boost::shared_ptr< Utopia::PluginManager > pluginManager(Utopia::PluginManager::instance());
+    QList< Utopia::Plugin * > plugins;
     foreach (QFileInfo path, paths) {
         //qDebug() << "path" << path.first << path.second;
         if (path.exists()) {
@@ -236,17 +237,19 @@ extern "C" void utopia_registerExtensions()
                 foreach (QFileInfo script, dir.entryInfoList()) {
                     // Ignore underscored names
                     if (!script.fileName().startsWith("_")) {
-                        //qDebug() << "resolve" << script.absoluteFilePath();
-                        pluginManager->resolve(script);
+                        qDebug() << "resolve" << script.absoluteFilePath();
+                        Utopia::Plugin * plugin = pluginManager->resolve(script);
+                        if (plugin) {
+                            plugins << plugin;
+                        }
                     }
                 }
             }
-
         }
     }
 
     // Load discovered plugins
-    foreach (Utopia::Plugin * plugin, pluginManager->plugins()) {
+    foreach (Utopia::Plugin * plugin, plugins) {
         QString path = plugin->path();
         if (QFile::exists(path)) {
             global["_plugin_path"] = unicode(path);
@@ -265,7 +268,7 @@ extern "C" void utopia_registerExtensions()
 #endif
 #ifdef UTOPIA_BUILD_LIBRARY
     REGISTER_PYTHON_EXTENSION_FACTORIES(utopia.library, RemoteQuery)
-    REGISTER_PYTHON_EXTENSION_FACTORIES(utopia.library, Resolver)
+    REGISTER_PYTHON_EXTENSION_FACTORIES(utopia.citation, Resolver)
 #endif
 
     PyGILState_Release(gstate);

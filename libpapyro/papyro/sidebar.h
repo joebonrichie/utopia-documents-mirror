@@ -44,7 +44,7 @@ namespace Utopia
 namespace Papyro
 {
 
-    class DocumentSignalProxy;
+    class DocumentProxy;
     class ResultsView;
 
     class SidebarPrivate;
@@ -60,7 +60,7 @@ namespace Papyro
 
         ResultsView * documentWideView() const;
         ResultsView * resultsView() const;
-        void setDocumentSignalProxy(DocumentSignalProxy * documentSignalProxy);
+        void setDocumentProxy(DocumentProxy * documentProxy);
         void setMode(SidebarMode mode);
         void setSearchTerm(const QString & term);
         Utopia::WebView * webView() const;

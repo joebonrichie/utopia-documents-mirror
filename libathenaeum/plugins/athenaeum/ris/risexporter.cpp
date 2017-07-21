@@ -58,23 +58,23 @@ bool RISExporter::doExport(const QModelIndexList & indexList, const QString & fi
     types["newspaper article"] = "NEWS";
 
     // Mapping
-    typedef QPair< QString, AbstractBibliography::Roles > Mapping;
+    typedef QPair< QString, Citation::Role > Mapping;
     QVector< Mapping > translation;
-    translation << Mapping("T1", AbstractBibliography::TitleRole);
-    translation << Mapping("ST", AbstractBibliography::SubtitleRole);
-    translation << Mapping("AB", AbstractBibliography::AbstractRole);
-    translation << Mapping("LI", AbstractBibliography::UrlRole);
-    translation << Mapping("UR", AbstractBibliography::DocumentUriRole);
-    translation << Mapping("VL", AbstractBibliography::VolumeRole);
-    translation << Mapping("IS", AbstractBibliography::IssueRole);
-    translation << Mapping("PY", AbstractBibliography::YearRole);
-    translation << Mapping("PG", AbstractBibliography::PageFromRole);
-    translation << Mapping("EP", AbstractBibliography::PageToRole);
-    translation << Mapping("T2", AbstractBibliography::PublicationTitleRole);
-    translation << Mapping("SP", AbstractBibliography::PublisherRole);
+    translation << Mapping("T1", Citation::TitleRole);
+    translation << Mapping("ST", Citation::SubTitleRole);
+    translation << Mapping("AB", Citation::AbstractRole);
+    translation << Mapping("LI", Citation::UrlRole);
+    translation << Mapping("UR", Citation::DocumentUriRole);
+    translation << Mapping("VL", Citation::VolumeRole);
+    translation << Mapping("IS", Citation::IssueRole);
+    translation << Mapping("PY", Citation::YearRole);
+    translation << Mapping("PG", Citation::PageFromRole);
+    translation << Mapping("EP", Citation::PageToRole);
+    translation << Mapping("T2", Citation::PublicationTitleRole);
+    translation << Mapping("SP", Citation::PublisherRole);
 
     foreach (const QModelIndex & index, indexList) {
-        QString type(index.data(AbstractBibliography::TypeRole).toString());
+        QString type(index.data(Citation::TypeRole).toString());
         if (types.contains(type)) {
             risData.append("TY" + separator + types[type]);
         } else {
@@ -90,12 +90,12 @@ bool RISExporter::doExport(const QModelIndexList & indexList, const QString & fi
         }
 
         // Authors
-        foreach (const QString & author, index.data(AbstractBibliography::AuthorsRole).toStringList()) {
+        foreach (const QString & author, index.data(Citation::AuthorsRole).toStringList()) {
             risData.append("AU" + separator + author);
         }
 
         // Keywords
-        foreach (const QString & kw, index.data(AbstractBibliography::KeywordsRole).toStringList()) {
+        foreach (const QString & kw, index.data(Citation::KeywordsRole).toStringList()) {
             risData.append("KW" + separator + kw);
         }
 
@@ -103,7 +103,7 @@ bool RISExporter::doExport(const QModelIndexList & indexList, const QString & fi
         QMap< QString, QString > identifiers;
         identifiers["doi"] = "DO";
         // FIXME More RIS codes for identifiers!
-        QMapIterator< QString, QVariant > id_iter(index.data(AbstractBibliography::IdentifiersRole).toMap());
+        QMapIterator< QString, QVariant > id_iter(index.data(Citation::IdentifiersRole).toMap());
         while (id_iter.hasNext()) {
             id_iter.next();
             if (identifiers.contains(id_iter.key())) {

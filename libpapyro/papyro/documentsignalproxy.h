@@ -29,8 +29,8 @@
  *  
  *****************************************************************************/
 
-#ifndef DOCUMENTSIGNALPROXY_H
-#define DOCUMENTSIGNALPROXY_H
+#ifndef documentProxy_H
+#define documentProxy_H
 
 #if !defined(Q_MOC_RUN) || QT_VERSION >= 0x050000
 #  include <spine/Annotation.h>
@@ -45,14 +45,14 @@
 namespace Papyro
 {
 
-    class DocumentSignalProxy : public QObject
+    class documentProxy : public QObject
     {
         Q_OBJECT
 
     public:
-        DocumentSignalProxy(QObject * parent = 0);
-        DocumentSignalProxy(Spine::DocumentHandle document, QObject * parent = 0);
-        ~DocumentSignalProxy();
+        documentProxy(QObject * parent = 0);
+        documentProxy(Spine::DocumentHandle document, QObject * parent = 0);
+        ~documentProxy();
 
         Spine::DocumentHandle document() const;
         void setDocument(Spine::DocumentHandle document);
@@ -84,4 +84,4 @@ namespace Papyro
 
 }
 
-#endif // DOCUMENTSIGNALPROXY_H
+#endif // documentProxy_H

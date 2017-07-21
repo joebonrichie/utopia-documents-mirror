@@ -66,7 +66,7 @@ namespace Papyro
 
         /** Lookup framework **/
 
-        virtual std::set< Spine::AnnotationHandle > lookup(Spine::DocumentHandle document, const std::string & phrase)
+        virtual std::set< Spine::AnnotationHandle > lookup(Spine::DocumentHandle document, const std::string & phrase, const QVariantMap & kwargs = QVariantMap())
         { return std::set< Spine::AnnotationHandle >(); }
 
         virtual std::string title() = 0;

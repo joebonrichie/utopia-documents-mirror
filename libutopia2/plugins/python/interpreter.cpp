@@ -41,10 +41,6 @@
 #include <windows.h>
 #endif
 
-#ifndef REMAP_BUNDLED_PYTHON
-#include <dlfcn.h>
-#endif
-
 #include <QDir>
 #include <QDebug>
 
@@ -82,21 +78,20 @@ namespace
 PythonInterpreter::PythonInterpreter()
 {
     // Initialise python interpreter
-#ifdef REMAP_BUNDLED_PYTHON
 #ifdef _WIN32
     //QString home(joinPath(Utopia::private_library_path(), "python").replace("\\", "/"));
     //Py_SetPythonHome((char*) home.toUtf8().constData());
     putenv(("PYTHONHOME=" + joinPath(Utopia::private_library_path(), "python")).toUtf8().constData());
+    putenv("PYTHONHTTPSVERIFY=0");
     //SetEnvironmentVariable("PYTHONHOME", joinPath(Utopia::private_library_path(), "python").toUtf8().constData());
+#elif __linux__
+    Py_SetProgramName((char *) "/usr/bin/python2.7");
+    ::setenv("PYTHONPATH", joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData(), 1);
+    ::setenv("PYTHONHTTPSVERIFY", "0", 1);
 #else
     ::setenv("PYTHONHOME", joinPath(Utopia::private_library_path(), "python").toUtf8().constData(), 1);
     ::setenv("PYTHONPATH", joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP).toUtf8().constData(), 1);
-#endif
-#else
-    //::dlopen("libpython" PYTHON_VERSION ".so.1.0", RTLD_LAZY | RTLD_GLOBAL);
-#endif
-#ifdef __linux
-    Py_SetProgramName((char *) "/usr/bin/python2.7");
+    ::setenv("PYTHONHTTPSVERIFY", "0", 1);
 #endif
 
     Py_Initialize();
@@ -108,11 +103,11 @@ PythonInterpreter::PythonInterpreter()
     Py_DECREF(sysName);
     PyObject* path = PyObject_GetAttrString(sys, "path");
 
-#ifdef REMAP_BUNDLED_PYTHON
+#ifdef _WIN32
     // When we're using a bundled Python, empty out sys.path, and add the root
     // of the bundled Python
     {
-        PySequence_DelSlice(path, 0, PySequence_Size(path));
+        //PySequence_DelSlice(path, 0, PySequence_Size(path));
         PyObject* root = Py_BuildValue("[s]",
                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP).toUtf8().constData());
         PySequence_SetSlice(path, 0, 0, root);
@@ -121,35 +116,25 @@ PythonInterpreter::PythonInterpreter()
 
     // Append bundled paths to sys.path
     {
-#ifdef _WIN32
-        PyObject* paths = Py_BuildValue("[ssss]",
+        PyObject* paths = Py_BuildValue("[sssss]",
                                         joinPath(Utopia::private_library_path(), "python", "dlls").toUtf8().constData(),
                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "lib-dynload").toUtf8().constData(),
                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "plat-win").toUtf8().constData(),
                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "lib-dynload").toUtf8().constData(),
                                         joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "lib-tk").toUtf8().constData());
-#else
-        PyObject* paths = Py_BuildValue("[ssss]",
-                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "encodings").toUtf8().constData(),
-                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "lib-dynload").toUtf8().constData(),
-                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "plat-darwin").toUtf8().constData(),
-                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "plat-mac").toUtf8().constData());
-#endif
         Py_ssize_t end = PySequence_Size(path);
         PySequence_SetSlice(path, end, end, paths);
         Py_DECREF(paths);
     }
-#endif
 
     // Prepend to sys.path any standard Utopia paths
     {
-        PyObject* paths = Py_BuildValue("[sss]",
-                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages", "coda_network").toUtf8().constData(),
-                                        joinPath(Utopia::plugin_path(), "python").toUtf8().constData(),
-                                        joinPath(Utopia::private_library_path(), "python", "lib", PYTHON_STEP, "site-packages").toUtf8().constData());
+        PyObject* paths = Py_BuildValue("[s]",
+                                        joinPath(Utopia::plugin_path(), "python").toUtf8().constData());
         PySequence_SetSlice(path, 0, 0, paths);
         Py_DECREF(paths);
     }
+#endif
 
     // Reset search path
     Py_DECREF(path);

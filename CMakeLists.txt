@@ -31,9 +31,17 @@
 
 ### Versioning and general setup ##################################################################
 
-cmake_minimum_required(VERSION 2.8.11)
-project( Utopia )
+# Get sensible variables for OS
+if(APPLE)
+  set(OS_APPLE TRUE)
+elseif(WIN32)
+  set(OS_WINDOWS TRUE)
+elseif(UNIX)
+  set(OS_LINUX TRUE)
+endif()
 
+# Ensure sensible cmake environment
+cmake_minimum_required(VERSION 2.8.11)
 cmake_policy(VERSION 2.8)
 
 if(POLICY CMP0020)
@@ -46,30 +54,42 @@ if(POLICY CMP0046)
   cmake_policy(SET CMP0046 OLD)
 endif(POLICY CMP0046)
 
-# Utopia versioning
-set(VERSION_MAJOR "3")
-set(VERSION_MINOR "0")
-set(VERSION_PATCH "2")
+# Main project name
+project(Utopia)
 
-# Extra checks
-set(HARDENED_FLAGS "-fstack-protector -Wformat -Wformat-security -Wall -Wno-unused-local-typedef")
-if(NOT WIN32)
-  set(HARDENED_FLAGS "-fstack-protector ${HARDENED_FLAGS}")
+# Utopia versioning - read this in from the version file
+file(READ version UTOPIA_VERSION)
+string(REGEX MATCHALL [a-zA-Z0-9]+ UTOPIA_VERSION_PARTS ${UTOPIA_VERSION})
+list(LENGTH UTOPIA_VERSION_PARTS UTOPIA_VERSION_SIZE)
+list(GET UTOPIA_VERSION_PARTS 0 UTOPIA_VERSION_MAJOR)
+list(GET UTOPIA_VERSION_PARTS 1 UTOPIA_VERSION_MINOR)
+list(GET UTOPIA_VERSION_PARTS 2 UTOPIA_VERSION_PATCH)
+set(UTOPIA_VERSION_FULL "${UTOPIA_VERSION_MAJOR}.${UTOPIA_VERSION_MINOR}.${UTOPIA_VERSION_PATCH}")
+message(STATUS "Configuring Utopia Documents v${UTOPIA_VERSION_FULL}")
+
+# Should we be building debug or release?
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE)
+if(CMAKE_BUILD_TYPE STREQUAL "debug")
+  set(BUILD_DEBUG TRUE)
+else()
+  set(BUILD_RELEASE TRUE)
 endif()
+
+# Extra checks and useful variables
+set(HARDENED_FLAGS "-fstack-protector -Wformat -Wformat-security -Wall -Wno-unused-local-typedef")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HARDENED_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HARDENED_FLAGS}")
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+# Make sure definitions reflect the build type / platform
+if(BUILD_DEBUG)
   add_definitions(-DUTOPIA_BUILD_DEBUG=1)
-else()
+elseif(BUILD_RELEASE)
   add_definitions(-DQT_NO_DEBUG_OUTPUT=1 -DQT_NO_WARNING_OUTPUT=1)
   add_definitions(-D_FORTIFY_SOURCE=2) # Harden the code
 endif()
-
-if(WIN32)
+if(OS_WINDOWS)
   add_definitions(-D_UNICODE=1)
 endif()
-
 if(UTOPIA_PACKAGE_MANAGED)
   add_definitions(-DUTOPIA_PACKAGE_MANAGED=1)
 endif()
@@ -99,7 +119,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${UTOPIA_DEPENDENCIES_DIR}/share/apps/cmake/modu
 include(${UTOPIA_DEPENDENCIES_DIR}/dependencies.cmake)
 list(INSERT CMAKE_PREFIX_PATH 0 "${UTOPIA_DEPENDENCIES_DIR}")
 include_directories(${UTOPIA_DEPENDENCIES_DIR}/include)
-if(WIN32)
+if(OS_WINDOWS)
     list(INSERT CMAKE_PREFIX_PATH 0 ${UTOPIA_DEPENDENCIES_DIR}/bin)
     list(INSERT CMAKE_PREFIX_PATH 0 "/mingw32/lib/python${PYTHON_VERSION}/")
     # ensure explicit template instantiations are exported on Windows!
@@ -139,7 +159,7 @@ else()
   message( FATAL_ERROR "No PDF backend selected." )
 endif()
 
-if(APPLE)
+if(OS_APPLE)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         set(CMAKE_OSX_ARCHITECTURES "x86_64"
             CACHE STRING "Build architectures for OSX" FORCE)
@@ -151,12 +171,9 @@ if(APPLE)
 endif()
 
 
-# Set GUI_TYPE for each platform
-if(WIN32)
-    # Only set GUI_TYPE to WIN32 in release mode (keeps console up for debug mode)
-    if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set(GUI_TYPE WIN32)
-    endif()
+# Only set GUI_TYPE to WIN32 in release mode (keeps console up for debug mode)
+if(OS_WINDOWS AND BUILD_RELEASE)
+  set(GUI_TYPE WIN32)
 endif()
 
 
@@ -164,18 +181,13 @@ endif()
 # Boost
 set(BOOST_VERSION_REQUIRED "1.45")
 set(BOOST_ROOT "${UTOPIA_DEPENDENCIES_DIR}")
-#set(Boost_DEBUG 1)
 set(Boost_ADDITIONAL_VERSIONS "${BOOST_VERSION_REQUIRED}")
-if (UNIX)
-  set(Boost_USE_STATIC_LIBS OFF)
-else()
-  set(Boost_USE_STATIC_LIBS OFF)
-endif()
+set(Boost_USE_STATIC_LIBS OFF)
 find_package(Boost ${BOOST_VERSION_REQUIRED} COMPONENTS thread system python)
 if(NOT Boost_FOUND)
   FIND_PACKAGE(Boost COMPONENTS thread system python REQUIRED)
 endif()
-if(UNIX)
+if(OS_LINUX OR OS_APPLE)
   list(APPEND Boost_THREAD_LIBRARY "pthread")
 endif()
 
@@ -202,9 +214,9 @@ SET(_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK})
 SET(CMAKE_FIND_FRAMEWORK "NEVER")
 SET(Python_ADDITIONAL_VERSIONS "${PYTHON_VERSION}")
 FIND_PACKAGE(PythonLibs REQUIRED)
+FIND_PROGRAM(Python "python")
 SET(CMAKE_FIND_FRAMEWORK ${_CMAKE_FIND_FRAMEWORK})
-if(UNIX AND NOT APPLE)
-  SET(USE_SYSTEM_Python "1")
+if(OS_LINUX)
   set(Boost_LIBRARIES ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 endif()
 
@@ -212,6 +224,31 @@ endif()
 # SWIG
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
+
+
+# SASS compiled CSS files
+find_program(SASS_EXECUTABLE sass)
+function(preprocess_sass out_var)
+  set(result)
+  foreach(in_f ${ARGN})
+    file(RELATIVE_PATH out_f ${CMAKE_CURRENT_SOURCE_DIR} ${in_f})
+    set(out_f "${CMAKE_CURRENT_SOURCE_DIR}/${out_f}")
+    get_filename_component(out_f_dirname "${out_f}" DIRECTORY)
+    get_filename_component(out_f_basename "${out_f}" NAME_WE)
+    set(out_f "${out_f_dirname}/${out_f_basename}.css")
+    file(RELATIVE_PATH out_f_sanitised ${CMAKE_SOURCE_DIR} ${out_f})
+    add_custom_command(OUTPUT ${out_f}
+      COMMAND ${SASS_EXECUTABLE} ${in_f} ${out_f}
+      DEPENDS ${in_f}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Creating preprocessed sass file ${out_f_sanitised}"
+      VERBATIM
+      )
+    list(APPEND result ${out_f})
+  endforeach()
+  set(${out_var} "${result}" PARENT_SCOPE)
+endfunction()
+
 
 # Handle Building ############################################################
 
@@ -234,14 +271,14 @@ function(add_utopia_plugin target)
 endfunction()
 
 function(add_utopia_library target)
-if(UNIX AND NOT APPLE)
+if(OS_LINUX)
   add_library(${ARGV})
   set(SOURCES "${ARGN}")
   list(REMOVE_AT SOURCES 0)
   set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS "-fPIC")
 
 #  set_target_properties( ${target} PROPERTIES
-#    VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+#    VERSION ${UTOPIA_VERSION_FULL}
 #    SOVERSION "1"
 #    )
 else()
@@ -259,14 +296,14 @@ ADD_DEPENDENCIES(post-build build)
 
 set(CMAKE_SKIP_RPATH NO)
 
-if(APPLE)
+if(OS_APPLE)
     set(BUNDLE_CONTENTS_DIR "Utopia.app/Contents")
     set(BIN_INSTALL_DIR "${BUNDLE_CONTENTS_DIR}/MacOS")
     set(LIB_INSTALL_DIR "${BUNDLE_CONTENTS_DIR}/Libraries")
     set(PLUGIN_INSTALL_DIR "${BUNDLE_CONTENTS_DIR}/PlugIns")
     set(RESOURCE_INSTALL_DIR "${BUNDLE_CONTENTS_DIR}/Resources")
     set(PYTHON_INSTALL_DIR "${RESOURCE_INSTALL_DIR}/python")
-elseif(UNIX)
+elseif(OS_LINUX)
     # see http://www.cmake.org/Wiki/CMake_RPATH_handling
 
     set(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -279,7 +316,7 @@ elseif(UNIX)
     set(RESOURCE_INSTALL_DIR "share/utopia-documents")
     set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix, prepended onto install directories.")
     set(PYTHON_INSTALL_DIR "lib/utopia-documents/python")
-elseif(WIN32)
+elseif(OS_WINDOWS)
     set(BUNDLE_CONTENTS_DIR ".")
     set(LIB_INSTALL_DIR "bin")
     set(BIN_INSTALL_DIR "bin")
@@ -291,12 +328,12 @@ endif()
 set(PYTHON_INCLUDE_ROOT)
 set(PYTHON_LIB_ROOT)
 set(PYTHON_DLL_ROOT)
-if(WIN32)
+if(OS_WINDOWS)
   set(PYTHON_INCLUDE_ROOT "c:/Python${PYTHON_VERSION_UNDOTTED}/Include")
   set(PYTHON_BIN_ROOT "c:/msys32/mingw32/bin")
   set(PYTHON_LIB_ROOT "c:/msys32/mingw32/lib/python${PYTHON_VERSION}")
   set(PYTHON_DLL_ROOT "${PYTHON_BIN_ROOT}/DLLs")
-elseif(NOT USE_SYSTEM_Python)
+elseif(OS_APPLE)
   set(PYTHON_INCLUDE_ROOT "${UTOPIA_DEPENDENCIES_DIR}/include/python${PYTHON_VERSION}")
   set(PYTHON_LIB_ROOT "${UTOPIA_DEPENDENCIES_DIR}/lib/python${PYTHON_VERSION}")
   set(PYTHON_BIN_ROOT "${UTOPIA_DEPENDENCIES_DIR}")
@@ -324,11 +361,12 @@ set(athenaeum_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/libathenaeum")
 
 ##############################################################################
 
-if(APPLE)
+if(OS_APPLE)
     OPTION(CHANGE_PERMISSIONS "Change ownership to root after building - REQUIRED FOR PACKAGING" OFF)
 endif()
 
 set(COMPONENT "Core")
+add_subdirectory( python )
 add_subdirectory( libutf8 )
 add_subdirectory( libutopia2 )
 add_subdirectory( libutopia2_qt )
@@ -393,7 +431,7 @@ OPTION(UTOPIA_BUILD_PERSISTENCE "Build Persistence Components" ON)
 # Include Qt plugins #########################################################
 ##############################################################################
 
-if(WIN32 OR NOT USE_SYSTEM_Qt)
+if(OS_WINDOWS OR NOT USE_SYSTEM_Qt)
   # Install needed Qt plugins by copying directories from the qt installation
   foreach(QT5_PLUGIN ${Qt5Core_PLUGINS}
                      ${Qt5Widgets_PLUGINS}
@@ -427,11 +465,11 @@ endif()
 
 INCLUDE(InstallRequiredSystemLibraries)
 
-if(APPLE)
+if(OS_APPLE)
   SET(CPACK_SYSTEM_NAME "Mac")
-elseif(WIN32)
+elseif(OS_WINDOWS)
   SET(CPACK_SYSTEM_NAME "Win32")
-elseif(UNIX)
+elseif(OS_LINUX)
   SET(CPACK_SYSTEM_NAME "Unix")
 endif()
 
@@ -440,10 +478,10 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utopia:Documents - Bringing your document
 SET(CPACK_PACKAGE_VENDOR "Lost Island Labs")
 SET(CPACK_PACKAGE_CONTACT "info@utopiadocs.com")
 
-SET(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
-SET(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
-SET(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
-SET(CPACK_PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+SET(CPACK_PACKAGE_VERSION_MAJOR ${UTOPIA_VERSION_MAJOR})
+SET(CPACK_PACKAGE_VERSION_MINOR ${UTOPIA_VERSION_MINOR})
+SET(CPACK_PACKAGE_VERSION_PATCH ${UTOPIA_VERSION_PATCH})
+SET(CPACK_PACKAGE_VERSION ${UTOPIA_VERSION_FULL})
 
 SET(PACKAGE_VERSION ${CPACK_PACKAGE_VERSION})
 SET(PACKAGE_STRING "Utopia ${CPACK_PACKAGE_VERSION}")
@@ -457,7 +495,7 @@ if(CPACK_PACKAGE_VARIANT)
 endif()
 
 SET(CPACK_PACKAGE_FILE_NAME "Utopia-${CPACK_PACKAGE_VERSION}${CPACK_PACKAGE_VERSION_SUFFIX}-${CPACK_SYSTEM_NAME}${CPACK_PACKAGE_VARIANT}")
-if(WIN32)
+if(OS_WINDOWS)
   SET(CPACK_PACKAGE_EXECUTABLES "Documents" "Utopia Documents")
 else()
   SET(CPACK_PACKAGE_EXECUTABLES "Documents" "Documents")
@@ -470,7 +508,7 @@ SET(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/doc/README.txt")
 SET(CPACK_RESOURCE_FILE_WELCOME "${PROJECT_SOURCE_DIR}/CMakeConfig/welcome.txt")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "Utopia")
 
-if(APPLE)
+if(OS_APPLE)
   SET(CPACK_GENERATOR "PackageMaker")
   SET(CPACK_PACKAGE_ICON ${CMAKE_SOURCE_DIR}/papyro/documents.icns)
   SET(CPACK_OSX_PACKAGE_VERSION 10.6)
@@ -479,19 +517,18 @@ if(APPLE)
   # Replace CMAKE_INSTALL_PREFIX to Currently used one,
   # If it wasn't overridden from command line / cache.
   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "/Applications/Utopia" CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
+    set(CMAKE_INSTALL_PREFIX "/Applications" CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
   endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-elseif(WIN32)
+elseif(OS_WINDOWS)
   SET(CPACK_PACKAGE_INSTALL_REGISTRY_KEY, "Utopia ${CPACK_PACKAGE_VERSION}")
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backlasshes.
   SET(CPACK_NSIS_DISPLAY_NAME "Utopia")
-#  SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.utopiadocs.com\\\\")
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.utopiadocs.com\\\\")
   SET(CPACK_NSIS_CONTACT "info@utopiadocs.com")
   SET(CPACK_NSIS_MODIFY_PATH OFF)
-elseif(UNIX)
+elseif(OS_LINUX)
   SET(CPACK_GENERATOR "DEB")
   SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libfreetype6, libgcc1, libgl1-mesa-glx, libglu1-mesa, libqt4-network, libqt4-opengl, libqt4-xml, libqtcore4, libqtgui4, libstdc++6, libt1-5, libx11-6, libxext6, zlib1g")
   SET(CPACK_DEBIAN_PACKAGE_SECTION "Science")
@@ -505,6 +542,7 @@ set(CPACK_SOURCE_ZIP OFF)
 
 set(CPACK_SOURCE_IGNORE_FILES "/debian/cache" "/debian/packages" "/build")
 
+OPTION(UTOPIA_SKIP_PUBLIC_PYTHON_PACKAGES "Skip including public Utopia python packages assuming they will be packaged externally." OFF)
 
 # This must always be last!
 INCLUDE(CPack)
@@ -563,13 +601,13 @@ cpack_add_component("Graphs"
     )
 endif()
 
-if(APPLE)
+if(OS_APPLE)
   if(EXISTS "${CMAKE_SOURCE_DIR}/packaging/mac/package-mac.sh.in")
     CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/packaging/mac/package-mac.sh.in" "${PROJECT_BINARY_DIR}/package-mac.sh" @ONLY IMMEDIATE)
   endif()
 endif()
 
-if(WIN32)
+if(OS_WINDOWS)
   if(EXISTS "${CMAKE_SOURCE_DIR}/packaging/win/package-win.sh.in")
     CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/packaging/win/package-win.sh.in" "${PROJECT_BINARY_DIR}/package-win.sh" @ONLY IMMEDIATE)
   endif()
@@ -583,7 +621,7 @@ endif()
 # Include required Win32 DLLs ################################################
 ##############################################################################
 
-if(WIN32)
+if(OS_WINDOWS)
 #  install(FILES "${UTOPIA_DEPENDENCIES_DIR}/bin/libt1-5.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
 #  install(FILES "${UTOPIA_DEPENDENCIES_DIR}/lib/QGLViewer2.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
 #  install(FILES "c:/MinGW/bin/mingwm10.dll" DESTINATION ${LIB_INSTALL_DIR} COMPONENT "Core")
@@ -606,7 +644,7 @@ if(WIN32)
 endif()
 
 
-if(WIN32 OR APPLE)
+if(OS_WINDOWS OR OS_APPLE)
   set(UTOPIA_SUPPORT_LIBRARY_DIR BundleSupportLibraries)
   file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${UTOPIA_SUPPORT_LIBRARY_DIR}")
 

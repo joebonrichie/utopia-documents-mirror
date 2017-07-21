@@ -7,7 +7,7 @@ import tempfile
 import urllib
 import urllib2
 
-import utopialib.utils
+import utopia.tools.utils
 from spineapi import Annotation
 import utopia.document
 
@@ -92,17 +92,16 @@ class Annotator3DM(utopia.document.Annotator):
     databasesurl = baseurl + 'miner/databases'
     annotateurl = baseurl + 'miner/annotate/'
 
-    # Concatenate bundled resources
-    css = ''
-    for file in cssFiles:
-        css = css + utopia.get_plugin_data(file).decode('utf-8') + '\n'
-    js = ''
-    for file in jsFiles:
-        js = js + utopia.get_plugin_data(file).decode('utf-8') + '\n'
-
-    css = '<style type="text/css">\n' + css + '</style>'
-    proteinJs = '<script type="text/javascript">\n(function(){\n' + js + utopia.get_plugin_data('js/protein.js').decode('utf-8') + '\n})();\n</script>'
-    commonJs = '<script type="text/javascript">\n(function(){\n' + js + utopia.get_plugin_data('js/common.js').decode('utf-8') + '\n})();\n</script>'
+    def __init__(self):
+        self.css = ''
+        self.js = ''
+        for file in cssFiles:
+            self.css += utopia.get_plugin_data(file).decode('utf-8') + '\n'
+        for file in jsFiles:
+            self.js += utopia.get_plugin_data(file).decode('utf-8') + '\n'
+        self.css = '<style type="text/css">\n' + self.css + '</style>'
+        self.proteinJs = '<script type="text/javascript">\n(function(){\n' + self.js + utopia.get_plugin_data('js/protein.js').decode('utf-8') + '\n})();\n</script>'
+        self.commonJs = '<script type="text/javascript">\n(function(){\n' + self.js + utopia.get_plugin_data('js/common.js').decode('utf-8') + '\n})();\n</script>'
 
     def icon(self):
         # Data URI of configuration logo
@@ -169,7 +168,7 @@ class Annotator3DM(utopia.document.Annotator):
 
         if action == 'annotate':
             print 'starting 3DM annotation . . .'
-            pubmedId = utopialib.utils.metadata(document, 'identifiers[pubmed]')
+            pubmedId = utopia.tools.utils.metadata(document, 'identifiers[pubmed]')
             if pubmedId is None:
                 pubmedId = '0'
             print 'sending text to remote server (' + pubmedId + '). . .'

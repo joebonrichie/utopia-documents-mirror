@@ -62,7 +62,7 @@ namespace Papyro
     class DispatcherPrivate
     {
     public:
-        DispatcherPrivate() : derivedCache(":Dispatcher.derivedCache"), engine(0) {}
+        DispatcherPrivate() : derivedCache(":Dispatcher.derivedCache") {}
 
         // Cache for derived annotations
         QMap< QString, QList< Spine::AnnotationHandle > > cachedAnnotations;
@@ -74,7 +74,7 @@ namespace Papyro
         QList< Decorator * > decorators;
 
         // Engine
-        DispatchEngine * engine;
+        QList< DispatchEngine * > liveEngines;
         QList< DispatchEngine * > deadEngines;
 
         // Mutual exclusion
@@ -252,12 +252,18 @@ namespace Papyro
         clear();
 
         // Join engines!
-        QListIterator< DispatchEngine * > e_iter(d->deadEngines);
-        while (e_iter.hasNext())
         {
-            e_iter.next()->wait();
+            QListIterator< DispatchEngine * > e_iter(d->deadEngines);
+            while (e_iter.hasNext()) {
+                e_iter.next()->wait();
+            }
         }
-        if (d->engine) d->engine->wait();
+        {
+            QListIterator< DispatchEngine * > e_iter(d->liveEngines);
+            while (e_iter.hasNext()) {
+                e_iter.next()->wait();
+            }
+        }
 
         delete d;
     }
@@ -265,16 +271,17 @@ namespace Papyro
     void Dispatcher::clear()
     {
         // Remove previous engine
-        if (d->engine)
+        if (!d->liveEngines.empty())
         {
-            d->engine->detach();
-            d->deadEngines.append(d->engine);
+            foreach (DispatchEngine * engine, d->liveEngines) {
+                engine->detach();
+            }
+            d->deadEngines.append(d->liveEngines);
+            d->liveEngines.clear();
             emit finished();
 
             // Tell views of clear
             emit cleared();
-
-            d->engine = 0;
         }
     }
 
@@ -289,23 +296,26 @@ namespace Papyro
         d->defaultSessionId = "default";
     }
 
-    void Dispatcher::lookupOLD(Spine::DocumentHandle document, const QString & term)
+    void Dispatcher::lookupOLD(Spine::DocumentHandle document, const QString & term, bool cancelCurrent)
     {
         QStringList terms;
         terms.append(term);
-        lookupOLD(document, terms);
+        lookupOLD(document, terms, cancelCurrent);
     }
 
-    void Dispatcher::lookupOLD(Spine::DocumentHandle document, const QStringList & terms)
+    void Dispatcher::lookupOLD(Spine::DocumentHandle document, const QStringList & terms, bool cancelCurrent)
     {
-        // Clear current state
-        clear();
+        if (cancelCurrent) {
+            // Clear current state
+            clear();
+        }
 
         // Create new engine
-        d->engine = new DispatchEngine(this, d, document, terms);
+        DispatchEngine * engine = new DispatchEngine(this, d, document, terms);
+        d->liveEngines.append(engine);
 
         // Nudge the engine to start processing
-        d->engine->start();
+        engine->start();
 
         emit started();
     }

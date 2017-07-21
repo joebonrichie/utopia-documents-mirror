@@ -230,7 +230,7 @@ context = _Context()
 
 def proxyUrllib2():
     import cookielib
-    import urllib2, ntlm_auth
+    from coda_network import urllib2, ntlm_auth
     import re
 
     class UtopiaProxyNtlmAuthHandler(ntlm_auth.ProxyNtlmAuthHandler):
@@ -343,6 +343,7 @@ __all__ = [
     'fetchELS',
     'checksumSD',
     'anonymousUserId',
+    'context',
     'debug',
     ]
 %}

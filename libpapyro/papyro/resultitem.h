@@ -42,10 +42,12 @@
 #include <QStringList>
 #include <QUrl>
 #include <QUuid>
+#include <QVariantMap>
 
 namespace Papyro
 {
 
+    class ResultItemPrivate;
     class ResultItem : public QObject
     {
         Q_OBJECT
@@ -54,7 +56,7 @@ namespace Papyro
         enum State { Ungenerated, Generating, Generated };
         Q_ENUMS(State);
 
-        ResultItem();
+        ResultItem(const QVariantMap & context = QVariantMap());
         virtual ~ResultItem();
 
         virtual QString title() const = 0;
@@ -75,6 +77,8 @@ namespace Papyro
 
         virtual QStringList values(const QString & key) const = 0;
         virtual QString value(const QString & key) const;
+
+        virtual QVariantMap context() const;
 
         virtual State contentState() const = 0;
         virtual QStringList content(const QString & key) const = 0;
@@ -101,6 +105,9 @@ namespace Papyro
     signals:
         void contentChanged(const QString & key);
         void stateChanged(Papyro::ResultItem::State state);
+
+    protected:
+        ResultItemPrivate * d;
     };
 
 }

@@ -29,7 +29,7 @@
  *  
  *****************************************************************************/
 
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 #include <spine/Document.h>
 #include <QMetaType>
 
@@ -43,26 +43,26 @@ namespace Papyro
 
         void slot_annotationsChanged(void * userdef, const std::string &name, Spine::AnnotationSet annotations, bool added)
         {
-            DocumentSignalProxy * proxy = static_cast< DocumentSignalProxy * >(userdef);
+            documentProxy * proxy = static_cast< documentProxy * >(userdef);
             proxy->onAnnotationsChanged(name, annotations, added);
         }
 
         void slot_areaSelectionChanged(void * userdef, const std::string &name, Spine::AreaSet areas, bool added)
         {
-            DocumentSignalProxy * proxy = static_cast< DocumentSignalProxy * >(userdef);
+            documentProxy * proxy = static_cast< documentProxy * >(userdef);
             proxy->onAreaSelectionChanged(name, areas, added);
         }
 
         void slot_textSelectionChanged(void * userdef, const std::string &name, Spine::TextExtentSet extents, bool added)
         {
-            DocumentSignalProxy * proxy = static_cast< DocumentSignalProxy * >(userdef);
+            documentProxy * proxy = static_cast< documentProxy * >(userdef);
             proxy->onTextSelectionChanged(name, extents, added);
         }
 
     }
 
 
-    DocumentSignalProxy::DocumentSignalProxy(QObject * parent)
+    documentProxy::documentProxy(QObject * parent)
         : QObject(parent)
     {
         // Deferred signals
@@ -78,7 +78,7 @@ namespace Papyro
                 this, SLOT(onDeferredTextSelectionChanged(std::string,Spine::TextExtentSet,bool)));
     }
 
-    DocumentSignalProxy::DocumentSignalProxy(Spine::DocumentHandle document, QObject * parent)
+    documentProxy::documentProxy(Spine::DocumentHandle document, QObject * parent)
         : QObject(parent), _document(document)
     {
         // Deferred signals
@@ -97,59 +97,59 @@ namespace Papyro
         setDocument(document);
     }
 
-    DocumentSignalProxy::~DocumentSignalProxy()
+    documentProxy::~documentProxy()
     {
         setDocument(Spine::DocumentHandle());
     }
 
-    Spine::DocumentHandle DocumentSignalProxy::document() const
+    Spine::DocumentHandle documentProxy::document() const
     {
         return _document;
     }
 
-    void DocumentSignalProxy::onDeferredAnnotationsChanged(std::string name, Spine::AnnotationSet annotations, bool added)
+    void documentProxy::onDeferredAnnotationsChanged(std::string name, Spine::AnnotationSet annotations, bool added)
     {
         if (_document) {
             Q_EMIT annotationsChanged(name, annotations, added);
         }
     }
 
-    void DocumentSignalProxy::onDeferredAreaSelectionChanged(std::string name, Spine::AreaSet areas, bool added)
+    void documentProxy::onDeferredAreaSelectionChanged(std::string name, Spine::AreaSet areas, bool added)
     {
         if (_document) {
             Q_EMIT areaSelectionChanged(name, areas, added);
         }
     }
 
-    void DocumentSignalProxy::onDeferredTextSelectionChanged(std::string name, Spine::TextExtentSet extents, bool added)
+    void documentProxy::onDeferredTextSelectionChanged(std::string name, Spine::TextExtentSet extents, bool added)
     {
         if (_document) {
             Q_EMIT textSelectionChanged(name, extents, added);
         }
     }
 
-    void DocumentSignalProxy::onAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added)
+    void documentProxy::onAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added)
     {
         if (_document) {
             Q_EMIT deferAnnotationsChanged(name, annotations, added);
         }
     }
 
-    void DocumentSignalProxy::onAreaSelectionChanged(const std::string & name, const Spine::AreaSet & areas, bool added)
+    void documentProxy::onAreaSelectionChanged(const std::string & name, const Spine::AreaSet & areas, bool added)
     {
         if (_document) {
             Q_EMIT deferAreaSelectionChanged(name, areas, added);
         }
     }
 
-    void DocumentSignalProxy::onTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added)
+    void documentProxy::onTextSelectionChanged(const std::string & name, const Spine::TextExtentSet & extents, bool added)
     {
         if (_document) {
             Q_EMIT deferTextSelectionChanged(name, extents, added);
         }
     }
 
-    void DocumentSignalProxy::setDocument(Spine::DocumentHandle document_)
+    void documentProxy::setDocument(Spine::DocumentHandle document_)
     {
         if (_document) {
             _document->disconnectAnyAnnotationsChanged(slot_annotationsChanged, this);

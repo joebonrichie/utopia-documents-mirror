@@ -289,7 +289,7 @@ public:
         return false;
     }
 
-    std::set< Spine::AnnotationHandle > lookup(Spine::DocumentHandle document, const std::string & phrase)
+    std::set< Spine::AnnotationHandle > lookup(Spine::DocumentHandle document, const std::string & phrase, const QVariantMap & kwargs = QVariantMap())
     {
         std::set< Spine::AnnotationHandle > derived;
 
@@ -312,7 +312,7 @@ public:
 
         if (input) {
             PyObject * pyargs = PyTuple_New(0);
-            PyObject * pykwargs = PyDict_New();
+            PyObject * pykwargs = convert(kwargs);
             PyDict_SetItemString(pykwargs, "phrase", input);
 
             if (pydoc) {

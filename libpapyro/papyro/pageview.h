@@ -157,7 +157,6 @@ namespace Papyro
         void pageSelected(const Spine::Page *);
         void manageSelection();
         void manageExpandedSelection();
-        void visualiseAnnotationsAt(int page, double x, double y);
         void exploreSelection();
         void publishChanges();
         void urlRequested(const QUrl & url, const QString & target);

@@ -48,7 +48,7 @@ namespace Papyro
     public:
         EmbeddedFrameOverlay(QWidget * parent = 0)
             : QWidget(parent), playImage(":/icons/embedded-play.png"), launchImage(":/icons/embedded-play.png")
-            {}
+        {}
 
         virtual ~EmbeddedFrameOverlay() {}
 
@@ -66,6 +66,7 @@ namespace Papyro
     private:
         QImage playImage;
         QImage launchImage;
+
     };
 
 }

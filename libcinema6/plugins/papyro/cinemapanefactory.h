@@ -32,6 +32,255 @@
 #ifndef CINEMAPANEFACTORY_H
 #define CINEMAPANEFACTORY_H
 
+#include <papyro/embeddedpanefactory.h>
+#include <papyro/embeddedpane.h>
+#include <papyro/utils.h>
+#include <cinema6/alignmentview.h>
+#include <cinema6/annotationcomponent.h>
+#include <cinema6/controlaspect.h>
+#include <cinema6/groupaspect.h>
+#include <cinema6/keycomponent.h>
+#include <cinema6/sequence.h>
+#include <cinema6/sequencecomponent.h>
+#include <cinema6/titleaspect.h>
+#include <utopia2/networkaccessmanager.h>
+#include <utopia2/fileformat.h>
+#include <utopia2/parser.h>
+#include <utopia2/qt/webview.h>
+#include <string>
+
+#include <cmath>
+
+#include <QBuffer>
+#include <QNetworkReply>
+#include <QObject>
+#include <QPainter>
+#include <QUrl>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QWebFrame>
+
+class CinemaPane : public Papyro::EmbeddedPane
+{
+    Q_OBJECT
+
+public:
+    CinemaPane(QByteArray bytes, Utopia::FileFormat * format, QWidget * parent = 0)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::DefaultFlags, parent), _format(format), _cinemaWidget(0), _model(0)
+    {
+        init();
+        QVariantMap map;
+        map["bytes"] = bytes;
+        setData(map);
+    }
+
+    CinemaPane(QUrl url, Utopia::FileFormat * format, QWidget * parent = 0)
+        : Papyro::EmbeddedPane(Papyro::EmbeddedPane::DefaultFlags, parent), _format(format), _cinemaWidget(0), _model(0)
+    {
+        init();
+        QVariantMap map;
+        map["url"] = url;
+        setData(map);
+    }
+
+    void init()
+    {
+        _layout = new QVBoxLayout(this);
+        _layout->setContentsMargins(0, 0, 0, 0);
+        _layout->setSpacing(0);
+
+        // Widget stuff
+        setMouseTracking(true);
+        resize(600, 150);
+    }
+
+    virtual ~CinemaPane()
+    {
+    }
+
+protected:
+    void download()
+    {
+        QVariantMap conf(data().toMap());
+        // Don't bother with the download step if we already have the data
+        if (!conf.contains("bytes") && conf.contains("url")) {
+            // Otherwise construct a URL...
+            QUrl url = conf.value("url").toUrl();
+
+            // ... and download it
+            if (url.isValid()) {
+                startDownload(url);
+            }
+        } else {
+            skipDownload();
+        }
+    }
+
+    void load()
+    {
+        if (_model == 0 && _cinemaWidget == 0)
+        {
+            QByteArray bytes(data().toMap().value("bytes").toByteArray());
+            QBuffer buffer(&bytes);
+            buffer.open(QIODevice::ReadOnly);
+            Utopia::Parser::Context ctx = Utopia::parse(buffer, _format);
+            if (ctx.errorCode() == Utopia::Parser::None)
+            {
+                _model = ctx.model();
+            }
+
+            // load model
+            if (_model && _cinemaWidget == 0)
+            {
+                int authCount = _model->relations(Utopia::UtopiaSystem.hasPart).size();
+                Utopia::Node::relation::iterator seq = _model->relations(Utopia::UtopiaSystem.hasPart).begin();
+                Utopia::Node::relation::iterator end = _model->relations(Utopia::UtopiaSystem.hasPart).end();
+                if (seq != end)
+                {
+                    // Widget
+                    static Utopia::Node* p_title = Utopia::UtopiaDomain.term("title");
+                    _cinemaWidget = new CINEMA6::AlignmentView;
+                    //_cinemaWidget->setInteractionMode(CINEMA6::AlignmentView::GapMode);
+
+                    _cinemaWidget->appendComponent(CINEMA6::AlignmentView::Top, new CINEMA6::KeyComponent());
+                    _cinemaWidget->appendComponent(CINEMA6::AlignmentView::Bottom, new CINEMA6::KeyComponent());
+                    for (; seq != end; ++seq)
+                    {
+                        Utopia::Node::relation::iterator seq2 = authCount == 1 ? seq : (*seq)->relations(Utopia::UtopiaSystem.hasPart).begin();
+                        Utopia::Node::relation::iterator end2 = authCount == 1 ? end : (*seq)->relations(Utopia::UtopiaSystem.hasPart).end();
+                        if (seq2 != end2)
+                        {
+                            _cinemaWidget->appendComponent(CINEMA6::AlignmentView::Center, new CINEMA6::SequenceComponent(new CINEMA6::Sequence(*seq2)));
+                            //qDebug() << "++++" << (*seq)->attributes.get(p_title).toString().mid(3);
+                        }
+                    }
+
+                    _cinemaWidget->appendAspect(CINEMA6::AlignmentView::Left, new CINEMA6::TitleAspect("Names"));
+                    _cinemaWidget->appendAspect(CINEMA6::AlignmentView::Right, new CINEMA6::ControlAspect("Control"));
+
+                    _cinemaWidget->setInteractionMode(CINEMA6::AlignmentView::GapMode);
+                    _cinemaWidget->show();
+                    _layout->addWidget(_cinemaWidget);
+                }
+                else
+                {
+                    qDebug() << "No sequence found in model!";
+                }
+            }
+        }
+    }
+
+    QVariant parseDownload(QNetworkReply * reply)
+    {
+        QVariantMap map(data().toMap());
+        map["bytes"] = reply->readAll();
+        return map;
+    }
+
+private:
+    QVBoxLayout * _layout;
+
+    Utopia::FileFormat * _format;
+    CINEMA6::AlignmentView * _cinemaWidget;
+    Utopia::Node * _model;
+};
+
+
+
+class CinemaPaneFactory : public Papyro::EmbeddedPaneFactory
+{
+
+public:
+    QSet< Utopia::FileFormat * > formats;
+
+    // Constructor
+    CinemaPaneFactory()
+    : Papyro::EmbeddedPaneFactory()
+    {
+        formats = Utopia::FileFormat::get(Utopia::SequenceFormat);
+    }
+
+    // Destructor
+    virtual ~CinemaPaneFactory()
+    {}
+
+    virtual QWidget * create(Spine::AnnotationHandle annotation, QWidget * parent = 0)
+    {
+        CinemaPane * pane = 0;
+        std::string concept = annotation->getFirstProperty("concept");
+        std::string dataUrl = annotation->getFirstProperty("property:dataUrl");
+        QString url, name;
+        std::vector< std::string > media = annotation->getProperty("session:media");
+
+        if (!dataUrl.empty() && concept == "Alignment")
+        {
+            url = Papyro::qStringFromUnicode(dataUrl);
+            name = QUrl(url).path();
+        }
+        else if (concept == "DataLink" && media.size() > 0)
+        {
+            if (url.isEmpty())
+            {
+                foreach(std::string media_link, media)
+                {
+                    QString encoded(Papyro::qStringFromUnicode(media_link));
+                    QStringList pairs(encoded.split("&"));
+                    foreach(QString pair, pairs)
+                    {
+                        QString key(QUrl::fromPercentEncoding(pair.section('=', 0, 0).toUtf8()));
+                        QString value(QUrl::fromPercentEncoding(pair.section('=', 1, 1).toUtf8()));
+                        if (key == "src") url = value;
+                        else if (key == "name") name = value;
+                    }
+                }
+            }
+        }
+
+        if (!url.isEmpty() && !name.isEmpty())
+        {
+            foreach (Utopia::FileFormat * format, formats)
+            {
+                if (format->contains(name.section(".", -1)))
+                {
+                    pane = new CinemaPane(url, format, parent);
+                    break;
+                }
+            }
+        }
+        return pane;
+    }
+
+    virtual QString title()
+    {
+        return "Sequence Alignment";
+    }
+
+}; // class CinemaPaneFactory
+
+#endif // CINEMAPANEFACTORY_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+#ifndef CINEMAPANEFACTORY_H
+#define CINEMAPANEFACTORY_H
+
 #include <cinema6/alignmentview.h>
 #include <cinema6/annotationcomponent.h>
 #include <cinema6/controlaspect.h>
@@ -437,10 +686,10 @@ class CinemaPane : public QWidget, public Utopia::NetworkAccessManagerMixin
         }
 
     private:
-        Utopia::FileFormat * _format;
         QString _url;
         QString _errorMessage;
         QVBoxLayout * _layout;
+        Utopia::FileFormat * _format;
         CINEMA6::AlignmentView * _cinemaWidget;
         Utopia::Node * _model;
 
@@ -529,3 +778,5 @@ class CinemaPaneFactory : public Papyro::EmbeddedPaneFactory
 }; // class CinemaPaneFactory
 
 #endif // CINEMAPANEFACTORY_H
+
+*/

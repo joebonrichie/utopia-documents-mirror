@@ -42,7 +42,7 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}
     )
 
-set(CMAKE_SWIG_OUTDIR "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia")
+set(CMAKE_SWIG_OUTDIR "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SWIG_OUTDIR}")
 
 SET(CMAKE_SWIG_FLAGS -c++)
@@ -57,12 +57,12 @@ elseif(APPLE)
     SET_TARGET_PROPERTIES(_utopiabridge PROPERTIES LINK_FLAGS " -Wl,-F. -bundle -undefined dynamic_lookup")
 endif()
 
-install(FILES "${CMAKE_SWIG_OUTDIR}/utopiabridge.py" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/" COMPONENT "${COMPONENT}")
+install(FILES "${CMAKE_SWIG_OUTDIR}/utopiabridge.py" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/" COMPONENT "${COMPONENT}")
 if(APPLE)
     install(TARGETS _utopiabridge DESTINATION "${PLUGIN_INSTALL_DIR}" COMPONENT "${COMPONENT}")
     SWIG_LINK_LIBRARIES(utopiabridge utf8 utopia2 utopia2_qt stdc++)
 else()
-    install(TARGETS _utopiabridge DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia/" COMPONENT "${COMPONENT}")
+    install(TARGETS _utopiabridge DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/" COMPONENT "${COMPONENT}")
     SWIG_LINK_LIBRARIES(utopiabridge utf8 ${PYTHON_LIBRARIES} utopia2 utopia2_qt stdc++)
 endif()
 

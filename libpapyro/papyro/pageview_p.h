@@ -34,7 +34,7 @@
 
 #include <papyro/config.h>
 
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 #include <papyro/embeddedframe.h>
 #include <papyro/pageview.h>
 #include <papyro/phraselookup.h>
@@ -137,7 +137,7 @@ namespace Papyro
         // Page
         Spine::DocumentHandle document;
         Spine::CursorHandle cursor;
-        boost::scoped_ptr< DocumentSignalProxy > documentSignalProxy;
+        boost::scoped_ptr< DocumentProxy > documentProxy;
 
         // Transformations
         QRectF mediaRect() const;

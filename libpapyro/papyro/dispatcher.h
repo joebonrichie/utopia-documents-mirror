@@ -69,8 +69,8 @@ namespace Papyro
     public slots:
         void clear();
 
-        void lookupOLD(Spine::DocumentHandle document, const QString & term);
-        void lookupOLD(Spine::DocumentHandle document, const QStringList & terms);
+        void lookupOLD(Spine::DocumentHandle document, const QString & term, bool cancelCurrent = false);
+        void lookupOLD(Spine::DocumentHandle document, const QStringList & terms, bool cancelCurrent = false);
 
     signals:
         // All lookup tasks have finished

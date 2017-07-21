@@ -47,7 +47,7 @@ class PyResolver : public Athenaeum::Resolver, public PyExtension
 {
 public:
     PyResolver(std::string extensionClassName)
-        : Athenaeum::Resolver(), PyExtension("utopia.library.Resolver", extensionClassName), _ordering(0)
+        : Athenaeum::Resolver(), PyExtension("utopia.citation.Resolver", extensionClassName), _ordering(0)
     {
         // Acquire Python's global interpreter lock
         PyGILState_STATE gstate;
@@ -93,16 +93,16 @@ public:
         return _purposes;
     }
 
-    QVariantMap resolve(const QVariantMap & metadata, Spine::DocumentHandle document = Spine::DocumentHandle())
+    QVariantList resolve(const QVariantList & citations, Spine::DocumentHandle document = Spine::DocumentHandle())
     {
-        QVariantMap resolved;
+        QVariantList resolved(citations);
 
         makeCancellable();
 
         PyGILState_STATE gstate;
         gstate = PyGILState_Ensure();
 
-        PyObject * method = PyString_FromString("resolve");
+        PyObject * method = PyString_FromString("execute_resolver");
 
         /* Get python wrapper of document */
         PyObject * pydoc = 0;
@@ -118,10 +118,9 @@ public:
             Py_INCREF(pydoc);
         }
 
-        PyObject * metadataObj = convert(metadata);
-
+        PyObject * citationsObj = convert(resolved);
         /* Invoke method on extension */
-        PyObject * ret = PyObject_CallMethodObjArgs(extensionObject(), method, metadataObj, pydoc, NULL);
+        PyObject * ret = PyObject_CallMethodObjArgs(extensionObject(), method, citationsObj, pydoc, NULL);
 
         if (ret == 0) { /* Exception*/
             PyObject * ptype = 0;
@@ -143,12 +142,13 @@ public:
             PyErr_Restore(ptype, pvalue, ptraceback);
             PyErr_PrintEx(0);
         } else {
-            resolved = convert(ret).toMap();
+            resolved = convert(citationsObj).toList();
+            resolved.append(convert(ret).toList());
         }
 
         /*  Clean up */
         Py_XDECREF(ret);
-        Py_XDECREF(metadataObj);
+        Py_XDECREF(citationsObj);
         Py_XDECREF(pydoc);
         Py_DECREF(method);
 

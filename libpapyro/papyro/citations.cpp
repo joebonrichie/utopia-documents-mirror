@@ -34,6 +34,7 @@
 
 #include <QDebug>
 #include <QJsonDocument>
+#include <QUuid>
 
 namespace Papyro
 {
@@ -102,7 +103,7 @@ namespace Papyro
     {
         Spine::AnnotationHandle citation(new Spine::Annotation);
         citation->setProperty("concept", "Citation");
-        citation->setProperty("provenance:whence", "resolution");
+        //citation->setProperty("provenance:whence", "resolution");
 
         QMapIterator< QString, QVariant> iter(map);
         while (iter.hasNext()) {
@@ -120,4 +121,89 @@ namespace Papyro
 
         return citation;
     }
+
+    QString refspec(const QString & uuid, const QString & keyspec)
+    {
+        return QString("@%1:%2").arg(uuid).arg(keyspec);
+    }
+
+    QVariantMap flatten(const QVariantList & citations)
+    {
+        // Final repositor of flattened citation
+        QVariantMap flattened;
+        QVariantList sources;
+        QStringList refs;
+        QVariantMap provenance;
+
+        // Start by ordering the citations, most-important first
+        // FIXME
+
+        // Demultiplex the citations into individual top-level keys
+        foreach (QVariant citation, citations) {
+            QVariantMap citationMap = citation.toMap();
+            if (!citationMap.contains("key")) {
+                QString uuid = QUuid::createUuid().toString();
+                citationMap["key"] = uuid.mid(1, uuid.size() - 2);
+                citation = citationMap;
+            }
+            QString uuid = citationMap["key"].toString();
+            QMapIterator< QString, QVariant > iter(citationMap);
+            while (iter.hasNext()) {
+                iter.next();
+                QString key(iter.key());
+                // Ignore provenance
+                if (key == "provenance") {
+                    continue;
+                }
+                QVariant value(iter.value());
+
+                // Should this be merged?
+                bool is_mergeable = (key == "links" ||
+                                     key == "identifiers");
+                if (is_mergeable) {
+                    if (key == "links") {
+                        QVariantList existing = flattened[key].toList();
+                        int i = 0;
+                        foreach (QVariant item, value.toList()) {
+                            if (!existing.contains(item)) {
+                                existing << item;
+                                refs.append(QString("%1/%2").arg(refspec(uuid, key)).arg(i));
+                            }
+                            ++i;
+                        }
+                        flattened[key] = existing;
+                    } else if (key == "identifiers") {
+                        QVariantMap existing = flattened[key].toMap();
+                        QMapIterator< QString, QVariant > i_iter(value.toMap());
+                        while (i_iter.hasNext()) {
+                            i_iter.next();
+                            if (!existing.contains(i_iter.key())) {
+                                existing[i_iter.key()] = i_iter.value();
+                                refs.append(QString("%1/%2").arg(refspec(uuid, key)).arg(i_iter.key()));
+                            }
+                        }
+                        flattened[key] = existing;
+                    }
+                } else {
+                    if (!flattened.contains(key)) {
+                        flattened[key] = value;
+                        refs.append(refspec(uuid, key));
+                    }
+                }
+            }
+            sources.append(citationMap);
+        }
+
+        if (sources.size() > 0) {
+            provenance["sources"] = sources;
+        }
+        if (refs.size() > 0) {
+            provenance["refs"] = refs;
+        }
+        if (provenance.size() > 0) {
+            flattened["provenance"] = provenance;
+        }
+        return flattened;
+    }
+
 }

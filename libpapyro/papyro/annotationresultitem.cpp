@@ -91,8 +91,8 @@ namespace Papyro
 
 
 
-    AnnotationResultItem::AnnotationResultItem(Spine::AnnotationHandle annotation)
-        : ResultItem(), d(new AnnotationResultItemPrivate(annotation, this))
+    AnnotationResultItem::AnnotationResultItem(Spine::AnnotationHandle annotation, const QVariantMap & context)
+        : ResultItem(context), d(new AnnotationResultItemPrivate(annotation, this))
     {}
 
     AnnotationResultItem::~AnnotationResultItem()

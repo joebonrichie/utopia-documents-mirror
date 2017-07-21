@@ -51,7 +51,7 @@
 #include <QUrl>
 #include <QDebug>
 
-#define COLUMN_COUNT (AbstractBibliography::PersistentRoleCount - Qt::UserRole)
+#define COLUMN_COUNT (Citation::PersistentRoleCount - Qt::UserRole)
 #define _INTERNAL_MIMETYPE_PLAINTEXT "text/plain"
 #define _INTERNAL_MIMETYPE_URILIST "text/uri-list"
 
@@ -70,7 +70,7 @@ namespace Athenaeum
 
     void BibliographyPrivate::addItemIds(const CitationHandle & item)
     {
-        QVariantMap ids(item->field(AbstractBibliography::IdentifiersRole).toMap());
+        QVariantMap ids(item->field(Citation::IdentifiersRole).toMap());
         QMapIterator< QString, QVariant > iter(ids);
         while (iter.hasNext()) {
             iter.next();
@@ -102,7 +102,7 @@ namespace Athenaeum
 
     void BibliographyPrivate::removeItemIds(const CitationHandle & item)
     {
-        QVariantMap ids(item->field(AbstractBibliography::IdentifiersRole).toMap());
+        QVariantMap ids(item->field(Citation::IdentifiersRole).toMap());
         QMapIterator< QString, QVariant > iter(ids);
         while (iter.hasNext()) {
             iter.next();
@@ -135,7 +135,7 @@ namespace Athenaeum
             // two items exist with the same key in the same bibliography.
             QVector< CitationHandle > newItems;
             foreach (CitationHandle item, items) {
-                QString key = item->field(KeyRole).toString();
+                QString key = item->field(Citation::KeyRole).toString();
                 if (!d->itemsByKey.contains(key)) {
                     newItems.append(item);
                     d->itemsByKey[key] = item;
@@ -173,19 +173,19 @@ namespace Athenaeum
             CitationHandle item = d->items.at(index.row());
 
             switch (role) {
-            case ItemRole:
+            case Citation::ItemRole:
                 return QVariant::fromValue(item);
-            case FullTextSearchRole:
+            case Citation::FullTextSearchRole:
                 // Ignore some fields for searching purposes
                 switch (index.column() + Qt::UserRole) {
-                case KeyRole:
-                case TypeRole:
-                case DocumentUriRole:
-                case OriginatingUriRole:
-                case UrlRole:
-                case ObjectFileRole:
-                case ItemFlagsRole:
-                case ItemStateRole:
+                case Citation::KeyRole:
+                case Citation::TypeRole:
+                case Citation::DocumentUriRole:
+                case Citation::OriginatingUriRole:
+                case Citation::UrlRole:
+                case Citation::ObjectFileRole:
+                case Citation::FlagsRole:
+                case Citation::StateRole:
                     return QVariant();
                 default:
                     break;
@@ -194,8 +194,8 @@ namespace Athenaeum
             case Qt::DisplayRole:
                 // Post processing of values
                 switch (index.column() + Qt::UserRole) {
-                case IdentifiersRole: {
-                    QVariantMap identifiers(item->field(IdentifiersRole).toMap());
+                case Citation::IdentifiersRole: {
+                    QVariantMap identifiers(item->field(Citation::IdentifiersRole).toMap());
                     QMapIterator< QString, QVariant > iter(identifiers);
                     QStringList idText;
                     while (iter.hasNext()) {
@@ -204,8 +204,8 @@ namespace Athenaeum
                     }
                     return idText.join("\n");
                 }
-                case AuthorsRole: {
-                    QStringList authors(item->field(AuthorsRole).toStringList());
+                case Citation::AuthorsRole: {
+                    QStringList authors(item->field(Citation::AuthorsRole).toStringList());
                     QStringList authorStrings;
                     foreach (const QString & author, authors) {
                         QString authorString;
@@ -232,31 +232,30 @@ namespace Athenaeum
                     }
                     break;
                 }
-                case KeywordsRole:
-                    return item->field(KeywordsRole).toStringList().join(", ");
-                case DateImportedRole:
-                case DateModifiedRole:
-                case DateResolvedRole:
-                case DatePublishedRole:
+                case Citation::KeywordsRole:
+                    return item->field(Citation::KeywordsRole).toStringList().join(", ");
+                case Citation::DateImportedRole:
+                case Citation::DateModifiedRole:
+                case Citation::DateResolvedRole:
+                case Citation::DatePublishedRole:
                     return item->field(index.column() + Qt::UserRole).toDateTime().toString(Qt::ISODate);
-                case KeyRole:
-                case TitleRole:
-                case SubtitleRole:
-                case UrlRole:
-                case VolumeRole:
-                case IssueRole:
-                case YearRole:
-                case PageFromRole:
-                case PageToRole:
-                case AbstractRole:
-                case PublicationTitleRole:
-                case PublisherRole:
-                case TypeRole:
-                case DocumentUriRole:
-                case OriginatingUriRole:
-                case ObjectFileRole:
-                case UserDefRole:
-                case UnstructuredRole:
+                case Citation::KeyRole:
+                case Citation::TitleRole:
+                case Citation::SubTitleRole:
+                case Citation::UrlRole:
+                case Citation::VolumeRole:
+                case Citation::IssueRole:
+                case Citation::YearRole:
+                case Citation::PageFromRole:
+                case Citation::PageToRole:
+                case Citation::AbstractRole:
+                case Citation::PublicationTitleRole:
+                case Citation::PublisherRole:
+                case Citation::TypeRole:
+                case Citation::DocumentUriRole:
+                case Citation::OriginatingUriRole:
+                case Citation::ObjectFileRole:
+                case Citation::UnstructuredRole:
                     return item->field(index.column() + Qt::UserRole);
                 default:
                     // Should never happen
@@ -266,7 +265,7 @@ namespace Athenaeum
                 break;
             default:
                 // If it's just a writeable role, then return it unfiltered
-                if (role >= Qt::UserRole && role < MutableRoleCount) {
+                if (role >= Qt::UserRole && role < Citation::MutableRoleCount) {
                     return item->field(role);
                 }
                 break;
@@ -292,9 +291,9 @@ namespace Athenaeum
                 while (iter.hasPrevious()) {
                     iter.previous();
                     QModelIndex index = iter.value();
-                    CitationHandle citation = index.data(ItemRole).value< CitationHandle >();
-                    if (!citation->field(AbstractBibliography::DateImportedRole).toDateTime().isValid()) {
-                        citation->setField(AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
+                    CitationHandle citation = index.data(Citation::ItemRole).value< CitationHandle >();
+                    if (!citation->field(Citation::DateImportedRole).toDateTime().isValid()) {
+                        citation->setField(Citation::DateImportedRole, QDateTime::currentDateTime());
                     }
                     items << citation;
                 }
@@ -322,35 +321,7 @@ namespace Athenaeum
     {
         if (role == Qt::DisplayRole && section >= 0) {
             if (orientation == Qt::Horizontal && section < COLUMN_COUNT) {
-                switch (section + Qt::UserRole) {
-                case KeyRole: return QString("Key");
-                case TitleRole: return QString("Title");
-                case SubtitleRole: return QString("Subtitle");
-                case AuthorsRole: return QString("Authors");
-                case UrlRole: return QString("Url");
-                case VolumeRole: return QString("Volume");
-                case IssueRole: return QString("Issue");
-                case YearRole: return QString("Year");
-                case PageFromRole: return QString("Start Page");
-                case PageToRole: return QString("End Page");
-                case AbstractRole: return QString("Abstract");
-                case PublicationTitleRole: return QString("Publication Title");
-                case PublisherRole: return QString("Publisher");
-                case DateImportedRole: return QString("Date Imported");
-                case DateModifiedRole: return QString("Date Modified");
-                case DateResolvedRole: return QString("Date Resolved");
-                case DatePublishedRole: return QString("Date Published");
-                case KeywordsRole: return QString("Keywords");
-                case TypeRole: return QString("Type");
-                case IdentifiersRole: return QString("Identifiers");
-                case DocumentUriRole: return QString("Document URI");
-                case OriginatingUriRole: return QString("Imported Path");
-                case ObjectFileRole: return QString("Filename");
-                case ItemFlagsRole: return QString("Flags");
-                case UnstructuredRole: return QString("Unstructured");
-                case UserDefRole: return QString("UserDef");
-                default: break;
-                }
+                return Citation::roleTitle((Citation::Role)(section + Qt::UserRole));
             } else if (orientation == Qt::Vertical && section < d->items.size()) {
                 return QString::number(section + 1);
             }
@@ -376,7 +347,7 @@ namespace Athenaeum
             while (where != d->items.end() && *where != before) { ++where; ++idx; }
             QVector< CitationHandle > newItems;
             foreach (CitationHandle item, items) {
-                QString key = item->field(KeyRole).toString();
+                QString key = item->field(Citation::KeyRole).toString();
                 if (!d->itemsByKey.contains(key)) {
                     newItems.append(item);
                     d->itemsByKey[key] = item;
@@ -415,10 +386,10 @@ namespace Athenaeum
         return d->items.at(idx);
     }
 
-    int Bibliography::itemCount(ItemFlags flags) const
+    int Bibliography::itemCount(Citation::Flags flags) const
     {
         // FIXME
-        if (flags == AllItemFlags) {
+        if (flags == Citation::AllFlags) {
             return rowCount();
         } else {
             return 0;
@@ -480,7 +451,7 @@ namespace Athenaeum
             int idx = 0;
             QVector< CitationHandle > newItems;
             foreach (CitationHandle item, items) {
-                QString key = item->field(KeyRole).toString();
+                QString key = item->field(Citation::KeyRole).toString();
                 if (!d->itemsByKey.contains(key)) {
                     newItems.append(item);
                     d->itemsByKey[key] = item;
@@ -526,7 +497,7 @@ namespace Athenaeum
             beginRemoveRows(parent, row, row + count - 1);
             for (int i = row; i < row + count; ++i) {
                 CitationHandle item = d->items[i];
-                d->itemsByKey.remove(item->field(KeyRole).toString());
+                d->itemsByKey.remove(item->field(Citation::KeyRole).toString());
                 d->removeItemIds(item);
             }
             d->items.remove(row, count);
@@ -555,7 +526,7 @@ namespace Athenaeum
             CitationHandle item = d->items.at(index.row());
             if (role == Qt::DisplayRole) {
                 item->setField(index.column() + Qt::UserRole, value);
-            } else if (role >= Qt::UserRole && role < MutableRoleCount) {
+            } else if (role >= Qt::UserRole && role < Citation::MutableRoleCount) {
                 item->setField(role, value);
             }
             return changed;
@@ -613,7 +584,7 @@ namespace Athenaeum
             beginRemoveRows(QModelIndex(), idx, idx);
             taken = d->items.at(idx);
             d->items.remove(idx);
-            d->itemsByKey.remove(taken->field(KeyRole).toString());
+            d->itemsByKey.remove(taken->field(Citation::KeyRole).toString());
             endRemoveRows();
         }
 

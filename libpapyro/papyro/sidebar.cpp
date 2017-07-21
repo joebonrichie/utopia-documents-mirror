@@ -32,7 +32,7 @@
 #include <papyro/sidebar_p.h>
 #include <papyro/sidebar.h>
 
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 #include <papyro/papyrowindow.h>
 #include <papyro/citations.h>
 #include <papyro/resultsview.h>
@@ -49,6 +49,7 @@
 #include <QComboBox>
 #include <QDesktopServices>
 #include <QDesktopWidget>
+#include <QLineEdit>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPushButton>
@@ -61,8 +62,11 @@ namespace Papyro
 {
 
     SidebarPrivate::SidebarPrivate(Sidebar * sidebar)
-        : QObject(sidebar), sidebar(sidebar), expectingMore(false), documentSignalProxy(0)
-    {}
+        : QObject(sidebar), sidebar(sidebar), expectingMore(false), documentProxy(0)
+    {
+        connect(this, SIGNAL(termExplored(const QString &)),
+                sidebar, SIGNAL(termExplored(const QString &)));
+    }
 
     void SidebarPrivate::linkClicked(const QUrl & href, const QString & target)
     {
@@ -183,6 +187,13 @@ namespace Papyro
         }
     }
 
+    void SidebarPrivate::onLookupBoxActivated()
+    {
+        sidebar->setMode(Sidebar::Results);
+        sidebar->resultsView()->clear();
+        sidebar->resultsView()->setExploreTerm(lookupLineEdit->text(), true);
+    }
+
     void SidebarPrivate::onHeaderLabelLinkActivated(const QString & link)
     {
         headerLabel->setText("<span style='color:#bbb'><span style='color:black'>Summary</span>");
@@ -291,6 +302,17 @@ namespace Papyro
             documentWideLayout->addWidget(headerFrame, 0);
             documentWideLayout->addLayout(d->documentWideStackedLayout, 1);
 
+            QFrame * exploreFrame = new QFrame;
+            exploreFrame->setObjectName("lookup-search-box");
+            QHBoxLayout * exploreLayout = new QHBoxLayout(exploreFrame);
+            exploreLayout->setContentsMargins(8, 8, 8, 8);
+            exploreLayout->setSpacing(0);
+            exploreLayout->addWidget(d->lookupLineEdit = new QLineEdit);
+            d->lookupLineEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
+            d->lookupLineEdit->setPlaceholderText("Explore...");
+            connect(d->lookupLineEdit, SIGNAL(returnPressed()), d, SLOT(onLookupBoxActivated()));
+            documentWideLayout->addWidget(exploreFrame);
+
             d->onHeaderLabelLinkActivated("summary");
 
             d->slideLayout->addWidget(d->documentWideFrame, "documentwide");
@@ -320,6 +342,7 @@ namespace Papyro
         QPushButton * backButton = new QPushButton("Back");
         headerLayout->addWidget(backButton, 0, Qt::AlignLeft | Qt::AlignVCenter);
         d->searchTermLabel = new Utopia::ElidedLabel;
+        d->searchTermLabel->hide();
         d->searchTermLabel->setAlignment(Qt::AlignCenter);
         headerLayout->addWidget(d->searchTermLabel, 1, Qt::AlignCenter);
         d->resultsViewSpinner = new Utopia::Spinner;
@@ -406,17 +429,17 @@ namespace Papyro
         return d->resultsView;
     }
 
-    void Sidebar::setDocumentSignalProxy(DocumentSignalProxy * documentSignalProxy)
+    void Sidebar::setDocumentProxy(DocumentProxy * documentProxy)
     {
-        if (d->documentSignalProxy) {
-            disconnect(d->documentSignalProxy, SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
+        if (d->documentProxy) {
+            disconnect(d->documentProxy, SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
                        d, SLOT(onDocumentAnnotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)));
         }
 
-        d->documentSignalProxy = documentSignalProxy;
+        d->documentProxy = documentProxy;
 
-        if (d->documentSignalProxy) {
-            connect(d->documentSignalProxy, SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
+        if (d->documentProxy) {
+            connect(d->documentProxy, SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
                     d, SLOT(onDocumentAnnotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)));
         }
     }

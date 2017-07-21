@@ -31,7 +31,7 @@
 
 #? urls: https://utopia.cs.manchester.ac.uk/lazarus/
 
-import utopialib.utils
+import utopia.tools.utils
 import kend.converter.Annotation
 import kend.converter.XML
 import kend.model
@@ -41,6 +41,7 @@ import re
 import spineapi
 import urllib
 import urllib2
+import urlparse
 import uuid
 import utopia
 import utopia.citation
@@ -67,9 +68,43 @@ pprint = PrettyPrinter(indent=4).pprint
 
 laz_plugin_uuid = '{a5ab0e7d-0210-4be4-bd69-51f946e16ff2}'
 
+# Base URL of the Lazarus service
+laz_version = '0.2'
+laz_baseUrl = 'https://utopia.cs.manchester.ac.uk/lazarus/'+laz_version
+laz_docUrl = '{0}/document'.format(laz_baseUrl)
+laz_docRelUrl = '{0}/related'.format(laz_docUrl)
+laz_citUrl = '{0}/citation'.format(laz_baseUrl)
+laz_citDefUrl = '{0}/define'.format(laz_citUrl)
+laz_citResUrl = '{0}/resolve'.format(laz_citUrl)
+laz_interactionUrl = '{0}/interaction'.format(laz_baseUrl)
+laz_eventUrl = '{0}/event'.format(laz_interactionUrl)
 
 
-class _LazarusResolver(utopia.library.Resolver):
+
+def send_crowdsource_event(event, document = None):
+    try:
+        url = laz_eventUrl
+        if document is not None:
+            params = {'fingerprint': document.fingerprints()}
+            url += '?{0}'.format(urllib.urlencode(params, doseq=True))
+
+        # Some debug stuff
+        print("Sending event to: " + url)
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4).pprint
+        pp(event)
+
+        request = urllib2.Request(url, data=json.dumps(event),
+                                  headers={'Content-Type': 'application/json'})
+        response = urllib2.urlopen(request)
+        # Are we interested in the response?
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+
+
+
+class _LazarusResolver(utopia.citation.Resolver):
     '''Let the Lazarus server have a crack.'''
 
     def resolve(self, metadata, document = None):
@@ -79,7 +114,7 @@ class _LazarusResolver(utopia.library.Resolver):
         # Send this off to Lazarus to try to resolve
         try:
             #params = {'fingerprint': document.fingerprints()}
-            url = 'http://utopia.cs.manchester.ac.uk/lazarus/0.1/resolve/citation'
+            url = laz_citResUrl
             #url = url.format(urllib.urlencode(params, doseq=True))
             headers = {'Content-Type': 'application/json'}
             to_dump = {}
@@ -120,10 +155,6 @@ class _LazarusResolver(utopia.library.Resolver):
 
 class LazarusAnnotator(utopia.document.Annotator):
     '''Lazarus service integration'''
-
-    # Base URL of the Lazarus service
-    lazUrl = 'https://utopia.cs.manchester.ac.uk/lazarus/0.1/document?{0}'
-    lazRelUrl = 'https://utopia.cs.manchester.ac.uk/lazarus/0.1/document/related'
 
     # Description info
     sourceDescription = '''
@@ -188,6 +219,45 @@ class LazarusAnnotator(utopia.document.Annotator):
                 return (role, int(match.group(1)))
         return (None, -1)
 
+    def after_load_event(self, document):
+        anon_user_id = utopia.bridge.context['anonymous-user-id']
+        now = datetime.datetime.now().replace(microsecond=0).isoformat()
+
+        event = {
+            'action': 'load',
+            'anonymous-user-id': anon_user_id,
+            'time': now,
+            'context': {
+                'document': utopia.tools.utils.metadata(document, 'identifiers[utopia]')
+            }
+        }
+
+        origin = utopia.tools.utils.metadata(document, 'provenance[origin]')
+        if origin is not None:
+            origin['anonymous-user-id'] = anon_user_id
+            event['origin'] = origin
+        else:
+            uri = utopia.tools.utils.metadata(document, 'originating-uri')
+            if uri is not None:
+                if uri.startsWith('file:'):
+                    event['origin'] = {
+                        'action': 'openfile',
+                        'anonymous-user-id': anon_user_id,
+                        'time': now
+                    }
+                elif uri.startsWith('http:') or uri.startsWith('https:'):
+                    domain_name = urlparse.urlparse(uri).hostname
+                    event['origin'] = {
+                        'action': 'download',
+                        'anonymous-user-id': anon_user_id,
+                        'time': now,
+                        'context': {
+                            'domain': domain_name
+                        }
+                    }
+
+        send_crowdsource_event(event, document)
+
     @utopia.document.buffer
     def on_ready_event(self, document):
         '''Fetch information from the Lazarus service'''
@@ -202,14 +272,14 @@ class LazarusAnnotator(utopia.document.Annotator):
                     break
 
             # The Lazarus server needs to know what this document is
-            document_id = utopialib.utils.metadata(document, 'identifiers[utopia]')
-            this_doi = utopialib.utils.metadata(document, 'identifiers[doi]')
+            document_id = utopia.tools.utils.metadata(document, 'identifiers[utopia]')
+            this_doi = utopia.tools.utils.metadata(document, 'identifiers[doi]')
             if this_doi is not None:
                 this_doi = u'doi:' + this_doi
 
             # Speak to server
             params = {'fingerprint': document.fingerprints()}
-            url = self.lazUrl.format(urllib.urlencode(params, doseq=True))
+            url = '{0}?{1}'.format(laz_docUrl, urllib.urlencode(params, doseq=True))
             response = urllib2.urlopen(url, timeout=60)
             if response.getcode() == 204:
                 request = urllib2.Request(url, data=document.data(),
@@ -298,7 +368,7 @@ class LazarusAnnotator(utopia.document.Annotator):
             for ref in refs:
                 # Create Bibliography annotations
                 #citation = {'unstructured': u' '.join([e.text() for e in ref.extents()])}
-                #annotation = utopialib.utils.citation_to_annotation(citation)
+                #annotation = utopia.tools.utils.citation_to_annotation(citation)
                 #annotation['property:order'] = ref.get('structure:order')
                 #annotation.addExtents(ref.extents())
                 #annotation.addAreas(ref.areas())
@@ -306,7 +376,7 @@ class LazarusAnnotator(utopia.document.Annotator):
                 document.addAnnotation(ref, link['scratch'])
 
             # Now link hits to concepts
-            for hit in hits:
+            for i, hit in enumerate(hits):
                 concept_id = hit.get('property:identifier')
                 concept = concepts.get(concept_id)
                 if concept is not None:
@@ -352,7 +422,6 @@ class LazarusAnnotator(utopia.document.Annotator):
                                 links[links_category].append(u'''
                                     <a href="{uri}" title="{uri}">{name}...</a>
                                 '''.format(**source))
-
 
                     style = u'''
                         <style>
@@ -402,7 +471,6 @@ class LazarusAnnotator(utopia.document.Annotator):
                     html += u'''
                         </table>
                     '''
-
                     #print(html)
 
                     hasLinks = len(links.get('xref', []) + links.get('seeAlso', [])) > 0
@@ -411,6 +479,7 @@ class LazarusAnnotator(utopia.document.Annotator):
                     ann['concept'] = 'Collated'
                     ann['property:name'] = u'{0}'.format(name)
                     ann['property:description'] = 'Lazarus Concept'
+                    ann['session:semanticTerm'] = name
                     ann['property:html'] = [style, html]
                     ann['property:sourceDescription'] = self.sourceDescription
                     ann['property:sourceIcon'] = utopia.get_plugin_data_as_url('images/lazarus-prefs-logo.png', 'image/png')
@@ -517,130 +586,136 @@ class LazarusAnnotator(utopia.document.Annotator):
                             relUrl: %s
                         };
 
-                        var more_expressions_link = $('#lazarus-expression > p.more > a.more');
+                        var more_expressions_link = $('#lazarus-expression > p.more').hide();
                         var more_expressions_spinner = $('#lazarus-expression > div.spinner');
+
+                        Spinners.create(more_expressions_spinner);
+                        Spinners.play(more_expressions_spinner);
+
+                        var exp_divs = [];
+                        var identifiers = [];
+                        for (var e = 0; e < lazarus.expressions.length; e++) {
+                            var expression = lazarus.expressions[e];
+                            var exp_div = $('<div class="box"></div>');
+                            exp_div.data('expression', expression);
+                            exp_div.hide();
+                            exp_divs.push(exp_div);
+                            identifiers.push(expression.identifiers);
+                        }
+                        var params = {
+                            fingerprint: lazarus.fingerprints
+                        };
+                        var url = lazarus.relUrl + '?' + $.param(params, traditional=true);
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            dataType: 'json',
+                            data: JSON.stringify(identifiers),
+                            contentType: "application/json",
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                console.log(xhr.statusText);
+                                console.log(xhr.responseText);
+                                console.log(xhr.status);
+                                console.log(thrownError);
+
+                                // FIXME do something here
+                                Spinners.remove(more_expressions_spinner);
+                            },
+                            success: function (related) {
+                                // Sort related according to the number of articles found
+                                related.results.sort(function (l, r) {
+                                    var lv = Object.keys(l.related).length;
+                                    var rv = Object.keys(r.related).length;
+                                    return (lv > rv) ? -1 : (lv < rv) ? 1 : 0;
+                                });
+                                $.each(related.results, function (idx, result) {
+                                    var exp_div = exp_divs[idx];
+                                    var expression = exp_div.data('expression');
+                                    expression.related = result.related;
+                                    delete expression.related[%s];
+
+                                    split = expression.sentence.split(expression.context);
+                                    pre = split[0];
+                                    pre = pre.replace(/(\w)$/, '$1 ');
+                                    pre = pre.replace(/^\s*/, '');
+                                    match = expression.context;
+                                    post = split[1];
+                                    post = post.replace(/^(\w)/, ' $1');
+                                    post = post.replace(/\s*$/, '');
+                                    expression.pre = pre;
+                                    expression.match = match;
+                                    expression.post = post;
+
+                                    // Create expression element
+                                    exp_div.append('<p class="lazarus-sentence ' + expression.posneg + '">&ldquo;' + expression.pre + '<a target="pdf; show=select; anchor=' + expression.anchor_id + '"><strong>' + expression.match + '</strong></a>' + expression.post + '&rdquo;</p>');
+                                    exp_div.data('expression', expression);
+
+                                    $('#lazarus-expression > .content').append(exp_div);
+
+                                    if (Object.keys(expression.related).length > 0) {
+                                        var related_div = $('<div class="expandable" title="Related expressions elsewhere"></div>');
+                                        var related_div_content = $('<div></div>').appendTo(related_div);
+                                        function on_expand() {
+                                            related_div.off('papyro:expandable:expand', on_expand);
+                                            $.each(expression.related, function (idx, obj) {
+                                                fragments = [];
+                                                $.each(obj, function (id, obj) {
+                                                    fragments.push(obj.context);
+                                                });
+                                                fragments.join('\\n');
+                                                related_div_content.append($('<div class="lazarus-related unprocessed"></div>').append('<p><strong>&ldquo;&hellip;'+fragments+'&hellip;&rdquo;</strong></p>').hide().data('citation', {identifiers:{doi:idx},userdef:{first_fragment:fragments[0]}}));
+                                                // .append(utopia.citation.render({identifiers:{doi:idx},first_fragment:fragments[0]}, true, true))
+                                            });
+                                            expression.related.length = 0; // empty for future
+
+                                            if ($('.lazarus-related.unprocessed', exp_div).length > 0) {
+                                                var more = $('<p class="more right"><a class="more">More related articles...</a></p>');
+                                                related_div_content.append(more);
+                                                function show_five_related(e) {
+                                                    e.preventDefault();
+
+                                                    $('.lazarus-related.unprocessed', exp_div).slice(0, 5).each(function (idx, obj) {
+                                                        var citation = $(obj).data('citation');
+                                                        $(obj).append(utopia.citation.render(citation, true, true));
+                                                        $(obj).show().removeClass('unprocessed');
+                                                    });
+                                                    if ($('.lazarus-related.unprocessed', exp_div).length == 0) {
+                                                        more.remove();
+                                                    }
+                                                }
+                                                more.on('click', show_five_related).click();
+                                            }
+                                        }
+                                        related_div.on('papyro:expandable:expand', on_expand);
+                                        exp_div.append(related_div);
+                                        utopia.processNewContent(related_div);
+                                    }
+                                });
+
+                                Spinners.remove(more_expressions_spinner);
+                                more_expressions_link.show();
+                                $('a.more', more_expressions_link).click();
+                            }
+                        });
 
                         function append_five(e) {
                             e.preventDefault();
 
-                            more_expressions_link.hide();
-                            Spinners.create(more_expressions_spinner);
-                            Spinners.play(more_expressions_spinner);
+                            // Show the next five
+                            $('#lazarus-expression > .content').children().filter(':hidden').slice(0,5).show();
 
-                            var exp_divs = [];
-                            var identifiers = [];
-
-                            // Limit each fetch to five related expressions
-                            var count = 5;
-                            while (count > 0 && lazarus.expressions.length > 0) {
-                                var expression = lazarus.expressions.shift();
-                                var exp_div = $('<div class="box"></div>');
-                                exp_div.data('expression', expression);
-                                exp_divs.push(exp_div);
-                                identifiers.push(expression.identifiers);
-                                count = count - 1;
+                            // Hide the 'more' link if everything is now visible
+                            if ($('#lazarus-expression > .content').children().filter(':hidden').length == 0) {
+                                more_expressions_link.hide();
                             }
-
-                            var params = {
-                                fingerprint: lazarus.fingerprints
-                            };
-                            var url = lazarus.relUrl + '?' + $.param(params, traditional=true);
-
-                            $.ajax({
-                                url: url,
-                                type: 'POST',
-                                dataType: 'json',
-                                data: JSON.stringify(identifiers),
-                                contentType: "application/json",
-                                error: function (xhr, ajaxOptions, thrownError) {
-                                    console.log(xhr.statusText);
-                                    console.log(xhr.responseText);
-                                    console.log(xhr.status);
-                                    console.log(thrownError);
-
-                                    // FIXME do something here
-                                },
-                                success: function (related) {
-                                    $.each(related.results, function (idx, result) {
-                                        var exp_div = exp_divs[idx];
-                                        var expression = exp_div.data('expression');
-                                        expression.related = result.related;
-                                        delete expression.related[%s];
-
-                                        split = expression.sentence.split(expression.context);
-                                        pre = split[0];
-                                        pre = pre.replace(/(\w)$/, '$1 ');
-                                        pre = pre.replace(/^\s*/, '');
-                                        match = expression.context;
-                                        post = split[1];
-                                        post = post.replace(/^(\w)/, ' $1');
-                                        post = post.replace(/\s*$/, '');
-                                        expression.pre = pre;
-                                        expression.match = match;
-                                        expression.post = post;
-
-                                        // Create expression element
-                                        exp_div.append('<p class="lazarus-sentence ' + expression.posneg + '">&ldquo;' + expression.pre + '<a target="pdf; show=select; anchor=' + expression.anchor_id + '"><strong>' + expression.match + '</strong></a>' + expression.post + '&rdquo;</p>');
-                                        exp_div.data('expression', expression);
-
-                                        $('#lazarus-expression > .content').append(exp_div);
-
-                                        if (Object.keys(expression.related).length > 0) {
-                                            var related_div = $('<div class="expandable" title="Related expressions elsewhere"></div>');
-                                            var related_div_content = $('<div></div>').appendTo(related_div);
-                                            function on_expand() {
-                                                related_div.off('papyro:expandable:expand', on_expand);
-                                                $.each(expression.related, function (idx, obj) {
-                                                    fragments = [];
-                                                    $.each(obj, function (id, obj) {
-                                                        fragments.push(obj.context);
-                                                    });
-                                                    fragments.join('\\n');
-                                                    related_div_content.append($('<div class="lazarus-related unprocessed"></div>').append('<p><strong>&ldquo;&hellip;'+fragments+'&hellip;&rdquo;</strong></p>').hide().data('citation', {identifiers:{doi:idx},userdef:{first_fragment:fragments[0]}}));
-                                                    // .append(utopia.citation.render({identifiers:{doi:idx},first_fragment:fragments[0]}, true, true))
-                                                });
-                                                expression.related.length = 0; // empty for future
-
-                                                if ($('.lazarus-related.unprocessed', exp_div).length > 0) {
-                                                    var more = $('<p class="more right"><a class="more">More related articles...</a></p>');
-                                                    related_div_content.append(more);
-                                                    function show_five_related(e) {
-                                                        e.preventDefault();
-
-                                                        $('.lazarus-related.unprocessed', exp_div).slice(0, 5).each(function (idx, obj) {
-                                                            var citation = $(obj).data('citation');
-                                                            $(obj).append(utopia.citation.render(citation, true, true));
-                                                            $(obj).show().removeClass('unprocessed');
-                                                        });
-                                                        if ($('.lazarus-related.unprocessed', exp_div).length == 0) {
-                                                            more.remove();
-                                                        }
-                                                    }
-                                                    more.on('click', show_five_related).click();
-                                                }
-                                            }
-                                            related_div.on('papyro:expandable:expand', on_expand);
-                                            exp_div.append(related_div);
-                                            utopia.processNewContent(related_div);
-                                        }
-                                    });
-
-                                    if (lazarus.expressions.length > 0) {
-                                        Spinners.remove(more_expressions_spinner);
-                                        more_expressions_link.show();
-                                    } else {
-                                        Spinners.remove(more_expressions_spinner);
-                                    }
-                                }
-                            });
                         }
 
                         // Hook up 'more' link
                         $('#lazarus-expression > p.more > a.more').on('click', append_five).click();
                     });
                 </script>
-            ''' % (json.dumps(expressions), json.dumps(document.fingerprints()), json.dumps(self.lazRelUrl), json.dumps(this_doi))
-            print(js.encode('utf8'))
+            ''' % (json.dumps(expressions), json.dumps(document.fingerprints()), json.dumps(laz_docRelUrl), json.dumps(this_doi))
+            #print(js.encode('utf8'))
 
             html = u'''
                 <div id="lazarus-expression"><div class="content"></div><div class="spinner"></div><p class="more"><a class="more">More expressions...</a></p></div>
@@ -710,6 +785,25 @@ class LazarusConf(utopia.Configurator):
         # Configuration ID
         return laz_plugin_uuid
 
+
+class LazarusLoggingRemoteQuery(utopia.library.RemoteQuery):
+    """Lazarus remote query logging"""
+
+    def fetch(self, query, offset, limit):
+        # Send the query off to the server
+        # FIXME
+
+        event = {
+            'action': 'remotesearch',
+            'anonymous-user-id': utopia.bridge.context['anonymous-user-id'],
+            'time': datetime.datetime.now().replace(microsecond=0).isoformat(),
+            'context': query
+        }
+
+        send_crowdsource_event(event, document)
+
+        # Return no results
+        return (0, 0, 0, [])
 
 if __name__ == '__main__':
     import crackleapi

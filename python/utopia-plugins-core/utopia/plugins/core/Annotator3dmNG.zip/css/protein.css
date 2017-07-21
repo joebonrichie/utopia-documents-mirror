@@ -1,0 +1,217 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2017 Lost Island Labs
+ *           <info@utopiadocs.com>
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+.sequence {
+    width: 100%;
+    background: white;
+}
+
+.sequencePanel {
+    font-family: courier, "Courier New";
+    max-height: 500px;
+    overflow: auto;
+    width: 100%;
+    /*border-bottom: 1px solid #d3d3d3;*/
+}
+
+.sequencePanel table {
+    border: 1px solid lightgray;
+    border-collapse:collapse;
+    margin: 0px 0px;
+    /*table-layout: fixed;*/
+    cursor: default;
+}
+
+.sequencePanel table {
+    width: 100%;
+}
+
+.sequencePanel tr {
+    border: 1px solid lightgray;
+}
+
+.sequencePanel td{
+    border: 1px solid lightgray;
+    padding: 1px 3px;
+    vertical-align: text-top;
+}
+
+.sequencePanel td .positionNumber{
+    display: block;
+    text-align: right;
+    font-size: 0.8em;
+    color: gray;
+    margin: 0 0 5px 0;
+}
+
+.sequencePanel td .aa[colorCores]{
+    /*color: #000000;*/
+    font-weight: 600;
+    color: #00A0B0;
+}
+
+.sequencePanel td .aa[colorMutations]{
+    /*color: #000000;*/
+    font-weight: 600;
+    color: #FF6B6B;
+}
+
+.sequencePanel td .aa:hover{
+    border-bottom: 1px solid black;
+}
+
+.sequenceInfoPanel {
+    /*float: left;*/
+    /*width: 639px;*/
+    /*padding: 5px 10px;*/
+    /*margin: 30px;*/
+    /*border: 1px solid gray;*/
+    /*height: 100px;*/
+    /*border-bottom: 1px solid #d3d3d3;*/
+    /*border-left: 1px solid #d3d3d3;*/
+    /*border-right: 1px solid #d3d3d3;*/
+    min-height: 25px;
+    float: left;
+    margin: 0px 4px;
+    padding: 5px 0px 0px 0px;
+}
+
+.selectedAa {
+    border: 1px solid green;
+}
+.residueInfo {
+    padding: 5px;
+    margin: 5px;
+    text-align: center;
+}
+
+.residueAttributes {
+    border-top: 1px solid lightgray;
+    padding: 5px;
+    margin: 5px;
+    text-align: center;
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    line-height: 13px;
+    font-size: smaller;
+}
+
+.residueOverview {
+    float:left;
+    width: 8em;
+    /*margin-right: 5px;*/
+    /*border-right: 1px solid lightgray;*/
+}
+.attributeInfoPanel {
+    float: left;
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    font-size: smaller;
+    width: 7em;
+    margin: 0px 0px;
+}
+
+.residueAttributeLine *[selected] {
+    font-weight: bold;
+    color: #505050;
+}
+
+.uniqueMutation[selected] {
+    font-weight: bold;
+    color: #505050;
+}
+
+.attributeInfoDetailPanel {
+    float: left;
+    height: 100px;
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    /*line-height: 13px;*/
+    font-size: smaller;
+    width: 8em;
+    margin: 0px 4px 0px 0px;
+    overflow: auto;
+}
+
+
+.sequenceInfoPanel .residueInfoLine .residueType{
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    line-height: 17px;
+    font-size: xx-large;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    color: #555555;
+    margin-right: 4px;
+}
+
+.sequenceInfoPanel .residueInfoLine .residueNumber, .residueNumber3d{
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    line-height: 13px;
+    font-size: smaller;
+    font-style: italic;
+    /*font-weight: bold;*/
+    text-align: center;
+    color: #555555;
+}
+
+.sequenceInfoPanelContents h1 {
+    font-size: 10px;
+    font-style: normal;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: #555555;
+}
+
+.sequenceInfoPanelContents ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: disc;
+	list-style-position: inside;
+}
+.sequenceInfoPanelContents li {
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    color: #555555;
+    margin: 0px;
+    padding: 0px;
+}
+
+.sequenceInfoPanelCollapse {
+    float:right;
+}
+
+#colorCores, #colorMutations {
+    font-size: 0.9em;
+    /*margin: 4px 0px;*/
+}
+
+#structuresPanel {
+    max-height: 300px;
+}

@@ -199,12 +199,11 @@ namespace Papyro
         void zoomModeChanged();
 
         // Interaction
-        void annotationsActivated(Spine::AnnotationSet annotations, const QPoint & globalPos);
+        void annotationsActivated(Spine::AnnotationSet annotations, const QVariantMap & context);
         void contextMenuAboutToShow(QMenu * menu, Spine::DocumentHandle document, Spine::CursorHandle cursor);
         void focusChanged(PageView * pageView, const QPointF & pagePos);
         void pageFocusChanged(size_t pageNumber);
         void selectionChanged(Spine::TextSelection selection);
-        void visualiseAnnotationsAt(int page, double x, double y);
         void exploreSelection();
         void publishChanges();
         void urlRequested(const QUrl & url, const QString & target);

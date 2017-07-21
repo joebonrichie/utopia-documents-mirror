@@ -93,6 +93,11 @@ namespace Papyro
         emit insertContent(d.resultElement, item()->content(key));
     }
 
+    QVariantMap ResultItemControl::context() const
+    {
+        return item()->context();
+    }
+
     QString ResultItemControl::cssId() const
     {
         return item()->cssId();
@@ -349,7 +354,7 @@ namespace Papyro
             foreach (QString term, d->terms) {
                 encoded << term.replace("\\", "\\\\").replace("'", "\'");
             }
-            QString command = "jQuery(function () { utopia.setExploreTerms(['" + encoded.join("', '") + "']); });";
+            QString command = "jQuery(function () { utopia.setExploreTerms(['" + encoded.join("', '") + "'], " + QString(d->exploreTerms ? "true" : "false") + "); });";
             d->view->page()->mainFrame()->evaluateJavaScript(command);
         }
     }
@@ -490,25 +495,26 @@ namespace Papyro
         return !d->resultQueue.isEmpty();
     }
 
-    void ResultsView::setExploreTerms(const QStringList & terms)
+    void ResultsView::setExploreTerms(const QStringList & terms, bool explore)
     {
         d->terms = terms;
+        d->exploreTerms = explore;
 
         if (d->ready) {
             QStringList encoded;
             foreach (QString term, d->terms) {
                 encoded << term.replace("\\", "\\\\").replace("'", "\'");
             }
-            QString command = "jQuery(function () { utopia.setExploreTerms(['" + encoded.join("', '") + "']); });";
+            QString command = "jQuery(function () { utopia.setExploreTerms(['" + encoded.join("', '") + "'], " + QString(d->exploreTerms ? "true" : "false") + "); });";
             page()->mainFrame()->evaluateJavaScript(command);
         }
     }
 
-    void ResultsView::setExploreTerm(const QString & term)
+    void ResultsView::setExploreTerm(const QString & term, bool explore)
     {
         QStringList terms;
         terms << term;
-        setExploreTerms(terms);
+        setExploreTerms(terms, explore);
     }
 
 }

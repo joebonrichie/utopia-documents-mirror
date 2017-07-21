@@ -31,6 +31,7 @@
 
 #include <papyro/resolverqueue_p.h>
 #include <papyro/resolverqueue.h>
+#include <papyro/citations.h>
 #include <papyro/bibliography.h>
 #include <papyro/abstractbibliography.h>
 
@@ -86,13 +87,13 @@ namespace Athenaeum
             ResolverJob next = d->next();
             if (CitationHandle citation = next.citation) {
                 // not already running etc, then run
-                AbstractBibliography::ItemState state = citation->field(AbstractBibliography::ItemStateRole).value< AbstractBibliography::ItemState >();
-                QDateTime dateResolved = citation->field(AbstractBibliography::DateResolvedRole).toDateTime();
-                if (!dateResolved.isValid() && state == AbstractBibliography::IdleItemState) {
-                    citation->setField(AbstractBibliography::ItemStateRole, QVariant::fromValue(AbstractBibliography::BusyItemState));
+                AbstractBibliography::State state = citation->field(Citation::StateRole).value< AbstractBibliography::State >();
+                QDateTime dateResolved = citation->field(Citation::DateResolvedRole).toDateTime();
+                if (!dateResolved.isValid() && state == AbstractBibliography::IdleState) {
+                    citation->setField(Citation::StateRole, QVariant::fromValue(AbstractBibliography::BusyState));
 
                     if (!next.document) {
-                        QUrl originatingUri(citation->field(AbstractBibliography::OriginatingUriRole).toUrl());
+                        QUrl originatingUri(citation->field(Citation::OriginatingUriRole).toUrl());
                         if (originatingUri.isLocalFile()) {
                             QFile originatingFile(originatingUri.toLocalFile());
                             if (originatingFile.open(QIODevice::ReadOnly)) {
@@ -101,19 +102,26 @@ namespace Athenaeum
                         }
                     }
 
-                    QVariantMap metadata = citation->toMap();
+                    QVariantMap qCitation = citation->toMap();
+                    QVariantMap provenance = qCitation["provenance"].toMap();
+                    QVariantList sources = provenance["sources"].toList();
+                    QVariantList qCitations;
+                    if (sources.isEmpty()) {
+                        qCitations << qCitation;
+                    } else {
+                        qCitations = sources;
+                    }
 
                     while (!resolvers.isEmpty() && !isCancelled()) {
                         running = resolvers.takeFirst();
 
+                        bool shouldStop = false;
                         if (running->purposes() & next.purposes) {
-                            QMapIterator< QString, QVariant > iter(running->resolve(metadata, next.document));
-                            while (iter.hasNext()) {
-                                iter.next();
-                                if (iter.value().isValid()) {
-                                    metadata[iter.key()] = iter.value();
-                                } else {
-                                    metadata.remove(iter.key());
+                            qCitations = running->resolve(qCitations, next.document);
+                            foreach (QVariant variant, qCitations) {
+                                if (variant.toMap().value("_action").toString() == "stop") {
+                                    shouldStop = true;
+                                    break;
                                 }
                             }
                         }
@@ -121,15 +129,18 @@ namespace Athenaeum
                         running.reset();
 
                         // Cancel this pipeline if asked to by this resolver
-                        if (metadata.value("_action").toString() == "stop") {
+                        if (shouldStop) {
                             break;
                         }
                     }
 
                     if (!isCancelled()) {
-                        citation->updateFromMap(metadata);
-                        citation->setField(AbstractBibliography::ItemStateRole, QVariant::fromValue(AbstractBibliography::IdleItemState));
-                        citation->setField(AbstractBibliography::DateResolvedRole, QDateTime::currentDateTime());
+
+                        qCitation = Papyro::flatten(qCitations);
+
+                        citation->updateFromMap(qCitation);
+                        citation->setField(Citation::StateRole, QVariant::fromValue(AbstractBibliography::IdleState));
+                        citation->setField(Citation::DateResolvedRole, QDateTime::currentDateTime());
                     }
                 }
             }
@@ -195,8 +206,8 @@ namespace Athenaeum
     void ResolverQueuePrivate::onRowsInserted(const QModelIndex & parent, int from, int to)
     {
         for (int row = from; row <= to; ++row) {
-            CitationHandle citation(bibliography->data(bibliography->index(row, 0, parent), AbstractBibliography::ItemRole).value< CitationHandle >());
-            QDateTime dateResolved = citation->field(AbstractBibliography::DateResolvedRole).toDateTime();
+            CitationHandle citation(bibliography->data(bibliography->index(row, 0, parent), Citation::ItemRole).value< CitationHandle >());
+            QDateTime dateResolved = citation->field(Citation::DateResolvedRole).toDateTime();
             if (!dateResolved.isValid()) {
                 queue(citation);
             }
@@ -206,7 +217,7 @@ namespace Athenaeum
     void ResolverQueuePrivate::onRowsAboutToBeRemoved(const QModelIndex & parent, int from, int to)
     {
         for (int row = from; row <= to; ++row) {
-            CitationHandle citation(bibliography->data(bibliography->index(row, 0, parent), AbstractBibliography::ItemRole).value< CitationHandle >());
+            CitationHandle citation(bibliography->data(bibliography->index(row, 0, parent), Citation::ItemRole).value< CitationHandle >());
             unqueue(citation);
         }
     }

@@ -36,12 +36,15 @@
 
 #include <spine/Annotation.h>
 #include <QVariantMap>
+#include <QVariantList>
 
 namespace Papyro
 {
 
     QVariantMap citationToMap(Spine::AnnotationHandle citation);
     Spine::AnnotationHandle mapToCitation(const QVariantMap & map);
+
+    QVariantMap flatten(const QVariantList & citations);
 
 }
 

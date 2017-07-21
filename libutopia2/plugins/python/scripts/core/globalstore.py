@@ -34,7 +34,7 @@
 #? urls: https://utopia.cs.manchester.ac.uk/
 
 
-import utopialib.utils
+import utopia.tools.utils
 import kend.client
 import kend.converter
 import kend.converter.Annotation
@@ -46,7 +46,8 @@ import utopia.document
 
 # This has to be here, as for some reason it's not remembered when it's done through
 # boost::python during interpreter setup.
-utopia.bridge.proxyUrllib2()
+if utopia.bridge is not None:
+    utopia.bridge.proxyUrllib2()
 
 
 class GlobalStoreAnnotator(utopia.document.Annotator):
@@ -60,11 +61,11 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
 
     @utopia.document.buffer
     def on_ready_event(self, document):
-        document_id = utopialib.utils.metadata(document, 'identifiers[utopia]')
+        document_id = utopia.tools.utils.metadata(document, 'identifiers[utopia]')
         if document_id is not None:
 
             kwargs = { 'document': document_id, 'context': self._context_ }
-            doi = utopialib.utils.metadata(document, 'identifiers[doi]')
+            doi = utopia.tools.utils.metadata(document, 'identifiers[doi]')
             if doi is not None:
                 kwargs['doi'] = doi
             annotations = kend.client.Client().annotations(**kwargs)
@@ -106,7 +107,7 @@ class GlobalStoreAnnotator(utopia.document.Annotator):
     def on_persist_event(self, document):
         client = kend.client.Client()
 
-        document_id = utopialib.utils.metadata(document, 'identifiers[utopia]')
+        document_id = utopia.tools.utils.metadata(document, 'identifiers[utopia]')
         if document_id is not None:
             for annotation in document.annotations('PersistQueue'):
                 if 'session:volatile' not in annotation:

@@ -70,11 +70,13 @@ namespace Papyro
         Q_PROPERTY(QString cssId READ cssId)
         Q_PROPERTY(bool headless READ headless)
         Q_PROPERTY(QString highlight READ highlight)
+        Q_PROPERTY(QVariantMap context READ context)
 
     public:
         ResultItemControl(ResultsViewPrivate * viewPrivate, ResultItem * item);
 
         QString authorUri() const;
+        QVariantMap context() const;
         QString cssId() const;
         QString description() const;
         QWebElement element() const;
@@ -208,6 +210,7 @@ namespace Papyro
         QEventLoop wait;
 
         QStringList terms;
+        bool exploreTerms;
 
     public slots:
         void setupJavaScriptWindowObject();

@@ -29,15 +29,19 @@
 #   
 ###############################################################################
 
-import utopialib.arxiv
-import utopialib.doi
-import utopialib.utils
+import utopia.tools.arxiv
+import utopia.tools.doi
+import utopia.tools.utils
 import re
-import spineapi
 import urllib
 import utopia.document
 
 
+
+try:
+    import spineapi
+except ImportError:
+    spineapi = None
 
 # Make sure labels are sorted numerically (such that 10 > 2)
 def sortfn(c):
@@ -58,8 +62,8 @@ class MetadataAnnotator(utopia.document.Annotator):
 
     def on_ready_event(self, document):
         # Scrape title and DOI from document
-        title = utopialib.utils.metadata(document, 'title')
-        doi = utopialib.utils.metadata(document, 'identifiers[doi]')
+        title = utopia.tools.utils.metadata(document, 'title')
+        doi = utopia.tools.utils.metadata(document, 'identifiers[doi]')
         if title is not None or doi is not None:
             # Make metadata link
             link = spineapi.Annotation()
@@ -96,7 +100,7 @@ class MetadataAnnotator(utopia.document.Annotator):
                 bibliography.sort(key=sortfn)
                 rt=''
                 for annotation in bibliography:
-                    citation = utopialib.utils.citation_from_annotation(annotation)
+                    citation = utopia.tools.utils.citation_from_annotation(annotation)
                     rt += utopia.citation.render(citation, links=True)
 
                 if len(bibliography) > 0:

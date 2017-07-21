@@ -40,7 +40,7 @@
 #include <papyro/dispatcher.h>
 #include <papyro/documentmanager.h>
 #include <papyro/documentfactory.h>
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 #include <papyro/documentview.h>
 #include <papyro/pager.h>
 #include <papyro/printer.h>
@@ -594,9 +594,9 @@ namespace Papyro
             aggregatingProxyModel = new Athenaeum::AggregatingProxyModel(Qt::Vertical, this);
             filterProxyModel = new Athenaeum::SortFilterProxyModel(this);
             articleResultsView->setModel(filterProxyModel);
-            standardFilters[Athenaeum::BibliographicSearchBox::SearchTitle] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliography::TitleRole - Qt::UserRole, Qt::DisplayRole, this);
-            standardFilters[Athenaeum::BibliographicSearchBox::SearchAuthors] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliography::AuthorsRole - Qt::UserRole, Qt::DisplayRole, this);
-            standardFilters[Athenaeum::BibliographicSearchBox::SearchAbstract] = new Athenaeum::TextFilter(QString(), Athenaeum::AbstractBibliography::AbstractRole - Qt::UserRole, Qt::DisplayRole, this);
+            standardFilters[Athenaeum::BibliographicSearchBox::SearchTitle] = new Athenaeum::TextFilter(QString(), Athenaeum::Citation::TitleRole - Qt::UserRole, Qt::DisplayRole, this);
+            standardFilters[Athenaeum::BibliographicSearchBox::SearchAuthors] = new Athenaeum::TextFilter(QString(), Athenaeum::Citation::AuthorsRole - Qt::UserRole, Qt::DisplayRole, this);
+            standardFilters[Athenaeum::BibliographicSearchBox::SearchAbstract] = new Athenaeum::TextFilter(QString(), Athenaeum::Citation::AbstractRole - Qt::UserRole, Qt::DisplayRole, this);
             Athenaeum::ORFilter * orFilter = new Athenaeum::ORFilter(standardFilters.values(), this);
             standardFilters[Athenaeum::BibliographicSearchBox::SearchAll] = orFilter;
 
@@ -1061,7 +1061,7 @@ namespace Papyro
         menuView->addMenu(menuZoom = new Utopia::MenuProxy("Zoom", menuView));
         menuView->addSeparator();
         menuView->addAction(actionToggleSidebar = new Utopia::ActionProxy("Toggle Sidebar", this));
-        menuView->addAction(actionToggleLookupBar = new Utopia::ActionProxy("Toggle Lookup Search Box", this));
+        //menuView->addAction(actionToggleLookupBar = new Utopia::ActionProxy("Toggle Lookup Search Box", this));
         menuView->addAction(actionTogglePager = new Utopia::ActionProxy("Toggle Pager", this));
         menuView->addAction(actionToggleImageBrowser = new Utopia::ActionProxy("Toggle Figure Browser", this));
         menuView->addSeparator();
@@ -1254,7 +1254,7 @@ namespace Papyro
     void PapyroWindowPrivate::onResolverRunnableCompleted(Athenaeum::CitationHandle citation)
     {
         qDebug() << "AFTER";
-        QVariantMap userDef = citation->field(Athenaeum::AbstractBibliography::UserDefRole).toMap();
+        QVariantMap userDef = citation->field(Athenaeum::Citation::UserDefRole).toMap();
         bool raise = userDef.value("__raise").toBool();
         //QModelIndex index = userDef.value("__index").value< QModelIndex >();
         PapyroWindow * window = qobject_cast< PapyroWindow * >(userDef.value("__window").value< QWidget * >());
@@ -1272,14 +1272,14 @@ namespace Papyro
         closeArticlePreview();
 
         // Only bother trying to launch an idle article
-        Athenaeum::AbstractBibliography::ItemState state = index.data(Athenaeum::AbstractBibliography::ItemStateRole).value< Athenaeum::AbstractBibliography::ItemState >();
-        if (state == Athenaeum::AbstractBibliography::IdleItemState) {
+        Athenaeum::AbstractBibliography::State state = index.data(Athenaeum::Citation::StateRole).value< Athenaeum::AbstractBibliography::State >();
+        if (state == Athenaeum::AbstractBibliography::IdleState) {
             // It is the job of this method to do something useful and expected when a user
             // activates (double-clicks) an article.
             bool raise = ((QApplication::keyboardModifiers() & Qt::ControlModifier) == 0);
 
             // If the record includes a local filename, launch that PDF file
-            QFileInfo objectFile(index.data(Athenaeum::AbstractBibliography::ObjectFileRole).toUrl().toLocalFile());
+            QFileInfo objectFile(index.data(Athenaeum::Citation::ObjectFileRole).toUrl().toLocalFile());
             if (objectFile.exists()) {
                 window()->open(objectFile.canonicalFilePath(), raise ? PapyroWindow::ForegroundTab : PapyroWindow::BackgroundTab);
             } else {
@@ -1287,12 +1287,12 @@ namespace Papyro
                 // which to search for the article. Sometimes such a URL is already provided
                 // in the citation record. If not, we must fall back to some intelligent
                 // guesswork
-                Athenaeum::CitationHandle item = index.data(Athenaeum::AbstractBibliography::ItemRole).value< Athenaeum::CitationHandle >();
+                Athenaeum::CitationHandle item = index.data(Athenaeum::Citation::ItemRole).value< Athenaeum::CitationHandle >();
                 if (item) {
                     QVariantMap userDef;
                     userDef["__index"] = QVariant::fromValue(index);
                     userDef["__raise"] = raise;
-                    item->setField(Athenaeum::AbstractBibliography::UserDefRole, userDef);
+                    item->setField(Athenaeum::Citation::UserDefRole, userDef);
 
 
 /*
@@ -1335,11 +1335,11 @@ namespace Papyro
 
         foreach (QModelIndex index, indices) {
             // Only bother trying to launch an idle article
-            Athenaeum::AbstractBibliography::ItemState state = index.data(Athenaeum::AbstractBibliography::ItemStateRole).value< Athenaeum::AbstractBibliography::ItemState >();
-            if (state == Athenaeum::AbstractBibliography::IdleItemState) {
-                if (Athenaeum::CitationHandle citation = index.data(Athenaeum::AbstractBibliography::ItemRole).value< Athenaeum::CitationHandle >()) {
+            Athenaeum::AbstractBibliography::State state = index.data(Athenaeum::Citation::StateRole).value< Athenaeum::AbstractBibliography::State >();
+            if (state == Athenaeum::AbstractBibliography::IdleState) {
+                if (Athenaeum::CitationHandle citation = index.data(Athenaeum::Citation::ItemRole).value< Athenaeum::CitationHandle >()) {
                     // If the record includes a local filename, launch that PDF file
-                    QFileInfo objectFile(index.data(Athenaeum::AbstractBibliography::ObjectFileRole).toUrl().toLocalFile());
+                    QFileInfo objectFile(index.data(Athenaeum::Citation::ObjectFileRole).toUrl().toLocalFile());
                     if (objectFile.exists()) {
                         window->open(citation, raise ? Papyro::PapyroWindow::ForegroundTab : Papyro::PapyroWindow::BackgroundTab);
                     } else {
@@ -1351,7 +1351,7 @@ namespace Papyro
                         userDef["__index"] = QVariant::fromValue(index);
                         userDef["__raise"] = raise;
                         userDef["__window"] = QVariant::fromValue(window);
-                        citation->setField(Athenaeum::AbstractBibliography::UserDefRole, userDef);
+                        citation->setField(Athenaeum::Citation::UserDefRole, userDef);
 
                         QPointer< Athenaeum::ResolverRunnable > runnable(Athenaeum::ResolverRunnable::resolve(citation, this, SLOT(onResolverRunnableCompleted(Athenaeum::CitationHandle))));
                         connect(this, SIGNAL(cancellationRequested()), runnable, SLOT(cancel()));
@@ -1371,11 +1371,11 @@ namespace Papyro
         typedef QPair< int, QString > _PAIR;
         static QList< _PAIR > tpls;
         if (tpls.isEmpty()) {
-            tpls << _PAIR(Athenaeum::AbstractBibliography::TitleRole, "<h1 style='font-size: large'>%1</h1>");
-            tpls << _PAIR(Athenaeum::AbstractBibliography::SubtitleRole, "<h2 style='font-size: medium'>%1</h2>");
-            tpls << _PAIR(Athenaeum::AbstractBibliography::AuthorsRole, "<p align='justify' class='authors'>%1.</p>");
-            tpls << _PAIR(Athenaeum::AbstractBibliography::YearRole, "<p align='justify' class='publication'>%1</p>");
-            tpls << _PAIR(Athenaeum::AbstractBibliography::AbstractRole, "<p align='justify' class='abstract'>%1</p>");
+            tpls << _PAIR(Athenaeum::Citation::TitleRole, "<h1 style='font-size: large'>%1</h1>");
+            tpls << _PAIR(Athenaeum::Citation::SubTitleRole, "<h2 style='font-size: medium'>%1</h2>");
+            tpls << _PAIR(Athenaeum::Citation::AuthorsRole, "<p align='justify' class='authors'>%1.</p>");
+            tpls << _PAIR(Athenaeum::Citation::YearRole, "<p align='justify' class='publication'>%1</p>");
+            tpls << _PAIR(Athenaeum::Citation::AbstractRole, "<p align='justify' class='abstract'>%1</p>");
         }
 
         bool needNewPreview = articlePreviewIndex != index;
@@ -1396,9 +1396,9 @@ namespace Papyro
                 QString html;
                 foreach (const _PAIR & pair, tpls) {
                     switch (pair.first) {
-                    case Athenaeum::AbstractBibliography::AuthorsRole: {
+                    case Athenaeum::Citation::AuthorsRole: {
                         QStringList names;
-                        foreach (const QString & author, index.data(Athenaeum::AbstractBibliography::AuthorsRole).toStringList()) {
+                        foreach (const QString & author, index.data(Athenaeum::Citation::AuthorsRole).toStringList()) {
                             names << (author.section(", ", 1) + " " + author.section(", ", 0, 0));
                         }
                         if (!names.isEmpty()) {
@@ -1406,21 +1406,21 @@ namespace Papyro
                         }
                         break;
                     }
-                    case Athenaeum::AbstractBibliography::YearRole: {
+                    case Athenaeum::Citation::YearRole: {
                         QStringList publication;
 
-                        QString publicationTitle = index.data(Athenaeum::AbstractBibliography::PublicationTitleRole).toString();
+                        QString publicationTitle = index.data(Athenaeum::Citation::PublicationTitleRole).toString();
                         if (!publicationTitle.isEmpty()) {
                             publication << "<span class='publicationTitle'>\"" + publicationTitle + "\"</span>";
                         }
 
-                        QString year = index.data(Athenaeum::AbstractBibliography::YearRole).toString();
+                        QString year = index.data(Athenaeum::Citation::YearRole).toString();
                         if (!year.isEmpty()) {
                             publication << "<span class='year'>(" + year + ")</span>";
                         }
 
-                        QString volume = index.data(Athenaeum::AbstractBibliography::VolumeRole).toString();
-                        QString issue = index.data(Athenaeum::AbstractBibliography::IssueRole).toString();
+                        QString volume = index.data(Athenaeum::Citation::VolumeRole).toString();
+                        QString issue = index.data(Athenaeum::Citation::IssueRole).toString();
                         QString volumeIssue;
                         if (!volume.isEmpty()) {
                             volumeIssue += "<span class='volume'>" + volume + "</span>";
@@ -1435,8 +1435,8 @@ namespace Papyro
                             publication << volumeIssue;
                         }
 
-                        QString pogeFrom = index.data(Athenaeum::AbstractBibliography::PageFromRole).toString();
-                        QString pageTo = index.data(Athenaeum::AbstractBibliography::PageToRole).toString();
+                        QString pogeFrom = index.data(Athenaeum::Citation::PageFromRole).toString();
+                        QString pageTo = index.data(Athenaeum::Citation::PageToRole).toString();
                         QString pages;
                         if (!pogeFrom.isEmpty()) {
                             if (!pageTo.isEmpty()) {
@@ -1456,7 +1456,7 @@ namespace Papyro
                             publication << pages;
                         }
 
-                        QString publisher = index.data(Athenaeum::AbstractBibliography::PublisherRole).toString();
+                        QString publisher = index.data(Athenaeum::Citation::PublisherRole).toString();
                         if (!publisher.isEmpty()) {
                             publication << "<span class='publisher'>" + publisher + "</span>";
                         }
@@ -1502,7 +1502,7 @@ namespace Papyro
     {
         foreach (const QModelIndex & index, articleResultsView->selectionModel()->selectedIndexes()) {
             if (Athenaeum::Bibliography * master = dynamic_cast< Athenaeum::Bibliography * >(libraryModel->master())) {
-                Athenaeum::CitationHandle item = index.data(Athenaeum::AbstractBibliography::ItemRole).value< Athenaeum::CitationHandle >();
+                Athenaeum::CitationHandle item = index.data(Athenaeum::Citation::ItemRole).value< Athenaeum::CitationHandle >();
                 master->appendItem(item);
             }
         }
@@ -2169,7 +2169,7 @@ namespace Papyro
             actionQuickSearchNext->setProxied(tab->action(PapyroTab::QuickSearchNext));
             actionQuickSearchPrevious->setProxied(tab->action(PapyroTab::QuickSearchPrevious));
             actionToggleSidebar->setProxied(tab->action(PapyroTab::ToggleSidebar));
-            actionToggleLookupBar->setProxied(tab->action(PapyroTab::ToggleLookupBar));
+            //actionToggleLookupBar->setProxied(tab->action(PapyroTab::ToggleLookupBar));
             actionTogglePager->setProxied(tab->action(PapyroTab::TogglePager));
             actionToggleImageBrowser->setProxied(tab->action(PapyroTab::ToggleImageBrowser));
         }
@@ -2603,7 +2603,7 @@ namespace Papyro
                     Athenaeum::CitationHandle citation = Athenaeum::CitationHandle(new Athenaeum::Citation);
                     Athenaeum::Bibliography * master = d->libraryModel->master();
                     master->appendItem(citation);
-                    citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
+                    citation->setField(Athenaeum::Citation::DateImportedRole, QDateTime::currentDateTime());
                     QByteArray data = event->mimeData()->data("application/pdf");
                     d->libraryModel->saveObjectFile(citation, data, ".pdf");
                 }
@@ -2616,8 +2616,8 @@ namespace Papyro
                         // If this is a local URL, copy the file
                         if (url.isLocalFile()) {
                             Athenaeum::CitationHandle citation = Athenaeum::CitationHandle(new Athenaeum::Citation);
-                            citation->setField(Athenaeum::AbstractBibliography::OriginatingUriRole, url);
-                            citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
+                            citation->setField(Athenaeum::Citation::OriginatingUriRole, url);
+                            citation->setField(Athenaeum::Citation::DateImportedRole, QDateTime::currentDateTime());
                             Athenaeum::Bibliography * master = d->libraryModel->master();
                             master->appendItem(citation);
                             QFile file(url.toLocalFile());

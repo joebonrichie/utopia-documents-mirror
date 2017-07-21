@@ -58,7 +58,7 @@ set(SOURCES
     dispatcher.cpp
     documentfactory.cpp
     documentmanager.cpp
-    documentsignalproxy.cpp
+    documentproxy.cpp
     documentview.cpp
     embeddedframe.cpp
     embeddedpane.cpp
@@ -116,6 +116,10 @@ include_directories(
   ${utopia2_INCLUDE_DIR}
   ${utopia2_qt_INCLUDE_DIR}
   )
+
+# Preprocess any scss files
+file(GLOB_RECURSE SASS_SOURCES *.scss)
+preprocess_sass(CSS_SOURCES "${SASS_SOURCES}")
 
 # -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 qt5_add_resources(SOURCES papyro.qrc papyro_pages.qrc cslengine.qrc ../../libathenaeum/athenaeum/athenaeum.qrc)

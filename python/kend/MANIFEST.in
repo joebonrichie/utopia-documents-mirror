@@ -1,0 +1,12 @@
+include CHANGES.md
+include LICENSE.md
+include README.md
+include kend/__init__.py
+include kend/client.py
+include kend/converter/JSON.py
+include kend/converter/XML.py
+include kend/converter/__init__.py
+include kend/converter/base.py
+include kend/log.py
+include kend/model.py
+include kend/test/test_client.py

@@ -1,0 +1,14 @@
+To build a debian/Ubuntu package for crackle, run:
+
+ dpkg-buildpackage -us -uc
+
+ To update the version, see:
+   debian/changelog
+
+   A new entry can be made with:
+
+     export DEBFULLNAME="James Marsh"
+     export DEBEMAIL="james.marsh@manchester.ac.uk"
+     dch -i
+
+The packages will be placed in the parent directory to this README.debian

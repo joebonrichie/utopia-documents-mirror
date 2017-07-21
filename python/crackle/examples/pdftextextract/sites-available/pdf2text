@@ -1,0 +1,30 @@
+<VirtualHost *:80>
+        ServerName dark.cs.man.ac.uk
+        ServerAdmin utopia@cs.man.ac.uk
+
+        DocumentRoot /opt/pdftextextract/htdocs
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride None
+        </Directory>
+        <Directory /opt/pdftextextract/htdocs>
+                Options -Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        ErrorLog /var/log/apache2/error.pdf2text.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog /var/log/apache2/access.pdf2text.log combined
+
+        WSGIDaemonProcess pdf2text processes=4 threads=16
+        WSGIProcessGroup pdf2text
+        WSGIPassAuthorization On
+        WSGIScriptAlias /extract /opt/pdftextextract/dispatch.wsgi
+
+</VirtualHost>

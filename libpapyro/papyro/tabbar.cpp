@@ -598,8 +598,8 @@ namespace Papyro
 
     void TabBarPrivate::updateState(TabData * data)
     {
-        bool known = data->citation && data->citation->field(Athenaeum::AbstractBibliography::KnownRole).toBool();
-        bool starred = data->citation && (data->citation->field(Athenaeum::AbstractBibliography::ItemFlagsRole).value< Athenaeum::AbstractBibliography::ItemFlags >() & Athenaeum::AbstractBibliography::StarredItemFlag);
+        bool known = data->citation && data->citation->field(Athenaeum::Citation::KnownRole).toBool();
+        bool starred = data->citation && (data->citation->field(Athenaeum::Citation::FlagsRole).value< Athenaeum::Citation::Flags >() & Athenaeum::Citation::StarredFlag);
         data->known = known;
         data->starred = known && starred;
         tabBar->update();

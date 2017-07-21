@@ -60,16 +60,16 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
     types["newspaper article"] = "MISC";
 
     // Mapping
-    typedef QPair< QString, AbstractBibliography::Roles > Mapping;
+    typedef QPair< QString, Citation::Role > Mapping;
     QVector< Mapping > translation;
-    translation << Mapping("title", AbstractBibliography::TitleRole);
-    translation << Mapping("abstract", AbstractBibliography::AbstractRole);
-    translation << Mapping("url", AbstractBibliography::UrlRole);
-    translation << Mapping("volume", AbstractBibliography::VolumeRole);
-    translation << Mapping("number", AbstractBibliography::IssueRole);
-    translation << Mapping("year", AbstractBibliography::YearRole);
-    translation << Mapping("journal", AbstractBibliography::PublicationTitleRole);
-    translation << Mapping("publisher", AbstractBibliography::PublisherRole);
+    translation << Mapping("title", Citation::TitleRole);
+    translation << Mapping("abstract", Citation::AbstractRole);
+    translation << Mapping("url", Citation::UrlRole);
+    translation << Mapping("volume", Citation::VolumeRole);
+    translation << Mapping("number", Citation::IssueRole);
+    translation << Mapping("year", Citation::YearRole);
+    translation << Mapping("journal", Citation::PublicationTitleRole);
+    translation << Mapping("publisher", Citation::PublisherRole);
 
     // Write out
     QFile file(filename);
@@ -88,7 +88,7 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
             QString firstAuthorSurname;
             QStringMap fields;
 
-            fields["type"] = types.value(index.data(AbstractBibliography::TypeRole).toString(), "MISC");
+            fields["type"] = types.value(index.data(Citation::TypeRole).toString(), "MISC");
 
             // Translate standard fields
             foreach (const Mapping & pair, translation) {
@@ -100,7 +100,7 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
 
             // Authors
             QStringList authors;
-            foreach (const QString & author, index.data(AbstractBibliography::AuthorsRole).toStringList()) {
+            foreach (const QString & author, index.data(Citation::AuthorsRole).toStringList()) {
                 QString forenames = author.section(", ", 1, 1);
                 QString surnames = author.section(", ", 0, 0);
                 if (firstAuthorSurname.isEmpty()) {
@@ -114,15 +114,15 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
 
             // Pages
             QStringList pagesList;
-            pagesList << index.data(AbstractBibliography::PageFromRole).toString();
-            pagesList << index.data(AbstractBibliography::PageToRole).toString();
+            pagesList << index.data(Citation::PageFromRole).toString();
+            pagesList << index.data(Citation::PageToRole).toString();
             QString pages = pagesList.join("-");
             if (!pages.isEmpty() && pages != "-") {
                 fields["pages"] = pages;
             }
 
             // Keywords
-            QStringList keywords = index.data(AbstractBibliography::KeywordsRole).toStringList();
+            QStringList keywords = index.data(Citation::KeywordsRole).toStringList();
             if (!keywords.isEmpty()) {
                 fields["keywords"] = keywords.join(", ");
             }
@@ -131,7 +131,7 @@ bool BibTeXExporter::doExport(const QModelIndexList & indexList, const QString &
             QStringMap identifiers;
             identifiers["doi"] = "doi";
             // FIXME More BibTeX codes for identifiers!
-            QMapIterator< QString, QVariant > id_iter(index.data(AbstractBibliography::IdentifiersRole).toMap());
+            QMapIterator< QString, QVariant > id_iter(index.data(Citation::IdentifiersRole).toMap());
             while (id_iter.hasNext()) {
                 id_iter.next();
                 if (identifiers.contains(id_iter.key())) {

@@ -37,7 +37,7 @@
 #include <papyro/capabilities.h>
 #include <papyro/citations.h>
 #include <papyro/dispatcher.h>
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 #include <papyro/documentview.h>
 #include <papyro/pager.h>
 #include <papyro/papyrotab.h>
@@ -591,13 +591,13 @@ namespace Papyro
             bool isStarred = citation->isStarred();
             bool isKnown = citation->isKnown();
 
-            if (index == Athenaeum::AbstractBibliography::ItemFlagsRole) {
-                //bool wasStarred = (oldValue.value< Athenaeum::AbstractBibliography::ItemFlags >() & Athenaeum::AbstractBibliography::StarredItemFlag);
+            if (index == Athenaeum::Citation::FlagsRole) {
+                //bool wasStarred = (oldValue.value< Athenaeum::Citation::Flags >() & Athenaeum::Citation::StarredFlag);
                 if (isStarred && !isKnown) {
                     emit starredChanged(isStarred);
                 }
             }
-            if (index == Athenaeum::AbstractBibliography::KnownRole && citation) {
+            if (index == Athenaeum::Citation::KnownRole && citation) {
                 bool wasKnown = oldValue.toBool();
                 if (wasKnown != isKnown) {
                     emit knownChanged(isKnown);
@@ -847,17 +847,17 @@ namespace Papyro
             while (iter.hasNext()) {
                 iter.next();
                 int role = -1;
-                if (iter.key() == "title" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::TitleRole; }
-                else if (iter.key() == "authors" && !iter.value().toList().isEmpty()) { role = Athenaeum::AbstractBibliography::AuthorsRole; }
-                else if (iter.key() == "year" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::YearRole; }
-                else if (iter.key() == "issue" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::IssueRole; }
-                else if (iter.key() == "volume" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::VolumeRole; }
-                else if (iter.key() == "identifiers" && !iter.value().toMap().isEmpty()) { role = Athenaeum::AbstractBibliography::IdentifiersRole; }
-                else if (iter.key() == "publication-title" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::PublicationTitleRole; }
-                else if (iter.key() == "abstract" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::AbstractRole; }
-                else if (iter.key() == "publisher" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::PublisherRole; }
-                else if (iter.key() == "keywords" && !iter.value().toString().isEmpty()) { role = Athenaeum::AbstractBibliography::KeywordsRole; }
-                else if (iter.key() == "links" && !iter.value().toList().isEmpty()) { role = Athenaeum::AbstractBibliography::LinksRole; }
+                if (iter.key() == "title" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::TitleRole; }
+                else if (iter.key() == "authors" && !iter.value().toList().isEmpty()) { role = Athenaeum::Citation::AuthorsRole; }
+                else if (iter.key() == "year" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::YearRole; }
+                else if (iter.key() == "issue" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::IssueRole; }
+                else if (iter.key() == "volume" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::VolumeRole; }
+                else if (iter.key() == "identifiers" && !iter.value().toMap().isEmpty()) { role = Athenaeum::Citation::IdentifiersRole; }
+                else if (iter.key() == "publication-title" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::PublicationTitleRole; }
+                else if (iter.key() == "abstract" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::AbstractRole; }
+                else if (iter.key() == "publisher" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::PublisherRole; }
+                else if (iter.key() == "keywords" && !iter.value().toString().isEmpty()) { role = Athenaeum::Citation::KeywordsRole; }
+                else if (iter.key() == "links" && !iter.value().toList().isEmpty()) { role = Athenaeum::Citation::LinksRole; }
 
                 if (role >= 0) {
                     candidate->setField(role, iter.value());
@@ -885,8 +885,10 @@ namespace Papyro
         }
     }
 
-    void PapyroTabPrivate::onDocumentViewAnnotationsActivated(Spine::AnnotationSet annotations, const QPoint & globalPos)
+    void PapyroTabPrivate::onDocumentViewAnnotationsActivated(Spine::AnnotationSet annotations, const QVariantMap & context)
     {
+        QPoint globalPos(context.value("globalPos").toPoint());
+
         // Find a suitable processor for this annotation
         QMap< int, QMap< int, QMap< QString, QList< AnnotationProcessor * > > > > ordered;
         foreach(AnnotationProcessor * processor, annotationProcessors) {
@@ -899,7 +901,7 @@ namespace Papyro
             ordered.begin().value().begin().value().begin().value().first()->activate(document(), annotations, globalPos);
         } else {
             // What if no suitable processor was found? Bung in the sidebar :)
-            visualiseAnnotations(annotations);
+            visualiseAnnotations(annotations, context);
         }
     }
 
@@ -1121,12 +1123,6 @@ namespace Papyro
     void PapyroTabPrivate::onDocumentViewSpotlightsHidden()
     {
         quickSearchBar->hide();
-    }
-
-    void PapyroTabPrivate::onDocumentViewVisualiseAnnotationsAt(int page, double x, double y)
-    {
-        std::set< Spine::AnnotationHandle > annotations(document()->annotationsAt(page, x, y));
-        visualiseAnnotations(annotations);
     }
 
     void PapyroTabPrivate::onFilterFinished()
@@ -1392,7 +1388,7 @@ namespace Papyro
     {
         // Open the given document in this tab
         if (document) {
-            documentSignalProxy->setDocument(document);
+            documentProxy->setDocument(document);
             tab->setCitation(citation);
 
             // Set up UI
@@ -1455,7 +1451,15 @@ namespace Papyro
 
             // Make sure the incoming citation is stored in the document
             if (citation) {
-                document->addAnnotation(mapToCitation(citation->toMap()), "Document Metadata");
+                QVariantMap provenance(citation->field(Athenaeum::Citation::ProvenanceRole).toMap());
+                QVariantList sources(provenance.value("sources").toList());
+                if (sources.isEmpty()) {
+                    document->addAnnotation(mapToCitation(citation->toMap()), "Document Metadata");
+                } else {
+                    foreach (const QVariant & source, sources) {
+                        document->addAnnotation(mapToCitation(source.toMap()), "Document Metadata");
+                    }
+                }
             }
 
             // Populate document after a short pause
@@ -1678,38 +1682,68 @@ namespace Papyro
         }
     }
 
-    void PapyroTabPrivate::visualiseAnnotations(Spine::AnnotationSet annotations)
+    void PapyroTabPrivate::visualiseAnnotations(Spine::AnnotationSet annotations, const QVariantMap & context)
     {
         QStringList terms;
         Spine::AnnotationSet ignore;
+        size_t page = context.value("page", 0).toUInt();
+        QPointF pagePos = context.value("pos", 0).toPointF();
         foreach (Spine::AnnotationHandle annotation, annotations) {
             // Ignore items that are supposed to be embedded
             if (annotation->getFirstProperty("property:embedded") == "1" ||
                 annotation->getFirstProperty("property:demo_logo") == "1") {
                 ignore.insert(annotation);
-            } else {
-                // Compile a list of searchable terms
-                Spine::TextExtentSet extents(annotation->extents());
-                if (!extents.empty()) {
-                    terms.push_back(qStringFromUnicode((*extents.begin())->text()).toLower());
-                }
             }
         }
-        terms.removeDuplicates();
         foreach (Spine::AnnotationHandle annotation, ignore) {
             annotations.erase(annotation);
         }
 
-        if (!annotations.empty()) {
+        // Compile contexts for each annotation
+        QList< QPair< Spine::AnnotationHandle, QVariantMap > > contextualised;
+        foreach (Spine::AnnotationHandle annotation, annotations) {
+            QVariantMap annotationContext(context);
+            // Compile a list of searchable terms
+            foreach (Spine::TextExtentHandle extent, annotation->extents()) {
+                QVariantMap extentContext;
+                foreach (Spine::Area area, extent->areas()) {
+                    if (area.page == page && area.boundingBox.contains(pagePos.x(), pagePos.y())) {
+                        QVariantList bounds;
+                        foreach (Spine::Area area, extent->areas()) {
+                            QVariantList bound;
+                            bound << area.page;
+                            bound << area.boundingBox.x1 << area.boundingBox.y1 << area.boundingBox.x2 << area.boundingBox.y2;
+                            bounds << bound;
+                        }
+                        extentContext["text"] = qStringFromUnicode(extent->text());
+                        extentContext["bounds"] = bounds;
+                        annotationContext["extent"] = extentContext;
+                        annotationContext["term"] = extentContext["text"].toString().toLower();
+                        terms.push_back(annotationContext["term"].toString());
+                        break;
+                    }
+                }
+            }
+            contextualised << qMakePair(annotation, annotationContext);
+        }
+        terms.removeDuplicates();
+
+        if (!contextualised.empty()) {
             actionToggleSidebar->setChecked(true);
             sidebar->setMode(Sidebar::Results);
             sidebar->resultsView()->clear();
             if (!terms.isEmpty()) {
-                sidebar->resultsView()->setExploreTerm(terms.first());
+                sidebar->resultsView()->setExploreTerms(terms, true);
             }
-            foreach (Spine::AnnotationHandle annotation, annotations) {
-                if (annotation->capable< SummaryCapability >()) {
-                    sidebar->resultsView()->addResult(new AnnotationResultItem(annotation));
+            typedef QPair< Spine::AnnotationHandle, QVariantMap > Pair;
+            foreach (Pair pair, contextualised) {
+                if (pair.first->capable< SummaryCapability >()) {
+                    QPointF pagePos = pair.second["pos"].toPointF();
+                    QVariantList pagePosList;
+                    pagePosList << pagePos.x() << pagePos.y();
+                    pair.second["pos"] = pagePosList;
+                    //qDebug() << "addResult" << pair.second;
+                    sidebar->resultsView()->addResult(new AnnotationResultItem(pair.first, pair.second));
                 }
             }
         }
@@ -1732,13 +1766,12 @@ namespace Papyro
         connect(d, SIGNAL(closeRequested()), this, SIGNAL(closeRequested()));
 
         // Register signal handlers for managing annotations
-        d->documentSignalProxy = new DocumentSignalProxy(this);
-        //connect(documentSignalProxy, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
-        connect(d->documentSignalProxy, SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
+        d->documentProxy = new DocumentProxy(this);
+        connect(d->documentProxy, SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
                 d, SLOT(onDocumentAreaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)));
-        connect(d->documentSignalProxy, SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
+        connect(d->documentProxy, SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
                 d, SLOT(onDocumentTextSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)));
-        connect(d->documentSignalProxy, SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
+        connect(d->documentProxy, SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
                 d, SLOT(onDocumentAnnotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)));
 
         // Main horizontal layout for this tab (document / sidebar)
@@ -1834,16 +1867,14 @@ namespace Papyro
                     d, SLOT(onDocumentViewContextMenu(QMenu*, Spine::DocumentHandle, Spine::CursorHandle)));
             connect(d->documentView, SIGNAL(focusChanged(PageView*,QPointF)),
                     d, SLOT(focusChanged(PageView*,QPointF)));
-            connect(d->documentView, SIGNAL(annotationsActivated(Spine::AnnotationSet, const QPoint &)),
-                    d, SLOT(onDocumentViewAnnotationsActivated(Spine::AnnotationSet, const QPoint &)));
+            connect(d->documentView, SIGNAL(annotationsActivated(Spine::AnnotationSet, const QVariantMap &)),
+                    d, SLOT(onDocumentViewAnnotationsActivated(Spine::AnnotationSet, const QVariantMap &)));
             connect(d->documentView, SIGNAL(pageFocusChanged(size_t)),
                     d, SLOT(onDocumentViewPageFocusChanged(size_t)));
             //connect(d->documentView, SIGNAL(selectionManaged(Spine::TextSelection,bool)),
             //        d, SLOT(onDocumentViewManageSelection(Spine::TextSelection,bool)));
             //connect(d->documentView, SIGNAL(selectionManaged(Spine::AreaSet)),
             //        d, SLOT(onDocumentViewManageSelection(Spine::AreaSet)));
-            connect(d->documentView, SIGNAL(visualiseAnnotationsAt(int,double,double)),
-                    d, SLOT(onDocumentViewVisualiseAnnotationsAt(int,double,double)));
             connect(d->documentView, SIGNAL(exploreSelection()),
                     d, SLOT(exploreSelection()));
             connect(d->documentView, SIGNAL(publishChanges()),
@@ -1868,7 +1899,7 @@ namespace Papyro
         {
             d->sidebar = new Sidebar;
             d->sidebar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
-            d->sidebar->setDocumentSignalProxy(d->documentSignalProxy);
+            d->sidebar->setDocumentProxy(d->documentProxy);
             d->contentSplitter->addWidget(d->sidebar);
 
 
@@ -1887,6 +1918,7 @@ namespace Papyro
             d->lookupWidget->setObjectName("lookupBar");
             d->lookupWidget->setFixedWidth(d->sidebar->width());
             d->lookupWidget->installEventFilter(d);
+            d->lookupWidget->hide();
             QHBoxLayout * hLayout = new QHBoxLayout(d->lookupWidget);
             d->lookupTextBox = new QLineEdit(this);
             d->lookupTextBox->setAttribute(Qt::WA_MacShowFocusRect, 0);
@@ -2060,7 +2092,7 @@ namespace Papyro
         }
         d->actionToggleLookupBar->setCheckable(true);
         d->actionToggleLookupBar->setChecked(false);
-        QObject::connect(d->actionToggleLookupBar, SIGNAL(toggled(bool)), d, SLOT(showLookupBar(bool)));
+        //QObject::connect(d->actionToggleLookupBar, SIGNAL(toggled(bool)), d, SLOT(showLookupBar(bool)));
         //addAction(d->actionToggleLookupBar);
         d->actions[ToggleLookupBar] = d->actionToggleLookupBar;
 
@@ -2165,8 +2197,8 @@ namespace Papyro
         if (d->citation && !d->citation->isKnown()) {
             Athenaeum::Bibliography * master = d->libraryModel->master();
             master->appendItem(d->citation);
-            d->citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QDateTime::currentDateTime());
-            d->citation->setField(Athenaeum::AbstractBibliography::OriginatingUriRole, url());
+            d->citation->setField(Athenaeum::Citation::DateImportedRole, QDateTime::currentDateTime());
+            d->citation->setField(Athenaeum::Citation::OriginatingUriRole, url());
             std::string str(d->document()->data());
             QByteArray data(str.c_str(), str.size());
             d->libraryModel->saveObjectFile(d->citation, data, ".pdf");
@@ -2213,7 +2245,7 @@ namespace Papyro
         // Clear and hide sidebar
         d->sidebar->clear();
 
-        d->documentSignalProxy->setDocument(Spine::DocumentHandle());
+        d->documentProxy->setDocument(Spine::DocumentHandle());
 
         // Clear documentView
         d->documentView->clear();
@@ -2295,12 +2327,12 @@ namespace Papyro
 
     bool PapyroTab::isKnown() const
     {
-        return d->citation && d->citation->field(Athenaeum::AbstractBibliography::KnownRole).toBool();
+        return d->citation && d->citation->field(Athenaeum::Citation::KnownRole).toBool();
     }
 
     bool PapyroTab::isStarred() const
     {
-        return d->citation && (d->citation->field(Athenaeum::AbstractBibliography::ItemFlagsRole).value< Athenaeum::AbstractBibliography::ItemFlags >() & Athenaeum::AbstractBibliography::StarredItemFlag);
+        return d->citation && (d->citation->field(Athenaeum::Citation::FlagsRole).value< Athenaeum::Citation::Flags >() & Athenaeum::Citation::StarredFlag);
     }
 
     QNetworkAccessManager * PapyroTab::networkAccessManager() const
@@ -2455,7 +2487,7 @@ namespace Papyro
 
         // Get the citation's links
         QList< QVariant > links;
-        foreach (const QVariant & variant, citation->field(Athenaeum::AbstractBibliography::LinksRole).toList()) {
+        foreach (const QVariant & variant, citation->field(Athenaeum::Citation::LinksRole).toList()) {
             QVariantMap link(variant.toMap());
 
             // Cope properly with utopia(s): URLs
@@ -2470,7 +2502,7 @@ namespace Papyro
             links << link;
         }
         qSort(links.begin(), links.end(), link_less_than);
-        QUrl objPath(citation->field(Athenaeum::AbstractBibliography::ObjectFileRole).toUrl());
+        QUrl objPath(citation->field(Athenaeum::Citation::ObjectFileRole).toUrl());
         if (objPath.isValid()) {
             QVariantMap link;
             link["type"] = "article";
@@ -2543,7 +2575,7 @@ namespace Papyro
     {
         if (d->citation && d->citation->isKnown()) {
             Athenaeum::Bibliography * master = d->libraryModel->master();
-            d->citation->setField(Athenaeum::AbstractBibliography::DateImportedRole, QVariant());
+            d->citation->setField(Athenaeum::Citation::DateImportedRole, QVariant());
             master->removeItem(d->citation);
         }
     }
@@ -2589,7 +2621,7 @@ namespace Papyro
     void PapyroTab::setStarred(bool starred)
     {
         Athenaeum::Bibliography * master = d->libraryModel->master();
-        if (!d->citation || !master->itemForKey(d->citation->field(Athenaeum::AbstractBibliography::KeyRole).toString())) {
+        if (!d->citation || !master->itemForKey(d->citation->field(Athenaeum::Citation::KeyRole).toString())) {
             if (!d->citation) {
                 // Add to library
                 Athenaeum::CitationHandle citation = Athenaeum::CitationHandle(new Athenaeum::Citation);
@@ -2623,27 +2655,27 @@ namespace Papyro
                 while (iter.hasNext()) {
                     iter.next();
                     if (!collated.value("title").toString().isEmpty()) {
-                        citation->setField(Athenaeum::AbstractBibliography::TitleRole, collated.value("title"));
+                        citation->setField(Athenaeum::Citation::TitleRole, collated.value("title"));
                     }
                     if (!collated.value("authors").toList().isEmpty()) {
-                        citation->setField(Athenaeum::AbstractBibliography::AuthorsRole, collated.value("authors"));
+                        citation->setField(Athenaeum::Citation::AuthorsRole, collated.value("authors"));
                     }
                     if (!collated.value("identifiers").toMap().isEmpty()) {
-                        citation->setField(Athenaeum::AbstractBibliography::IdentifiersRole, collated.value("identifiers"));
+                        citation->setField(Athenaeum::Citation::IdentifiersRole, collated.value("identifiers"));
                     }
                 }
                 setCitation(citation);
             }
             master->appendItem(d->citation);
         }
-        if (false && d->citation && master->itemForKey(d->citation->field(Athenaeum::AbstractBibliography::KeyRole).toString()) == d->citation) {
-            Athenaeum::AbstractBibliography::ItemFlags itemFlags = d->citation->field(Athenaeum::AbstractBibliography::ItemFlagsRole).value< Athenaeum::AbstractBibliography::ItemFlags >();
+        if (false && d->citation && master->itemForKey(d->citation->field(Athenaeum::Citation::KeyRole).toString()) == d->citation) {
+            Athenaeum::Citation::Flags itemFlags = d->citation->field(Athenaeum::Citation::FlagsRole).value< Athenaeum::Citation::Flags >();
             if (starred) {
-                itemFlags |= Athenaeum::AbstractBibliography::StarredItemFlag;
+                itemFlags |= Athenaeum::Citation::StarredFlag;
             } else {
-                itemFlags &= ~Athenaeum::AbstractBibliography::StarredItemFlag;
+                itemFlags &= ~Athenaeum::Citation::StarredFlag;
             }
-            d->citation->setField(Athenaeum::AbstractBibliography::ItemFlagsRole, QVariant::fromValue< Athenaeum::AbstractBibliography::ItemFlags >(itemFlags));
+            d->citation->setField(Athenaeum::Citation::FlagsRole, QVariant::fromValue< Athenaeum::Citation::Flags >(itemFlags));
         }
     }
 
@@ -2669,20 +2701,20 @@ namespace Papyro
             if (!d->citation->isKnown()) {
                 addToLibrary();
             }
-            Athenaeum::AbstractBibliography::ItemFlags itemFlags =
-                d->citation->field(Athenaeum::AbstractBibliography::ItemFlagsRole).value< Athenaeum::AbstractBibliography::ItemFlags >();
-            itemFlags |= Athenaeum::AbstractBibliography::StarredItemFlag;
-            d->citation->setField(Athenaeum::AbstractBibliography::ItemFlagsRole, QVariant::fromValue< Athenaeum::AbstractBibliography::ItemFlags >(itemFlags));
+            Athenaeum::Citation::Flags itemFlags =
+                d->citation->field(Athenaeum::Citation::FlagsRole).value< Athenaeum::Citation::Flags >();
+            itemFlags |= Athenaeum::Citation::StarredFlag;
+            d->citation->setField(Athenaeum::Citation::FlagsRole, QVariant::fromValue< Athenaeum::Citation::Flags >(itemFlags));
         }
     }
 
     void PapyroTab::unstar()
     {
         if (d->citation && d->citation->isStarred()) {
-            Athenaeum::AbstractBibliography::ItemFlags itemFlags =
-                d->citation->field(Athenaeum::AbstractBibliography::ItemFlagsRole).value< Athenaeum::AbstractBibliography::ItemFlags >();
-            itemFlags &= ~Athenaeum::AbstractBibliography::StarredItemFlag;
-            d->citation->setField(Athenaeum::AbstractBibliography::ItemFlagsRole, QVariant::fromValue< Athenaeum::AbstractBibliography::ItemFlags >(itemFlags));
+            Athenaeum::Citation::Flags itemFlags =
+                d->citation->field(Athenaeum::Citation::FlagsRole).value< Athenaeum::Citation::Flags >();
+            itemFlags &= ~Athenaeum::Citation::StarredFlag;
+            d->citation->setField(Athenaeum::Citation::FlagsRole, QVariant::fromValue< Athenaeum::Citation::Flags >(itemFlags));
         }
     }
 
@@ -2703,7 +2735,7 @@ namespace Papyro
 
     void PapyroTab::visualiseAnnotations(const Spine::AnnotationSet & annotations)
     {
-        d->visualiseAnnotations(annotations);
+        d->visualiseAnnotations(annotations, QVariantMap());
     }
 
 } // namespace Papyro

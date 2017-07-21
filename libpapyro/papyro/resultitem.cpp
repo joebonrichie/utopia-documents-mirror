@@ -36,12 +36,27 @@
 namespace Papyro
 {
 
-    ResultItem::ResultItem()
-        : QObject()
+    class ResultItemPrivate
+    {
+    public:
+        ResultItemPrivate(const QVariantMap & context)
+            : context(context)
+        {}
+
+        QVariantMap context;
+    }; // class ResultItemPrivate
+
+
+
+
+    ResultItem::ResultItem(const QVariantMap & context)
+        : QObject(), d(new ResultItemPrivate(context))
     {}
 
     ResultItem::~ResultItem()
-    {}
+    {
+        delete d;
+    }
 
     void ResultItem::generateContent()
     {}
@@ -49,6 +64,11 @@ namespace Papyro
     QList< Spine::CapabilityHandle > ResultItem::capabilities() const
     {
         return QList< Spine::CapabilityHandle >();
+    }
+
+    QVariantMap ResultItem::context() const
+    {
+        return d->context;
     }
 
     QString ResultItem::cssId() const

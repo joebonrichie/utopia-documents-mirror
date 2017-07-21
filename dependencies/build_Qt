@@ -58,7 +58,7 @@ fi
 
 SKIP=""
 for i in 3d activeqt androidextras connectivity declarative enginio doc \
-         location quick1 quickcontrols serialport wayland webchannel webengine \
+         location quickcontrols serialport wayland webchannel webengine \
          xmlpatterns; do
     SKIP=" $SKIP -skip $i "
 done
@@ -100,9 +100,6 @@ if [ x"${ARCH}" = x"Darwin" ]; then
         MACOSX_ARCHFLAGS+="-arch $archflag "
     done;
     export MACOSX_ARCHFLAGS
-    #export CFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CFLAGS"
-    #export CXXFLAGS="-isysroot $MACOSX_SYSROOT $MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $CXXFLAGS"
-    #export LDFLAGS="$MACOSX_ARCHFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET $LDFLAGS"
 
     CONFIGURE_EXTRA_OPTIONS+="\
 	-prefix ${PREFIX}/build \
@@ -113,20 +110,20 @@ if [ x"${ARCH}" = x"Darwin" ]; then
 	-I $PREFIX/include \
 	-bindir $PREFIX/bin \
 	-debug-and-release \
-	$MACOSX_ARCHFLAGS \
 	-openssl \
 	-system-zlib \
+	-qt-harfbuzz \
 	-no-framework"
 
     #if [ x"$MACOSX_SYSROOT" != x"/" ]; then
     #    CONFIGURE_EXTRA_OPTIONS+="-sdk $MACOSX_SYSROOT "
     #fi
 
-    patch -p1 <<'EOF'
-$ diff -Nauw qt-everywhere-opensource-src-5.3.2/qtbase/mkspecs/features/create_cmake_original.prf qt-everywhere-opensource-src-5.3.2/qtbase/mkspecs/features/create_cmake.prf
---- qt-everywhere-opensource-src-5.3.2/qtbase/mkspecs/features/create_cmake_original.prf	2015-05-15 02:55:02.000000000 +0100
-+++ qt-everywhere-opensource-src-5.3.2/qtbase/mkspecs/features/create_cmake.prf	2015-05-15 02:54:31.000000000 +0100
-@@ -144,7 +144,7 @@
+    patch2 <<'EOF'
+$ diff -Nauw qt/qtbase/mkspecs/features/create_cmake.orig.prf qt/qtbase/mkspecs/features/create_cmake.prf
+--- qt/qtbase/mkspecs/features/create_cmake.orig.prf	2015-05-15 02:55:02.000000000 +0100
++++ qt/qtbase/mkspecs/features/create_cmake.prf	2015-05-15 02:54:31.000000000 +0100
+@@ -151,7 +151,7 @@
              else: CMAKE_PlUGIN_EXT = .a
 
              CMAKE_PLUGIN_LOCATION_RELEASE = $$PLUGIN_TYPE/lib$${TARGET}$${CMAKE_PlUGIN_EXT}
@@ -137,10 +134,40 @@ $ diff -Nauw qt-everywhere-opensource-src-5.3.2/qtbase/mkspecs/features/create_c
              else: CMAKE_PlUGIN_EXT = .a
 EOF
 
-    patch -p1 <<'EOF'
-$ diff -Nauw qt-everywhere-opensource-src-5.4.1/qtlocation/src/3rdparty/poly2tri/poly2tri.original.pro qt-everywhere-opensource-src-5.4.1/qtlocation/src/3rdparty/poly2tri/poly2tri.pro
---- qt-everywhere-opensource-src-5.4.1/qtlocation/src/3rdparty/poly2tri/poly2tri.original.pro     2015-05-15 19:29:48.000000000 +0100
-+++ qt-everywhere-opensource-src-5.4.1/qtlocation/src/3rdparty/poly2tri/poly2tri.pro      2015-05-15 19:30:54.000000000 +0100
+    patch2 <<'EOF'
+$ diff -Nauw qt/qtbase/configure qt/qtbase/configure
+--- qt/qtbase/configure.orig	2015-05-15 02:55:02.000000000 +0100
++++ qt/qtbase/configure	2015-05-15 02:54:31.000000000 +0100
+@@ -527,7 +527,7 @@
+         exit 2
+     fi
+
+-    if ! /usr/bin/xcrun -find xcrun >/dev/null 2>&1; then
++    if ! /usr/bin/xcrun -find xcodebuild >/dev/null 2>&1; then
+         echo >&2
+         echo "   Xcode not set up properly. You may need to confirm the license" >&2
+         echo "   agreement by running /usr/bin/xcodebuild without arguments." >&2
+EOF
+
+    patch2 <<'EOF'
+$ diff -Nauw qt/qtbase/mkspecs/features/mac/default_pre.orig.prf qt/qtbase/mkspecs/features/mac/default_pre.prf
+--- qt/qtbase/mkspecs/features/mac/default_pre.orig.prf	2015-05-15 02:55:02.000000000 +0100
++++ qt/qtbase/mkspecs/features/mac/default_pre.prf	2015-05-15 02:54:31.000000000 +0100
+@@ -12,7 +12,7 @@
+         error("Xcode is not installed in $${QMAKE_XCODE_DEVELOPER_PATH}. Please use xcode-select to choose Xcode installation path.")
+
+     # Make sure Xcode is set up properly
+-    isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null"))): \\
++    isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null"))): \\
+         error("Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild.")
+ }
+
+EOF
+
+    patch2 <<'EOF'
+$ diff -Nauw qt/qtlocation/src/3rdparty/poly2tri/poly2tri.orig.pro qt/qtlocation/src/3rdparty/poly2tri/poly2tri.pro
+--- qt/qtlocation/src/3rdparty/poly2tri/poly2tri.orig.pro     2015-05-15 19:29:48.000000000 +0100
++++ qt/qtlocation/src/3rdparty/poly2tri/poly2tri.pro      2015-05-15 19:30:54.000000000 +0100
 @@ -7,6 +7,9 @@
  # workaround for QTBUG-31586
  contains(QT_CONFIG, c++11): CONFIG += c++11

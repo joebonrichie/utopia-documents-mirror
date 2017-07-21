@@ -70,8 +70,8 @@ namespace Athenaeum
         QTimer updateTimer;
 
         bool acceptsDrop(QDropEvent * e) const;
-
         void exportArticlesAsCitations(const QItemSelection & selection);
+        QModelIndexList selectedIndexes() const;
 
     protected:
         bool eventFilter(QObject * obj, QEvent * e);

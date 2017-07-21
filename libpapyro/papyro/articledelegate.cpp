@@ -148,15 +148,15 @@ namespace Athenaeum
                 if (d->pressStarred) {
                     // Toggle the starredness of the citation
                     CitationHandle citation =
-                        index.data(AbstractBibliography::ItemRole).value< CitationHandle >();
-                    AbstractBibliography::ItemFlags flags =
-                        citation->field(AbstractBibliography::ItemFlagsRole).value< AbstractBibliography::ItemFlags >();
-                    if (flags & AbstractBibliography::StarredItemFlag) {
-                        flags &= ~AbstractBibliography::StarredItemFlag;
+                        index.data(Citation::ItemRole).value< CitationHandle >();
+                    Citation::Flags flags =
+                        citation->field(Citation::FlagsRole).value< Citation::Flags >();
+                    if (flags & Citation::StarredFlag) {
+                        flags &= ~Citation::StarredFlag;
                     } else {
-                        flags |= AbstractBibliography::StarredItemFlag;
+                        flags |= Citation::StarredFlag;
                     }
-                    citation->setField(AbstractBibliography::ItemFlagsRole, QVariant::fromValue< AbstractBibliography::ItemFlags >(flags));
+                    citation->setField(Citation::FlagsRole, QVariant::fromValue< Citation::Flags >(flags));
                     d->pressStarred = false;
                 }
                 break;
@@ -226,16 +226,16 @@ namespace Athenaeum
 		    QString secondaryInfo;
 
 		    // Get citation data
-            qRegisterMetaType< AbstractBibliography::ItemState >();
-            QString title = index.data(AbstractBibliography::TitleRole).toString();
-            QString subTitle = index.data(AbstractBibliography::SubtitleRole).toString();
-            QUrl originatingUri = index.data(AbstractBibliography::OriginatingUriRole).toUrl();
-            AbstractBibliography::ItemFlags flags =
-                index.data(AbstractBibliography::ItemFlagsRole).value< AbstractBibliography::ItemFlags >();
-            AbstractBibliography::ItemState state =
-                index.data(AbstractBibliography::ItemStateRole).value< AbstractBibliography::ItemState >();
-            bool isStarred = flags & AbstractBibliography::StarredItemFlag;
-            //bool isKnown = index.data(AbstractBibliography::KnownRole).toBool();
+            qRegisterMetaType< AbstractBibliography::State >();
+            QString title = index.data(Citation::TitleRole).toString();
+            QString subTitle = index.data(Citation::SubTitleRole).toString();
+            QUrl originatingUri = index.data(Citation::OriginatingUriRole).toUrl();
+            Citation::Flags flags =
+                index.data(Citation::FlagsRole).value< Citation::Flags >();
+            AbstractBibliography::State state =
+                index.data(Citation::StateRole).value< AbstractBibliography::State >();
+            bool isStarred = flags & Citation::StarredFlag;
+            //bool isKnown = index.data(Citation::KnownRole).toBool();
             bool isMouseOverStarredIcon = (index == d->hoverIndex && d->hoverStarred);
 
 		    // Collect option information
@@ -325,7 +325,7 @@ namespace Athenaeum
             // Author gets the remaining space
             QRect authorRect(QPoint(infoRect.left(), textCursor + titleFontMetrics.leading()), infoRect.bottomRight());
             //painter->drawRect(authorRect);
-            QStringList authors(index.data(AbstractBibliography::AuthorsRole).toStringList());
+            QStringList authors(index.data(Citation::AuthorsRole).toStringList());
             QString authorString;
             int removeAuthor = 0;
             QRect authorRequiredRect;
@@ -385,19 +385,19 @@ namespace Athenaeum
 
             // Covers
             painter->save();
-            if (state == AbstractBibliography::BusyItemState) {
+            if (state == AbstractBibliography::BusyState) {
                 painter->setOpacity(0.5);
             }
-            QString publicationTitle(index.data(AbstractBibliography::PublicationTitleRole).toString());
+            QString publicationTitle(index.data(Citation::PublicationTitleRole).toString());
             painter->drawPixmap(imageRect, d->icon);
             // Draw PDF overlay if there is a file
-            if (index.data(AbstractBibliography::ObjectFileRole).toUrl().isValid()) {
+            if (index.data(Citation::ObjectFileRole).toUrl().isValid()) {
                 painter->drawPixmap(imageRect, d->pdfOverlay);
             }
             painter->restore();
 
             // If busy, paint spinner
-            if (state == AbstractBibliography::BusyItemState) {
+            if (state == AbstractBibliography::BusyState) {
                 QRect spinnerRect(QPoint(0, 0), imageRect.size() / 2);
                 spinnerRect.setWidth(qMin(spinnerRect.width(), spinnerRect.height()));
                 spinnerRect.setHeight(spinnerRect.width());

@@ -48,7 +48,6 @@ static const char * field_names[] = {
     "title",
     "subtitle",
     "authors",
-    "url",
     "volume",
     "issue",
     "year",
@@ -57,10 +56,6 @@ static const char * field_names[] = {
     "abstract",
     "publication-title",
     "publisher",
-    "date-imported",
-    "date-modified",
-    "date-resolved",
-    "date-published",
     "keywords",
     "type",
     "identifiers",
@@ -68,9 +63,15 @@ static const char * field_names[] = {
     "uri",
     "originating-uri",
     "object-path",
-    "flags",
-    "unstructured", // This is that last field that can be persisted
+    "unstructured",
+    "provenance",
     "state",
+    "flags",
+    "date-imported",
+    "date-resolved",
+    "url",
+    "date-published",
+    "date-modified", // This is that last field that can be persisted
     "known",
     "userdef",
     0
@@ -80,7 +81,7 @@ namespace Athenaeum
 {
 
     CitationPrivate::CitationPrivate(bool dirty)
-        : fields(AbstractBibliography::MutableRoleCount - Qt::UserRole), dirty(dirty)
+        : fields(Citation::MutableRoleCount - Qt::UserRole), dirty(dirty)
     {}
 
 
@@ -94,7 +95,7 @@ namespace Athenaeum
         : d(new CitationPrivate(dirty))
     {
         QString uuid = QUuid::createUuid().toString();
-        setField(AbstractBibliography::KeyRole, uuid.mid(1, uuid.size() - 2));
+        setField(KeyRole, uuid.mid(1, uuid.size() - 2));
     }
 
     const QVariant & Citation::field(int role) const
@@ -104,12 +105,87 @@ namespace Athenaeum
         return (idx >= 0 && idx < d->fields.size()) ? d->fields.at(idx) : null;
     }
 
+    static QVariant jsonToQVariant(cJSON * obj)
+    {
+        if (obj) {
+            switch (obj->type) {
+            case cJSON_False:
+                return false;
+            case cJSON_True:
+                return true;
+            case cJSON_Number:
+                return obj->valuedouble;
+            case cJSON_String:
+                return QString::fromUtf8(obj->valuestring);
+            case cJSON_Array: {
+                QVariantList array;
+                int count = cJSON_GetArraySize(obj);
+                for (int i = 0; i < count; ++i) {
+                    array << jsonToQVariant(cJSON_GetArrayItem(obj, i));
+                }
+                return array;
+            }
+            case cJSON_Object: {
+                QVariantMap object;
+                int count = cJSON_GetArraySize(obj);
+                for (int i = 0; i < count; ++i) {
+                    cJSON * child = cJSON_GetArrayItem(obj, i);
+                    object[QString::fromUtf8(child->string)] = jsonToQVariant(child);
+                }
+                return object;
+            }
+            case cJSON_NULL:
+            default:
+                break;
+            }
+        }
+        return QVariant();
+    }
+
+    static cJSON * qVariantToJson(const QVariant & variant)
+    {
+        cJSON * obj = 0;
+        switch (variant.type()) {
+        case QMetaType::Bool:
+            obj = variant.toBool() ? cJSON_CreateTrue() : cJSON_CreateFalse();
+            break;
+        case QMetaType::Double:
+            obj = cJSON_CreateNumber(variant.toDouble());
+            break;
+        case QMetaType::QString:
+            obj = cJSON_CreateString(variant.toString().toUtf8().constData());
+            break;
+        case QMetaType::QVariantList:
+        case QMetaType::QStringList: {
+            obj = cJSON_CreateArray();
+            foreach (QVariant item, variant.toList()) {
+                cJSON_AddItemToArray(obj, qVariantToJson(item));
+            }
+            break;
+        }
+        case QMetaType::QVariantMap: {
+            obj = cJSON_CreateObject();
+            QVariantMap map(variant.toMap());
+            QMapIterator< QString, QVariant > iter(map);
+            while (iter.hasNext()) {
+                iter.next();
+                cJSON_AddItemToObject(obj, iter.key().toUtf8().constData(), qVariantToJson(iter.value()));
+            }
+            break;
+        }
+        default:
+            obj = cJSON_CreateNull();
+            break;
+        }
+        return obj;
+    }
+
     CitationHandle Citation::fromJson(cJSON * object)
     {
         // Parse from JSON
         CitationHandle item(new Citation);
         if (object) {
-            for (int role = Qt::UserRole; role < AbstractBibliography::PersistentRoleCount; ++role) {
+            for (int role = Qt::UserRole; role < PersistentRoleCount; ++role) {
                 const char * field_name = field_names[role-Qt::UserRole];
                 if (!field_name) {
                     break;
@@ -119,63 +195,25 @@ namespace Athenaeum
                     switch (role) {
 
                     //// QDateTime
-                    case AbstractBibliography::DateImportedRole:
-                    case AbstractBibliography::DateModifiedRole:
-                    case AbstractBibliography::DateResolvedRole:
-                    case AbstractBibliography::DatePublishedRole:
+                    case DateImportedRole:
+                    case DateModifiedRole:
+                    case DateResolvedRole:
+                    case DatePublishedRole:
                         item->setField(role, QDateTime::fromString(QString::fromUtf8(field->valuestring), Qt::ISODate));
                         break;
 
-                    //// QStringList
-                    case AbstractBibliography::AuthorsRole:
-                    case AbstractBibliography::KeywordsRole: {
-                        QStringList list;
-                        int count = cJSON_GetArraySize(field);
-                        for (int i = 0; i < count; ++i) {
-                            if (cJSON * item = cJSON_GetArrayItem(field, i)) {
-                                list << QString::fromUtf8(item->valuestring);
-                            }
-                        }
-                        if (!list.isEmpty()) {
-                            item->setField(role, list);
-                        }
-                        break;
-                    }
-
-                    //// QVariantList or QVariantMaps
-                    case AbstractBibliography::LinksRole: {
-                        QVariantList list;
-                        int count = cJSON_GetArraySize(field);
-                        for (int i = 0; i < count; ++i) {
-                            if (cJSON * link_item = cJSON_GetArrayItem(field, i)) {
-                                QVariantMap link;
-                                int prop_count = cJSON_GetArraySize(link_item);
-                                for (int j = 0; j < prop_count; ++j) {
-                                    if (cJSON * item = cJSON_GetArrayItem(link_item, j)) {
-                                        link[QString::fromUtf8(item->string)] = QString::fromUtf8(item->valuestring);
-                                    }
-                                }
-                                list << link;
-                            }
-                        }
-                        if (!list.isEmpty()) {
-                            item->setField(role, list);
-                        }
-                        break;
-                    }
-
-                    //// ItemFlags
-                    case AbstractBibliography::ItemFlagsRole: {
-                        static QMap< QString, AbstractBibliography::ItemFlag > mapping;
+                    //// Flags
+                    case FlagsRole: {
+                        static QMap< QString, Flag > mapping;
                         if (mapping.isEmpty()) {
-                            mapping["unread"] = AbstractBibliography::UnreadItemFlag;
-                            mapping["starred"] = AbstractBibliography::StarredItemFlag;
+                            mapping["unread"] = UnreadFlag;
+                            mapping["starred"] = StarredFlag;
                         }
-                        AbstractBibliography::ItemFlags flags(AbstractBibliography::NoItemFlags);
+                        Citation::Flags flags(NoFlags);
                         int count = cJSON_GetArraySize(field);
                         for (int i = 0; i < count; ++i) {
                             if (cJSON * flagName = cJSON_GetArrayItem(field, i)) {
-                                flags |= mapping.value(QString::fromUtf8(flagName->valuestring), AbstractBibliography::NoItemFlags);
+                                flags |= mapping.value(QString::fromUtf8(flagName->valuestring), NoFlags);
                             }
                         }
                         if (flags) {
@@ -184,30 +222,20 @@ namespace Athenaeum
                         break;
                     }
 
-                    //// QVariantMap
-                    case AbstractBibliography::IdentifiersRole: {
-                        QVariantMap map;
-                        int count = cJSON_GetArraySize(field);
-                        for (int i = 0; i < count; ++i) {
-                            if (cJSON * item = cJSON_GetArrayItem(field, i)) {
-                                map[QString::fromUtf8(item->string)] = QString::fromUtf8(item->valuestring);
-                            }
-                        }
-                        if (!map.isEmpty()) {
-                            item->setField(role, map);
-                        }
-                        break;
-                    }
-
                     //// QUrl
-                    case AbstractBibliography::UrlRole:
-                    case AbstractBibliography::ObjectFileRole:
+                    case UrlRole:
+                    case ObjectFileRole:
                         item->setField(role, QUrl::fromEncoded(field->valuestring));
                         break;
 
-                    //// QString compatible
+                    //// Standard QVariant compatible
+                    case AuthorsRole:
+                    case KeywordsRole:
+                    case LinksRole:
+                    case IdentifiersRole:
+                    case ProvenanceRole:
                     default:
-                        item->setField(role, QString::fromUtf8(field->valuestring));
+                        item->setField(role, jsonToQVariant(field));
                         break;
                     }
                 }
@@ -228,7 +256,7 @@ namespace Athenaeum
     void Citation::updateFromMap(const QVariantMap & variant)
     {
         if (!variant.isEmpty()) {
-            for (int role = Qt::UserRole; role < AbstractBibliography::MutableRoleCount; ++role) {
+            for (int role = Qt::UserRole; role < MutableRoleCount; ++role) {
                 const char * field_name = field_names[role-Qt::UserRole];
                 if (!field_name) {
                     break;
@@ -236,15 +264,15 @@ namespace Athenaeum
                 QVariant field(variant.value(field_name));
                 if (field.isValid()) {
                     switch (role) {
-                    case AbstractBibliography::ItemFlagsRole: {
-                        static QMap< QString, AbstractBibliography::ItemFlag > mapping;
+                    case FlagsRole: {
+                        static QMap< QString, Flag > mapping;
                         if (mapping.isEmpty()) {
-                            mapping["unread"] = AbstractBibliography::UnreadItemFlag;
-                            mapping["starred"] = AbstractBibliography::StarredItemFlag;
+                            mapping["unread"] = UnreadFlag;
+                            mapping["starred"] = StarredFlag;
                         }
-                        AbstractBibliography::ItemFlags flags(AbstractBibliography::NoItemFlags);
+                        Citation::Flags flags(NoFlags);
                         foreach (const QString & flagName, field.toStringList()) {
-                            flags |= mapping.value(flagName, AbstractBibliography::NoItemFlags);
+                            flags |= mapping.value(flagName, NoFlags);
                         }
                         if (flags) {
                             setField(role, QVariant::fromValue(flags));
@@ -262,8 +290,8 @@ namespace Athenaeum
 
     bool Citation::isBusy() const
     {
-        AbstractBibliography::ItemState state = field(AbstractBibliography::ItemStateRole).value< AbstractBibliography::ItemState >();
-        return state == AbstractBibliography::BusyItemState;
+        State state = field(StateRole).value< State >();
+        return state == BusyState;
     }
 
     bool Citation::isDirty() const
@@ -273,13 +301,47 @@ namespace Athenaeum
 
     bool Citation::isKnown() const
     {
-        return field(AbstractBibliography::KnownRole).toBool();
+        return field(KnownRole).toBool();
     }
 
     bool Citation::isStarred() const
     {
-        AbstractBibliography::ItemFlags flags = field(AbstractBibliography::ItemFlagsRole).value< AbstractBibliography::ItemFlags >();
-        return flags & AbstractBibliography::StarredItemFlag;
+        Citation::Flags flags = field(FlagsRole).value< Citation::Flags >();
+        return flags & StarredFlag;
+    }
+
+    QString Citation::roleTitle(Role role)
+    {
+        switch (role) {
+        case Citation::KeyRole: return QString("Key");
+        case Citation::TitleRole: return QString("Title");
+        case Citation::SubTitleRole: return QString("Subtitle");
+        case Citation::AuthorsRole: return QString("Authors");
+        case Citation::UrlRole: return QString("Url");
+        case Citation::VolumeRole: return QString("Volume");
+        case Citation::IssueRole: return QString("Issue");
+        case Citation::YearRole: return QString("Year");
+        case Citation::PageFromRole: return QString("Start Page");
+        case Citation::PageToRole: return QString("End Page");
+        case Citation::AbstractRole: return QString("Abstract");
+        case Citation::PublicationTitleRole: return QString("Publication Title");
+        case Citation::PublisherRole: return QString("Publisher");
+        case Citation::DateImportedRole: return QString("Date Imported");
+        case Citation::DateModifiedRole: return QString("Date Modified");
+        case Citation::DateResolvedRole: return QString("Date Resolved");
+        case Citation::DatePublishedRole: return QString("Date Published");
+        case Citation::KeywordsRole: return QString("Keywords");
+        case Citation::TypeRole: return QString("Type");
+        case Citation::IdentifiersRole: return QString("Identifiers");
+        case Citation::DocumentUriRole: return QString("Document URI");
+        case Citation::OriginatingUriRole: return QString("Imported Path");
+        case Citation::ObjectFileRole: return QString("Filename");
+        case Citation::FlagsRole: return QString("Flags");
+        case Citation::ProvenanceRole: return QString("Provenance");
+        case Citation::UnstructuredRole: return QString("Unstructured");
+        case Citation::UserDefRole: return QString("UserDef");
+        default: return QString();
+        }
     }
 
     void Citation::setClean()
@@ -310,7 +372,7 @@ namespace Athenaeum
     {
         // Serialize as JSON
         cJSON * object = cJSON_CreateObject();
-        for (int role = Qt::UserRole; role < AbstractBibliography::PersistentRoleCount; ++role) {
+        for (int role = Qt::UserRole; role < PersistentRoleCount; ++role) {
             if (field(role).isValid()) {
                 const char * field_name = field_names[role-Qt::UserRole];
                 if (!field_name) {
@@ -320,16 +382,16 @@ namespace Athenaeum
                 switch (role) {
 
                 //// QDateTime
-                case AbstractBibliography::DateImportedRole:
-                case AbstractBibliography::DateModifiedRole:
-                case AbstractBibliography::DateResolvedRole:
-                case AbstractBibliography::DatePublishedRole:
+                case DateImportedRole:
+                case DateModifiedRole:
+                case DateResolvedRole:
+                case DatePublishedRole:
                     cJSON_AddStringToObject(object, field_name, field(role).toDateTime().toString(Qt::ISODate).toUtf8());
                     break;
 
                 //// QStringList
-                case AbstractBibliography::AuthorsRole:
-                case AbstractBibliography::KeywordsRole: {
+                case AuthorsRole:
+                case KeywordsRole: {
                     cJSON * array = cJSON_CreateArray();
                     foreach (const QString & item, field(role).toStringList()) {
                         cJSON_AddItemToArray(array, cJSON_CreateString(item.toUtf8()));
@@ -343,7 +405,7 @@ namespace Athenaeum
                 }
 
                 //// QVariantList or QVariantMaps
-                case AbstractBibliography::LinksRole: {
+                case LinksRole: {
                     cJSON * array = cJSON_CreateArray();
                     foreach (const QVariant & item, field(role).toList()) {
                         cJSON * dict = cJSON_CreateObject();
@@ -362,16 +424,16 @@ namespace Athenaeum
                     break;
                 }
 
-                //// ItemFlags
-                case AbstractBibliography::ItemFlagsRole: {
-                    static QMap< AbstractBibliography::ItemFlag, const char * > mapping;
+                //// Flags
+                case FlagsRole: {
+                    static QMap< Flag, const char * > mapping;
                     if (mapping.isEmpty()) {
-                        mapping[AbstractBibliography::UnreadItemFlag] = "unread";
-                        mapping[AbstractBibliography::StarredItemFlag] = "starred";
+                        mapping[UnreadFlag] = "unread";
+                        mapping[StarredFlag] = "starred";
                     }
                     cJSON * array = cJSON_CreateArray();
-                    AbstractBibliography::ItemFlags flags = field(role).value< AbstractBibliography::ItemFlags >();
-                    QMapIterator< AbstractBibliography::ItemFlag, const char * > iter(mapping);
+                    Citation::Flags flags = field(role).value< Citation::Flags >();
+                    QMapIterator< Flag, const char * > iter(mapping);
                     while (iter.hasNext()) {
                         iter.next();
                         if (flags & iter.key()) {
@@ -387,13 +449,9 @@ namespace Athenaeum
                 }
 
                 //// QMap
-                case AbstractBibliography::IdentifiersRole: {
-                    cJSON * dict = cJSON_CreateObject();
-                    QMapIterator< QString, QVariant > identifiers(field(role).toMap());
-                    while (identifiers.hasNext()) {
-                        identifiers.next();
-                        cJSON_AddStringToObject(dict, identifiers.key().toUtf8(), identifiers.value().toString().toUtf8());
-                    }
+                case ProvenanceRole:
+                case IdentifiersRole: {
+                    cJSON * dict = qVariantToJson(field(role));
                     if (cJSON_GetArraySize(dict) > 0) {
                         cJSON_AddItemToObject(object, field_name, dict);
                     } else {
@@ -403,8 +461,8 @@ namespace Athenaeum
                 }
 
                 //// QUrl
-                case AbstractBibliography::UrlRole:
-                case AbstractBibliography::ObjectFileRole: {
+                case UrlRole:
+                case ObjectFileRole: {
                     QByteArray str = field(role).toUrl().toEncoded();
                     if (!str.isEmpty()) {
                         cJSON_AddStringToObject(object, field_name, str);
@@ -413,13 +471,9 @@ namespace Athenaeum
                 }
 
                 //// QString compatible
-                default: {
-                    QString str = field(role).toString();
-                    if (!str.isEmpty()) {
-                        cJSON_AddStringToObject(object, field_name, str.toUtf8());
-                    }
+                default:
+                    cJSON_AddItemToObject(object, field_name, qVariantToJson(field(role)));
                     break;
-                }
                 }
             }
         }
@@ -433,7 +487,7 @@ namespace Athenaeum
     QVariantMap Citation::toMap() const
     {
         QVariantMap map;
-        for (int role = Qt::UserRole; role < AbstractBibliography::MutableRoleCount; ++role) {
+        for (int role = Qt::UserRole; role < MutableRoleCount; ++role) {
             if (field(role).isValid()) {
                 const char * field_name = field_names[role-Qt::UserRole];
                 if (!field_name) {
@@ -441,15 +495,15 @@ namespace Athenaeum
                 }
 
                 switch (role) {
-                case AbstractBibliography::ItemFlagsRole: {
+                case FlagsRole: {
                     QStringList flagNames;
-                    static QMap< AbstractBibliography::ItemFlag, QString > mapping;
+                    static QMap< Flag, QString > mapping;
                     if (mapping.isEmpty()) {
-                        mapping[AbstractBibliography::UnreadItemFlag] = "unread";
-                        mapping[AbstractBibliography::StarredItemFlag] = "starred";
+                        mapping[UnreadFlag] = "unread";
+                        mapping[StarredFlag] = "starred";
                     }
-                    AbstractBibliography::ItemFlags flags = field(role).value< AbstractBibliography::ItemFlags >();
-                    QMapIterator< AbstractBibliography::ItemFlag, QString > iter(mapping);
+                    Citation::Flags flags = field(role).value< Citation::Flags >();
+                    QMapIterator< Flag, QString > iter(mapping);
                     while (iter.hasNext()) {
                         iter.next();
                         if (flags & iter.key()) {

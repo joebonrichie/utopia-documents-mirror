@@ -27,7 +27,7 @@ BJam_EXTRACT="unzip -o"
 
 ##############################################################################
 
-Freetype_VER="2.4.11"
+Freetype_VER="2.7.1"
 Freetype_DIR="freetype-${Freetype_VER}"
 Freetype_URL="http://download-mirror.savannah.gnu.org/releases/freetype/${Freetype_DIR}.tar.bz2"
 Freetype_EXTRACT="tar xjf"
@@ -55,7 +55,7 @@ Graphviz_EXTRACT="tar xzf"
 
 ##############################################################################
 
-Zlib_VER="1.2.8"
+Zlib_VER="1.2.11"
 Zlib_DIR="zlib-${Zlib_VER}"
 Zlib_URL="http://www.zlib.net/${Zlib_DIR}.tar.gz"
 Zlib_EXTRACT="tar xzf"
@@ -151,7 +151,7 @@ SWIG_EXTRACT="tar xzf"
 
 ##############################################################################
 
-PCRE_VER="8.36"
+PCRE_VER="8.40"
 PCRE_DIR="pcre-${PCRE_VER}"
 PCRE_URL="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/${PCRE_DIR}.tar.gz"
 PCRE_EXTRACT="tar xzf"
@@ -172,7 +172,7 @@ if [ x"${ARCH}" = x"Windows" ]; then
 else
     Qt_VER="5.5.1"
     Qt_DIR="${Qt_DIR_PREFIX}-${Qt_VER}"
-    Qt_URL="http://download.qt.io/official_releases/qt/5.5/${Qt_VER}/single/${Qt_DIR}.tar.gz"
+    Qt_URL="http://download.qt.io/archive/qt/5.5/${Qt_VER}/single/${Qt_DIR}.tar.gz"
 fi
 Qt_EXTRACT="tar xzf"
 
@@ -210,14 +210,14 @@ Poppler_EXTRACT="tar xfJ"
 
 ##############################################################################
 
-FontConfig_VER="2.11.1"
+FontConfig_VER="2.12.0"
 FontConfig_DIR="fontconfig-${FontConfig_VER}"
 FontConfig_URL="http://www.freedesktop.org/software/fontconfig/release/${FontConfig_DIR}.tar.bz2"
 FontConfig_EXTRACT="tar xf"
 
 ##############################################################################
 
-Python_VER="2.7.11"
+Python_VER="2.7.13"
 Python_DIR="Python-${Python_VER}"
 Python_URL="http://www.python.org/ftp/python/${Python_VER}/Python-${Python_VER}.tgz"
 Python_EXTRACT="tar xzf"

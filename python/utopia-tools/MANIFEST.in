@@ -1,0 +1,13 @@
+include LICENSE.md
+include README.md
+include utopia/tools/__init__.py
+include utopia/tools/arxiv.py
+include utopia/tools/cited.py
+include utopia/tools/crossref.py
+include utopia/tools/doi.py
+include utopia/tools/eutils.py
+include utopia/tools/nlm.py
+include utopia/tools/pmc.py
+include utopia/tools/provenance.py
+include utopia/tools/pubmed.py
+include utopia/tools/title.py

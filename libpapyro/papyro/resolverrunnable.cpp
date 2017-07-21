@@ -33,6 +33,7 @@
 #include <papyro/resolverrunnable.h>
 #include <papyro/abstractbibliography.h>
 #include <papyro/resolver.h>
+#include <papyro/citations.h>
 
 #include <boost/weak_ptr.hpp>
 
@@ -105,9 +106,17 @@ namespace Athenaeum
                                                  Resolver::Purposes purposes,
                                                  Spine::DocumentHandle document)
     {
+        static QThreadPool threadPool;
+        static bool set = false;
+        if (!set) {
+            threadPool.setMaxThreadCount(40);
+            set = true;
+        }
+
         ResolverRunnable * resolverRunnable = new ResolverRunnable(citation, purposes, document);
         connect(resolverRunnable, SIGNAL(completed(Athenaeum::CitationHandle)), obj, method);
-        QThreadPool::globalInstance()->start(resolverRunnable);
+        //QThreadPool::globalInstance()->start(resolverRunnable);
+        threadPool.start(resolverRunnable);
         return resolverRunnable;
     }
 
@@ -117,8 +126,17 @@ namespace Athenaeum
 
         // Work on a copy of the provided metadata
         Athenaeum::CitationHandle citation(d->citation);
-        citation->setField(AbstractBibliography::ItemStateRole, QVariant::fromValue(AbstractBibliography::BusyItemState));
-        QVariantMap metadata = citation->toMap();
+        citation->setField(Citation::StateRole, QVariant::fromValue(AbstractBibliography::BusyState));
+
+        QVariantMap qCitation = citation->toMap();
+        QVariantMap provenance = qCitation.value("provenance").toMap();
+        QVariantList sources = provenance["sources"].toList();
+        QVariantList qCitations;
+        if (sources.isEmpty()) {
+            qCitations << qCitation;
+        } else {
+            qCitations = sources;
+        }
 
         {
             // Reset management information
@@ -143,14 +161,13 @@ namespace Athenaeum
             d->running = d->queue.takeFirst();
             d->mutex.unlock();
 
+            bool shouldStop = false;
             if (d->running->purposes() & d->purposes) {
-                QMapIterator< QString, QVariant > iter(d->running->resolve(metadata, d->document));
-                while (iter.hasNext()) {
-                    iter.next();
-                    if (iter.value().isValid()) {
-                        metadata[iter.key()] = iter.value();
-                    } else {
-                        metadata.remove(iter.key());
+                qCitations = d->running->resolve(qCitations, d->document);
+                foreach (QVariant variant, qCitations) {
+                    if (variant.toMap().value("_action").toString() == "stop") {
+                        shouldStop = true;
+                        break;
                     }
                 }
             }
@@ -159,16 +176,18 @@ namespace Athenaeum
             d->running.reset();
 
             // Cancel this pipeline if asked to by this resolver
-            if (metadata.value("_action").toString() == "stop") {
+            if (shouldStop) {
                 d->cancelled = true;
             }
         }
         bool isCancelled = d->cancelled;
         d->mutex.unlock();
 
-        citation->updateFromMap(metadata);
-        citation->setField(AbstractBibliography::ItemStateRole, QVariant::fromValue(AbstractBibliography::IdleItemState));
-        citation->setField(AbstractBibliography::DateResolvedRole, QDateTime::currentDateTime());
+        qCitation = Papyro::flatten(qCitations);
+
+        citation->updateFromMap(qCitation);
+        citation->setField(Citation::StateRole, QVariant::fromValue(AbstractBibliography::IdleState));
+        citation->setField(Citation::DateResolvedRole, QDateTime::currentDateTime());
         emit completed();
         if (isCancelled) {
             emit cancelled();

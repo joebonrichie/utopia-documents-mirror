@@ -250,6 +250,11 @@ namespace Papyro
         d->data = data;
     }
 
+    void EmbeddedPane::setInteractionFlags(InteractionFlags flags)
+    {
+        d->flags = flags;
+    }
+
     EmbeddedPane::Status EmbeddedPane::status() const
     {
         return d->status;

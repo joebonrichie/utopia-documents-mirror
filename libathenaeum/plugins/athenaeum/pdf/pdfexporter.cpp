@@ -44,7 +44,7 @@ using namespace Athenaeum;
 // Private method
 bool PDFExporter::doExport(const QModelIndex & index, const QString & filename)
 {
-    QString sourceFileName = index.data(AbstractBibliography::ObjectFileRole).toUrl().toLocalFile();
+    QString sourceFileName = index.data(Citation::ObjectFileRole).toUrl().toLocalFile();
     qDebug() << "source filename = " << sourceFileName;
     QFile sourceFile(sourceFileName);
     if (!sourceFile.open(QIODevice::ReadOnly)) {
@@ -93,7 +93,7 @@ bool PDFExporter::doExport(const QModelIndexList & indexList, const QString & fi
             if (!baseDirectory.endsWith("/")) {
                 baseDirectory.append("/");
             }
-            QString filename = indexList.at(i).data(AbstractBibliography::TitleRole).toString().left(64);
+            QString filename = indexList.at(i).data(Citation::TitleRole).toString().left(64);
             if (filename.isEmpty()) {
                 filename = "Untitled Document";
             }

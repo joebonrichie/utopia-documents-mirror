@@ -1,0 +1,274 @@
+/*****************************************************************************
+ *  
+ *   This file is part of the Utopia Documents application.
+ *       Copyright (c) 2008-2017 Lost Island Labs
+ *           <info@utopiadocs.com>
+ *   
+ *   Utopia Documents is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU GENERAL PUBLIC LICENSE VERSION 3 as
+ *   published by the Free Software Foundation.
+ *   
+ *   Utopia Documents is distributed in the hope that it will be useful, but
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *   Public License for more details.
+ *   
+ *   In addition, as a special exception, the copyright holders give
+ *   permission to link the code of portions of this program with the OpenSSL
+ *   library under certain conditions as described in each individual source
+ *   file, and distribute linked combinations including the two.
+ *   
+ *   You must obey the GNU General Public License in all respects for all of
+ *   the code used other than OpenSSL. If you modify file(s) with this
+ *   exception, you may extend this exception to your version of the file(s),
+ *   but you are not obligated to do so. If you do not wish to do so, delete
+ *   this exception statement from your version.
+ *   
+ *   You should have received a copy of the GNU General Public License
+ *   along with Utopia Documents. If not, see <http://www.gnu.org/licenses/>
+ *  
+ *****************************************************************************/
+
+.ui-accordion .ui-accordion-content-active {
+    overflow: auto !important;
+    background: white;
+}
+
+.threedm {
+    background: #fff;
+    margin: 0px;
+    padding: 4px;
+    color: #555;
+    word-wrap: break-word;
+    height: 94%;
+}
+
+.threedm a {
+            color: #444444;
+            text-decoration: none;
+}
+
+.threedm h1,
+.threedm h2 {
+    font-weight: bold;
+}
+
+.threedm h3 {
+    font-weight: bold;
+	font-style: normal;
+	font-size: 1em;
+}
+
+/*.threedm h2,*/
+/*.threedm h3 {*/
+/*    font-style: italic;*/
+/*}*/
+
+.threedm table,
+.threedm tr,
+.threedm td,
+.threedm th {
+    color: inherit;
+}
+
+.threedm ol,
+.threedm ul {
+    padding-left: 10px;
+    margin: 0px;
+	list-style: none;
+}
+
+.threedm li,
+.threedm p,
+.hyphenate {
+    text-align: justify;
+}
+
+.threedm li,
+.threedm p,
+.threedm table {
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+
+.threedm table {
+    width: 95%;
+	border-width: 0px;
+	border-style: inherit;
+	border-color: inherit;
+}
+
+.threedm table thead {
+	height: 1em;
+	padding: 0;
+	margin: 0;
+}
+
+.threedm .header {
+	height: 1em;
+	padding: 8px 0px 4px 0px;
+	margin: 0;
+}
+
+.threedm td {
+	padding: 4px 0px;
+}
+
+.threedm col.numeric,
+.threedm colgroup.numeric,
+.threedm th.numeric,
+.threedm td.numeric {
+    text-align: right;
+}
+
+.threedm thead,
+.threedm tbody,
+.threedm tfoot {
+    padding: 0px;
+    border-width: 0px;
+    border-style: inherit;
+    border-color: inherit;
+}
+
+.threedm thead,
+.threedm tfoot {
+    background: white;
+}
+
+.threedm thead {
+    text-align: center;
+}
+
+.threedm hr {
+    margin: 0.6em 0px;
+}
+
+.threedm .residueInfoContainer3dm, .threedm .mutationInfoContainer3dm, .threedm .proteinInfoContainer3dm, .threedm .pdbInfoContainer3dm, .threedm .hgvsVariantInfoContainer {
+    font-family:    sans-serif;
+    font-size:      12px;
+    color:          #444444;
+    width:          100%;
+    line-height:    1.4em;
+    float:          left;
+}
+
+.threedm .proteinId3dm {
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    line-height: 17px;
+    font-size: 1.7em;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    color: #555555;
+    margin-right: 4px;
+    margin-bottom: 8px;
+}
+
+.header3dm .residueType3dm, .header3dm .residueType3dmMutatedTo, .header3dm .variantId,  .header3dm .referenceId {
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    line-height: 17px;
+    font-size: 2em;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    color: #555555;
+    margin-right: 4px;
+}
+
+ .threedm .referenceId {
+    font-size: 1.6em;
+ }
+
+.threedm .residueProteinUrl3dm {
+    font-size: 1em;
+}
+
+.threedm .inbetween {
+    margin : 5px 0 5px 0;
+}
+
+.threedm .header3dm {
+    text-align: center;
+}
+
+.threedm .residueNumber3dm, .threedm .residueNumber3d3dm, .threedm .residueProteinUrl3dm, .threedm .proteinRecommendedName3dm, .threedm .proteinAlternativeNames, .threedm .proteinAc3dm, .threedm .proteinSpeciesName, .inbetween, .threedm .message{
+    font-family: "Lucida Grande",Tahoma,Arial,Verdana,sans-serif;
+    line-height: 20px;
+    font-size: 0.9em;
+    font-style: italic;
+    text-align: center;
+    color: #555555;
+}
+
+.threedm .accordion {
+    width: 100%;
+    max-height : 400px;
+}
+
+.threedm .ui-accordion-content {
+    padding: 0;
+}
+
+.threedm .accordionText {
+    font-family:    sans-serif;
+    font-size:      12px;
+    color:          #555555;
+    line-height:    1.4em;
+    margin-left:    6px;
+    font-style:     italic;
+}
+
+.threedm .box {
+    border: solid 5px black;
+    -webkit-border-image: url(qrc:/images/border-rounded-box.png) 5 stretch stretch;
+    padding: 1px;
+    margin: 4px 0;
+    clear: both;
+}
+
+.threedm .right {
+    text-align: right;
+}
+
+.threedm .hor-minimalist-b {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 10px;
+    background: #fff;
+    margin-left: 7px;
+    padding: 0px;
+    width: 95%;
+/*          width: 480px;*/
+    border-collapse: collapse;
+    text-align: center;
+}
+.threedm .hor-minimalist-b .proteinId {
+    text-align: left;
+    font-size: 10px;
+}
+
+.threedm .hor-minimalist-b th
+{
+    font-size: 11px;
+/*          font-size: small;*/
+    font-weight: normal;
+    color: black;
+/*          color: #039;*/
+    padding: 10px 4px 5px 0px;
+    border-bottom: 1px solid  #555555;
+}
+
+.threedm .hor-minimalist-b td a {
+    color: #555555;
+}
+
+.threedm .hor-minimalist-b td
+{
+    border-bottom: 1px solid #ccc;
+    color: #555555;
+    padding: 6px 5px 6px 0;
+}
+
+.threedm.hor-minimalist-b tbody tr:hover td, .threedm .hor-minimalist-b tbody tr:hover td a
+{
+    color: black;
+}

@@ -70,6 +70,7 @@ namespace Athenaeum
         int expected() const;
         int limit() const;
         int offset() const;
+        QVariantMap query() const;
         void setExpected(int expected);
         void setLimit(int limit);
         void setOffset(int offset);

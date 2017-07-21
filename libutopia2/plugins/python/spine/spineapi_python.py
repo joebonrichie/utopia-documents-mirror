@@ -116,21 +116,23 @@
 
         def fuzz(input, strict = False):
             if fuzzy:
-                if strict:
-                    ANY = r'.'
-                else:
-                    ANY = r'.{0,4}'
+                def repl(match):
+                    length = len(match.group(0))
+                    if strict:
+                        return '.'*length
+                    else:
+                        return '.{{{0},{1}}}'.format(max(0, length-4), length+3)
                 return r'\.'.join((re.sub(r'\\,', r',\s?',
-                                   re.sub(r'[^\w\d.\\,]', ANY,
+                                   re.sub(r'[^\w\d.\\,]+', repl,
                                    re.sub(r',', r'\,',
                                    re.sub(r'(^[a-zA-Z0-9#]*;|&[^\s;]+;|&[a-zA-Z0-9#]*$)', r'.', token))))
                                    for token in input.split('.')))
             else:
                 return input
 
-        # print (before, label, after)
+        #print (before, label, after)
         before, label, after = (fuzz(before), fuzz(label, strict = True), fuzz(after))
-        # print (before, label, after)
+        #print (before, label, after)
         regex = "%s.?(%s).?%s" % (before, label, after)
 
         # Now ignore whole matches, and get only the sub-string matches

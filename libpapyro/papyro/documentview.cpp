@@ -490,7 +490,6 @@ namespace Papyro
             pageView->setZoom(0.2);
             pageView->setMouseTracking(true);
             pageView->installEventFilter(this);
-            QObject::connect(pageView, SIGNAL(visualiseAnnotationsAt(int,double,double)), documentView, SIGNAL(visualiseAnnotationsAt(int,double,double)));
             QObject::connect(pageView, SIGNAL(exploreSelection()), documentView, SIGNAL(exploreSelection()));
             QObject::connect(pageView, SIGNAL(publishChanges()), documentView, SIGNAL(publishChanges()));
             QObject::connect(pageView, SIGNAL(urlRequested(const QUrl &, const QString &)), documentView, SIGNAL(urlRequested(const QUrl &, const QString &)));
@@ -693,7 +692,7 @@ namespace Papyro
         connect(documentView->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(onVerticalScrollBarValueChanged(int)));
 
         // Pass-through signals
-        connect(this, SIGNAL(annotationsActivated(Spine::AnnotationSet, const QPoint &)), documentView, SIGNAL(annotationsActivated(Spine::AnnotationSet, const QPoint &)));
+        connect(this, SIGNAL(annotationsActivated(Spine::AnnotationSet, const QVariantMap &)), documentView, SIGNAL(annotationsActivated(Spine::AnnotationSet, const QVariantMap &)));
         connect(this, SIGNAL(focusChanged(PageView *, const QPointF &)), documentView, SIGNAL(focusChanged(PageView *, const QPointF &)));
         connect(this, SIGNAL(pageFocusChanged(size_t)), documentView, SIGNAL(pageFocusChanged(size_t)));
 
@@ -894,7 +893,10 @@ namespace Papyro
         case DocumentView::SelectingMode:
             if (current.annotation && !ignore.contains(qStringFromUnicode(current.annotation->getFirstProperty("concept")))) {
                 setInteractionState(ActivatingAnnotationState);
-                emit annotationsActivated(current.annotations, interaction.previousPressEvent.globalPos());
+                QVariantMap context;
+                context["pos"] = interaction.previousPressEvent.pagePos;
+                context["page"] = event->pageView->pageNumber();
+                emit annotationsActivated(current.annotations, context);
                 setInteractionState(IdleState);
                 break;
             }
@@ -1218,7 +1220,10 @@ namespace Papyro
             case ActivatingAnnotationState:
                 updateAnnotationsUnderMouse(event->pageView, event->pagePos);
                 if (!current.annotations.empty()) {
-                    emit annotationsActivated(current.annotations, interaction.previousPressEvent.globalPos());
+                    QVariantMap context;
+                    context["pos"] = interaction.previousPressEvent.pagePos;
+                    context["page"] = event->pageView->pageNumber();
+                    emit annotationsActivated(current.annotations, context);
                 }
                 break;
             case ActivatingSelectionState:
@@ -2454,7 +2459,7 @@ namespace Papyro
     void DocumentView::clear()
     {
         // Disconnect from model
-        d->documentSignalProxy.reset();
+        d->documentProxy.reset();
 
         // Clear all state for this document
         clearSearch();
@@ -2783,20 +2788,19 @@ namespace Papyro
             d->layoutMenu->setEnabled(true);
             d->zoomMenu->setEnabled(true);
 
-            d->documentSignalProxy.reset(new DocumentSignalProxy(this));
-            connect(d->documentSignalProxy.get(), SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
+            d->documentProxy.reset(new DocumentProxy(this));
+            connect(d->documentProxy.get(), SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
                     d, SLOT(onDocumentAnnotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)));
-            connect(d->documentSignalProxy.get(), SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
+            connect(d->documentProxy.get(), SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
                     d, SLOT(onDocumentAreaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)));
-            connect(d->documentSignalProxy.get(), SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
+            connect(d->documentProxy.get(), SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
                     d, SLOT(onDocumentTextSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)));
-            d->documentSignalProxy->setDocument(document);
+            d->documentProxy->setDocument(document);
 
             // register existing annotations
             foreach (const std::string & name, document->annotationLists()) {
                 d->onDocumentAnnotationsChanged(name, document->annotations(name), true);
             }
-
         }
         update();
     }
@@ -3059,7 +3063,7 @@ namespace Papyro
     {
         Spine::BoundingBox bb;
         bool first = true;
-        int page;
+        int page = 1;
         foreach (Spine::Area area, extent->areas()) {
             if (first) {
                 page = area.page;

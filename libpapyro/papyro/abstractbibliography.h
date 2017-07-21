@@ -59,71 +59,6 @@ namespace Athenaeum
         } State; // enum State
         Q_ENUMS(State)
 
-        // Each item in this bibliography can have a state associated with it,
-        // used by other components to keep track of any processing they may
-        // be doing on the item
-        typedef enum ItemState {
-            IdleItemState = 0,
-            BusyItemState,
-            ErrorItemState
-        } ItemState; // enum State
-        Q_ENUMS(ItemState)
-
-        // Each item in a bibliography can have certain flags associated with it
-        enum ItemFlag {
-            NoItemFlags         = 0x00,
-            UnreadItemFlag      = 0x01,
-            StarredItemFlag     = 0x02,
-            AllItemFlags        = 0xff
-        }; // enum ItemFlag
-        Q_DECLARE_FLAGS(ItemFlags, ItemFlag);
-
-        // Roles for the various data of the model
-        enum Roles {
-            // Standard bibliographic item roles
-            // These are persisted and can be written to while in memory
-            KeyRole = Qt::UserRole,
-            TitleRole,
-            SubtitleRole,
-            AuthorsRole,
-            UrlRole,
-            VolumeRole,
-            IssueRole,
-            YearRole,
-            PageFromRole,
-            PageToRole,
-            AbstractRole,
-            PublicationTitleRole,
-            PublisherRole,
-            DateImportedRole,
-            DateModifiedRole,
-            DateResolvedRole,
-            DatePublishedRole,
-            KeywordsRole,
-            TypeRole,
-            IdentifiersRole,
-            LinksRole,
-            DocumentUriRole,
-            OriginatingUriRole,
-            ObjectFileRole, // Actual place on disk this article can be found
-            ItemFlagsRole,
-            UnstructuredRole,
-
-            PersistentRoleCount,
-            // These can be written to, but are never persisted
-            ItemStateRole = PersistentRoleCount,
-            KnownRole,
-            UserDefRole,
-
-            MutableRoleCount,
-            // These are read-only and are never persisted
-            FullTextSearchRole = MutableRoleCount,
-            ItemRole,
-
-            RollCount
-        }; // enum Roles
-        Q_ENUMS(Roles)
-
         // Destructor
         virtual ~AbstractBibliography() {}
 
@@ -160,7 +95,7 @@ namespace Athenaeum
         virtual void insertItem(CitationHandle before, CitationHandle item) { insertItems(before, QVector< CitationHandle >() << item); }
         virtual void insertItems(CitationHandle before, const QVector< CitationHandle > & items) {}
         virtual CitationHandle itemAt(int idx) const = 0;
-        virtual int itemCount(ItemFlags flags = AllItemFlags) const = 0;
+        virtual int itemCount(Citation::Flags flags = Citation::AllFlags) const = 0;
         virtual CitationHandle itemForId(const QString & id) const = 0;
         virtual CitationHandle itemForKey(const QString & key) const = 0;
         virtual QVector< CitationHandle > items() const { return QVector< CitationHandle >(); }
@@ -180,9 +115,6 @@ namespace Athenaeum
 
 // Register various things with Qt's metatype system
 Q_DECLARE_METATYPE(Athenaeum::AbstractBibliography::State);
-Q_DECLARE_METATYPE(Athenaeum::AbstractBibliography::ItemState);
-Q_DECLARE_METATYPE(Athenaeum::AbstractBibliography::ItemFlags);
-Q_DECLARE_OPERATORS_FOR_FLAGS(Athenaeum::AbstractBibliography::ItemFlags);
 Q_DECLARE_INTERFACE(Athenaeum::AbstractBibliography, "com.utopiadocs.Athenaeum.AbstractBibliography/1.1");
 
 #endif // ATHENAEUM_ABSTRACTBIBLIOGRAPHY_H

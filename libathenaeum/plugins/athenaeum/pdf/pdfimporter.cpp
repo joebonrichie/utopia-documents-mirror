@@ -112,7 +112,7 @@ bool PDFImporter::import(Athenaeum::LibraryModel * model, QIODevice * io)
 
         // Fill in metadata if possible
         foreach (Athenaeum::Resolver * resolver, resolvers) {
-            QVariantMap resolved(resolver->resolve(document, QVariantMap()));
+            QVariantMap resolved(resolver->resolve(document, QVariantList()));
 
             // Identifiers
             QMap< QString, QString > identifiers;
@@ -159,7 +159,7 @@ bool PDFImporter::import(Athenaeum::LibraryModel * model, QIODevice * io)
             /*
             KeyRole = Qt::UserRole,
             TitleRole,
-            SubtitleRole,
+            SubTitleRole,
             AuthorsRole,
             UrlRole,
             VolumeRole,

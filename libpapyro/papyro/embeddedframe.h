@@ -82,6 +82,7 @@ namespace Papyro
         void enterEvent(QEvent * event);
         void leaveEvent(QEvent * event);
         void paintEvent(QPaintEvent * event);
+        void mouseReleaseEvent(QMouseEvent * event);
         void remask();
         void resizeEvent(QResizeEvent * event);
 

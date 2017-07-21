@@ -1,0 +1,14 @@
+include LICENSE.md
+include README.md
+include tests/__init__.py
+include tests/test_citation.py
+include utopia/__init__.py
+include utopia/citation.py
+include utopia/document.py
+include utopia/extension.py
+include utopia/library.py
+include utopia/log.py
+include utopia/parser.py
+include utopia/plugins/__init__.py
+include utopia/serializer.py
+include utopia/tools/__init__.py

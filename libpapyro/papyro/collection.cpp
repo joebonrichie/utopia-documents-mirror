@@ -50,7 +50,7 @@
 #include <QUrl>
 #include <QDebug>
 
-#define COLUMN_COUNT (AbstractBibliography::PersistentRoleCount - Qt::UserRole)
+#define COLUMN_COUNT (Citation::PersistentRoleCount - Qt::UserRole)
 #define _INTERNAL_MIMETYPE_PLAINTEXT "text/plain"
 #define _INTERNAL_MIMETYPE_URILIST "text/uri-list"
 
@@ -80,7 +80,7 @@ namespace Athenaeum
         if (QAbstractItemModel * sourceModel = dynamic_cast< QAbstractItemModel * >(sourceBibliography)) {
             for (int row = first; row <= last; ++row) {
                 QModelIndex idx = sourceModel->index(row, 0, parent);
-                QString key = sourceModel->data(idx, AbstractBibliography::KeyRole).toString();
+                QString key = sourceModel->data(idx, Citation::KeyRole).toString();
                 int doomed = keys.indexOf(key);
                 if (doomed >= 0) {
                     collection->removeRow(doomed);
@@ -105,7 +105,7 @@ namespace Athenaeum
             QVector< CitationHandle > newItems;
             QVector< QString > newKeys;
             foreach (CitationHandle item, items) {
-                QString key = item->field(KeyRole).toString();
+                QString key = item->field(Citation::KeyRole).toString();
                 if (!d->sourceBibliography->itemForKey(key)) {
                     newItems << item;
                 }
@@ -140,18 +140,18 @@ namespace Athenaeum
                 CitationHandle item = d->sourceBibliography->itemForKey(key);
 
                 switch (role) {
-                case ItemRole:
+                case Citation::ItemRole:
                     return QVariant::fromValue(item);
-                case FullTextSearchRole:
+                case Citation::FullTextSearchRole:
                     // Ignore some fields for searching purposes
                     switch (index.column() + Qt::UserRole) {
-                    case KeyRole:
-                    case TypeRole:
-                    case DocumentUriRole:
-                    case UrlRole:
-                    case ObjectFileRole:
-                    case ItemFlagsRole:
-                    case ItemStateRole:
+                    case Citation::KeyRole:
+                    case Citation::TypeRole:
+                    case Citation::DocumentUriRole:
+                    case Citation::UrlRole:
+                    case Citation::ObjectFileRole:
+                    case Citation::FlagsRole:
+                    case Citation::StateRole:
                         return QVariant();
                     default:
                         break;
@@ -160,8 +160,8 @@ namespace Athenaeum
                 case Qt::DisplayRole:
                     // Post processing of values
                     switch (index.column() + Qt::UserRole) {
-                    case IdentifiersRole: {
-                        QVariantMap identifiers(item->field(IdentifiersRole).toMap());
+                    case Citation::IdentifiersRole: {
+                        QVariantMap identifiers(item->field(Citation::IdentifiersRole).toMap());
                         QMapIterator< QString, QVariant > iter(identifiers);
                         QStringList idText;
                         while (iter.hasNext()) {
@@ -170,8 +170,8 @@ namespace Athenaeum
                         }
                         return idText.join("\n");
                     }
-                    case AuthorsRole: {
-                        QStringList authors(item->field(AuthorsRole).toStringList());
+                    case Citation::AuthorsRole: {
+                        QStringList authors(item->field(Citation::AuthorsRole).toStringList());
                         QStringList authorStrings;
                         foreach (const QString & author, authors) {
                             QString authorString;
@@ -198,27 +198,28 @@ namespace Athenaeum
                         }
                         break;
                     }
-                    case KeywordsRole:
-                        return item->field(KeywordsRole).toStringList().join(", ");
-                    case DateImportedRole:
-                    case DateModifiedRole:
-                    case DateResolvedRole:
+                    case Citation::KeywordsRole:
+                        return item->field(Citation::KeywordsRole).toStringList().join(", ");
+                    case Citation::DateImportedRole:
+                    case Citation::DateModifiedRole:
+                    case Citation::DateResolvedRole:
+                    case Citation::DatePublishedRole:
                         return item->field(index.column() + Qt::UserRole).toDateTime().toString(Qt::ISODate);
-                    case KeyRole:
-                    case TitleRole:
-                    case SubtitleRole:
-                    case UrlRole:
-                    case VolumeRole:
-                    case IssueRole:
-                    case YearRole:
-                    case PageFromRole:
-                    case PageToRole:
-                    case AbstractRole:
-                    case PublicationTitleRole:
-                    case PublisherRole:
-                    case TypeRole:
-                    case DocumentUriRole:
-                    case ObjectFileRole:
+                    case Citation::KeyRole:
+                    case Citation::TitleRole:
+                    case Citation::SubTitleRole:
+                    case Citation::UrlRole:
+                    case Citation::VolumeRole:
+                    case Citation::IssueRole:
+                    case Citation::YearRole:
+                    case Citation::PageFromRole:
+                    case Citation::PageToRole:
+                    case Citation::AbstractRole:
+                    case Citation::PublicationTitleRole:
+                    case Citation::PublisherRole:
+                    case Citation::TypeRole:
+                    case Citation::DocumentUriRole:
+                    case Citation::ObjectFileRole:
                         return item->field(index.column() + Qt::UserRole);
                     default:
                         // Should never happen
@@ -228,7 +229,7 @@ namespace Athenaeum
                     break;
                 default:
                     // If it's just a writeable role, then return it unfiltered
-                    if (role >= Qt::UserRole && role < MutableRoleCount) {
+                    if (role >= Qt::UserRole && role < Citation::MutableRoleCount) {
                         return item->field(role);
                     }
                     break;
@@ -254,7 +255,7 @@ namespace Athenaeum
                 while (iter.hasPrevious()) {
                     iter.previous();
                     QModelIndex index = iter.value();
-                    items << index.data(ItemRole).value< CitationHandle >();
+                    items << index.data(Citation::ItemRole).value< CitationHandle >();
                 }
                 if (!items.isEmpty()) {
                     appendItems(items);
@@ -300,7 +301,7 @@ namespace Athenaeum
             QVector< CitationHandle > newItems;
             QVector< QString > newKeys;
             foreach (CitationHandle item, items) {
-                QString key = item->field(KeyRole).toString();
+                QString key = item->field(Citation::KeyRole).toString();
                 if (!d->sourceBibliography->itemForKey(key)) {
                     newItems << item;
                 }
@@ -310,7 +311,7 @@ namespace Athenaeum
             }
 
             int idx = 0;
-            QString beforeKey = before->field(KeyRole).toString();
+            QString beforeKey = before->field(Citation::KeyRole).toString();
             QVector< QString >::iterator where(d->keys.begin());
             while (where != d->keys.end() && *where != beforeKey) { ++where; ++idx; }
 
@@ -346,9 +347,9 @@ namespace Athenaeum
         }
     }
 
-    int Collection::itemCount(ItemFlags flags) const
+    int Collection::itemCount(Citation::Flags flags) const
     {
-        if (flags == AllItemFlags) {
+        if (flags == Citation::AllFlags) {
             return rowCount();
         } else {
             return 0;
@@ -359,7 +360,7 @@ namespace Athenaeum
     {
         if (d->sourceBibliography) {
             if (CitationHandle found = d->sourceBibliography->itemForId(id)) {
-                QString key(found->field(AbstractBibliography::KeyRole).toString());
+                QString key(found->field(Citation::KeyRole).toString());
                 if (!key.isEmpty() && d->keys.contains(key)) {
                     return found;
                 }
@@ -440,7 +441,7 @@ namespace Athenaeum
 
     bool Collection::removeItem(CitationHandle item)
     {
-        QString key = item->field(KeyRole).toString();
+        QString key = item->field(Citation::KeyRole).toString();
         int idx = d->keys.indexOf(key);
         if (idx >= 0) {
             d->keys.remove(idx);

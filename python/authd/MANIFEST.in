@@ -1,0 +1,9 @@
+include CHANGES.md
+include LICENSE.md
+include README.md
+include authd/__init__.py
+include authd/client.py
+include authd/converter/XML.py
+include authd/converter/__init__.py
+include authd/converter/base.py
+include authd/model.py

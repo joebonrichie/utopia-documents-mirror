@@ -767,7 +767,7 @@ namespace Papyro
     void PageView::clear()
     {
         // Disconnect from model
-        d->documentSignalProxy.reset();
+        d->documentProxy.reset();
 
         // Wait for render thread
         d->renderThread->wait();
@@ -1579,12 +1579,13 @@ namespace Papyro
         // Set the new document and hook up signals
         d->document = document;
         if (d->document) {
-            d->documentSignalProxy.reset(new DocumentSignalProxy(d->document, this));
-            connect(d->documentSignalProxy.get(), SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
+            d->documentProxy.reset(new DocumentProxy(this));
+            d->documentProxy->setDocument(d->document);
+            connect(d->documentProxy.get(), SIGNAL(annotationsChanged(const std::string &, const Spine::AnnotationSet &, bool)),
                     this, SLOT(updateAnnotations(const std::string &, const Spine::AnnotationSet &, bool)));
-            connect(d->documentSignalProxy.get(), SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
+            connect(d->documentProxy.get(), SIGNAL(areaSelectionChanged(const std::string &, const Spine::AreaSet &, bool)),
                     this, SLOT(updateAreaSelection(const std::string &, const Spine::AreaSet &, bool)));
-            connect(d->documentSignalProxy.get(), SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
+            connect(d->documentProxy.get(), SIGNAL(textSelectionChanged(const std::string &, const Spine::TextExtentSet &, bool)),
                     this, SLOT(updateTextSelection(const std::string &, const Spine::TextExtentSet &, bool)));
         }
         d->cursor = document->newCursor();

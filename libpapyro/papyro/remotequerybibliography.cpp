@@ -37,8 +37,10 @@
 #include <papyro/librarymodel.h>
 #include <papyro/persistencemodel.h>
 
+#include <QDateTime>
 #include <QModelIndex>
 #include <QMetaProperty>
+
 #include <QDebug>
 
 namespace Athenaeum
@@ -93,8 +95,27 @@ namespace Athenaeum
             // Add to cache
             QVariantMap map(variant.toMap());
             CitationHandle item = Citation::fromMap(map);
+
+            // Set provenance
+            QVariantMap prov = item->field(Citation::ProvenanceRole).toMap();
+            QVariantMap origin;
+            origin["action"] = "remotesearch";
+            origin["time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+            {
+                QVariantMap context = query();
+                {
+                    QVariantMap plugin;
+                    plugin["name"] = property("plugin");
+                    plugin["title"] = remoteQuery.data()->title();
+                    context["plugin"] = plugin;
+                }
+                origin["context"] = context;
+            }
+            prov["origin"] = origin;
+            item->setField(Citation::ProvenanceRole, prov);
+
             // See if we can match this item to an existing library entry
-            QVariantMap ids(item->field(AbstractBibliography::IdentifiersRole).toMap());
+            QVariantMap ids(item->field(Citation::IdentifiersRole).toMap());
             QMapIterator< QString, QVariant > iter(ids);
             Athenaeum::Bibliography * master = libraryModel->master();
             while (iter.hasNext()) {
@@ -105,8 +126,8 @@ namespace Athenaeum
                     break;
                 }
             }
-            AbstractBibliography::ItemFlags flags(item->field(AbstractBibliography::ItemFlagsRole).value< AbstractBibliography::ItemFlags >());
-            if (flags & AbstractBibliography::UnreadItemFlag && remoteQueryBibliography->rowCount() > 0) {
+            Citation::Flags flags(item->field(Citation::FlagsRole).value< Citation::Flags >());
+            if (flags & Citation::UnreadFlag && remoteQueryBibliography->rowCount() > 0) {
                 remoteQueryBibliography->prependItem(item);
             } else {
                 remoteQueryBibliography->appendItem(item);
@@ -123,6 +144,11 @@ namespace Athenaeum
     int RemoteQueryBibliographyPrivate::offset() const
     {
         return remoteQuery ? remoteQuery.data()->persistentProperty("offset").toInt() : 0;
+    }
+
+    QVariantMap RemoteQueryBibliographyPrivate::query() const
+    {
+        return remoteQuery ? remoteQuery.data()->persistentProperty("query").toMap() : QVariantMap();
     }
 
     void RemoteQueryBibliographyPrivate::setExpected(int expected)

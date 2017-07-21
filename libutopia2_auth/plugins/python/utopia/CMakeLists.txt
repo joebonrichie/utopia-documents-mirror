@@ -36,29 +36,29 @@ INCLUDE_DIRECTORIES(
     ${utopia2_auth_INCLUDE_DIR}
     )
 
-set(CMAKE_SWIG_OUTDIR "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia")
+set(CMAKE_SWIG_OUTDIR "${CMAKE_BINARY_DIR}/${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SWIG_OUTDIR}")
 
 SET(CMAKE_SWIG_FLAGS "")
 
-SET_SOURCE_FILES_PROPERTIES(auth.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(utopiaauth.i PROPERTIES CPLUSPLUS ON)
 
-SWIG_ADD_MODULE(auth python auth.i)
+SWIG_ADD_MODULE(utopiaauth python utopiaauth.i)
 
 if(WIN32)
     # changes dll name to pyd
-    SET_TARGET_PROPERTIES(_auth PROPERTIES SUFFIX ".pyd")
+    SET_TARGET_PROPERTIES(_utopiaauth PROPERTIES SUFFIX ".pyd")
 elseif(APPLE)
-    SET_TARGET_PROPERTIES(_auth PROPERTIES LINK_FLAGS " -Wl,-F. -bundle -undefined dynamic_lookup")
+    SET_TARGET_PROPERTIES(_utopiaauth PROPERTIES LINK_FLAGS " -Wl,-F. -bundle -undefined dynamic_lookup")
 endif()
 
-install(FILES "${CMAKE_SWIG_OUTDIR}/auth.py" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia" COMPONENT "${COMPONENT}")
+install(FILES "${CMAKE_SWIG_OUTDIR}/utopiaauth.py" DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages" COMPONENT "${COMPONENT}")
 if(APPLE)
-    install(TARGETS _auth DESTINATION "${PLUGIN_INSTALL_DIR}" COMPONENT "${COMPONENT}")
-    SWIG_LINK_LIBRARIES(auth utf8 utopia2_auth stdc++)
+    install(TARGETS _utopiaauth DESTINATION "${PLUGIN_INSTALL_DIR}" COMPONENT "${COMPONENT}")
+    SWIG_LINK_LIBRARIES(utopiaauth utf8 utopia2_auth stdc++)
 else()
-    install(TARGETS _auth DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages/utopia" COMPONENT "${COMPONENT}")
-    SWIG_LINK_LIBRARIES(auth utf8 ${PYTHON_LIBRARIES} utopia2_auth stdc++)
+    install(TARGETS _utopiaauth DESTINATION "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION}/site-packages" COMPONENT "${COMPONENT}")
+    SWIG_LINK_LIBRARIES(utopiaauth utf8 ${PYTHON_LIBRARIES} utopia2_auth stdc++)
 endif()
 
-ADD_DEPENDENCIES(build _auth)
+ADD_DEPENDENCIES(build _utopiaauth)

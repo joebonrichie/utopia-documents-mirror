@@ -100,7 +100,7 @@ namespace Athenaeum
 		virtual void clear();
         virtual void insertItems(CitationHandle before, const QVector< CitationHandle > & items);
         virtual CitationHandle itemAt(int idx) const;
-        virtual int itemCount(ItemFlags flags = AllItemFlags) const;
+        virtual int itemCount(Citation::Flags flags = Citation::AllFlags) const;
         virtual CitationHandle itemForId(const QString & id) const;
         virtual CitationHandle itemForKey(const QString & key) const;
         virtual QVector< CitationHandle > items() const;

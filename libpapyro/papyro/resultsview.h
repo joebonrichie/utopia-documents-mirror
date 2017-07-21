@@ -51,8 +51,8 @@ namespace Papyro
 
         void addResult(ResultItem * result);
         bool isRunning() const;
-        void setExploreTerms(const QStringList & terms);
-        void setExploreTerm(const QString & term);
+        void setExploreTerms(const QStringList & terms, bool explore = true);
+        void setExploreTerm(const QString & term, bool explore = true);
 
     public slots:
         void clear();

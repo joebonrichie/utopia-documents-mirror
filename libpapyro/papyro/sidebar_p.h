@@ -35,14 +35,16 @@
 #include <utopia2/networkaccessmanager.h>
 #include <papyro/bibliography.h>
 #include <papyro/articleview.h>
-#include <papyro/documentsignalproxy.h>
+#include <papyro/documentproxy.h>
 
 #include <QObject>
 
 class QComboBox;
 class QFrame;
 class QLabel;
+class QLineEdit;
 class QStackedLayout;
+class QPushButton;
 class QUrl;
 
 namespace Utopia
@@ -88,8 +90,10 @@ namespace Papyro
         QLabel * listLabel;
         QComboBox * listComboBox;
         bool expectingMore;
+        QLineEdit * lookupLineEdit;
+        QPushButton * lookupButton;
 
-        DocumentSignalProxy * documentSignalProxy;
+        DocumentProxy * documentProxy;
         QMap< QString, Athenaeum::Bibliography * > citationLists;
         QStackedLayout * documentWideStackedLayout;
         Athenaeum::ArticleView * citationListView;
@@ -97,6 +101,7 @@ namespace Papyro
         void updateSpinner();
 
     signals:
+        void termExplored(const QString & term);
         void urlRequested(const QUrl & url, const QString & target);
 
     public slots:
@@ -106,6 +111,7 @@ namespace Papyro
         void onResultsViewRunningChanged(bool running);
         void onListComboBoxCurrentIndexChanged(int index);
         void onDocumentAnnotationsChanged(const std::string & name, const Spine::AnnotationSet & annotations, bool added);
+        void onLookupBoxActivated();
     };
 
 }
