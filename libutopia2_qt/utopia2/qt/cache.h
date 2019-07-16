@@ -334,7 +334,7 @@ namespace Utopia
             if (!first) d->mutex.lock(); // Lock old shared mutex
             boost::shared_ptr< CachePrivateClass > oldCache(d);
             boost::shared_ptr< CachePrivateClass > newCache(CachePrivateClass::getCache(path));
-            bool success = newCache;
+            bool success = newCache != 0;
             if (success) newCache->mutex.lock(); // Lock new shared mutex
             d = newCache;
             if (!first) oldCache->mutex.unlock(); // Unlock old shared mutex

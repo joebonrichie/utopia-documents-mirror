@@ -64,7 +64,7 @@ BoundingBox Crackle::PDFTextLine::boundingBox() const
 
 bool Crackle::PDFTextLine::hyphenated() const
 {
-    return (_line->isHyphenated()!=gFalse);
+    return (_line->isHyphenated()!=false);
 }
 
 int Crackle::PDFTextLine::rotation() const

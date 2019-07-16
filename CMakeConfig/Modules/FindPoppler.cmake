@@ -68,8 +68,13 @@ if(Poppler_INCLUDE_DIR AND Poppler_LIBRARY)
   check_cxx_source_compiles(
 "
 #include <poppler/SplashOutputDev.h>
+#include <poppler/glib/poppler-features.h>
 
+#if POPPLER_CHECK_VERSION(0, 71, 0)
+typedef void (SplashOutputDev::*setVectorAntialiasFn)(bool aa);
+#else
 typedef void (SplashOutputDev::*setVectorAntialiasFn)(GBool aa);
+#endif
 
 int main(int argc, char** argv)
 {
@@ -81,8 +86,13 @@ int main(int argc, char** argv)
   check_cxx_source_compiles(
 "
 #include <poppler/SplashOutputDev.h>
+#include <poppler/glib/poppler-features.h>
 
+#if POPPLER_CHECK_VERSION(0, 71, 0)
+typedef void (SplashOutputDev::*setFontAntialiasFn)(bool aa);
+#else
 typedef void (SplashOutputDev::*setFontAntialiasFn)(GBool aa);
+#endif
 
 int main(int argc, char** argv)
 {

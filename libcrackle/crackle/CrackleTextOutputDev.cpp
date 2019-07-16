@@ -55,13 +55,14 @@
 #include "Link.h"
 #include "Object.h"
 #include "Stream.h"
-
-extern GBool unicodeTypeAlphaNum(Unicode c);
+#include "glib/poppler-features.h"
 
 #include "CrackleTextOutputDev.h"
 #include <crackle/ImageCollection.h>
 #include <utf8/unicode.h>
 #include <pcrecpp.h>
+
+extern bool unicodeTypeAlphaNum(Unicode c);
 
 #include <vector>
 #include <algorithm>
@@ -190,7 +191,7 @@ public:
     ~TextUnderline() {}
 
     double x0, y0, x1, y1;
-    GBool horiz;
+    bool horiz;
 };
 
 //------------------------------------------------------------------------
@@ -229,7 +230,7 @@ CrackleTextFontInfo::~CrackleTextFontInfo() {
 #endif
 }
 
-GBool CrackleTextFontInfo::matches(GfxState *state) {
+bool CrackleTextFontInfo::matches(GfxState *state) {
     return state->getFont() == gfxFont;
 }
 
@@ -335,7 +336,7 @@ CrackleTextWord::CrackleTextWord(GfxState *state, int rotA, double x0, double y0
     edge = NULL;
     charPos = NULL;
     len = size = 0;
-    spaceAfter = gFalse;
+    spaceAfter = false;
     next = NULL;
 
 #if TEXTOUT_WORD_LIST
@@ -351,7 +352,7 @@ CrackleTextWord::CrackleTextWord(GfxState *state, int rotA, double x0, double y0
     colorB = colToDbl(rgb.b);
 #endif
 
-    underlined = gFalse;
+    underlined = false;
     link = NULL;
 }
 
@@ -695,7 +696,7 @@ CrackleTextLine::CrackleTextLine(CrackleTextBlock *blkA, int rotA, double baseA)
     col = NULL;
     len = 0;
     convertedLen = 0;
-    hyphenated = gFalse;
+    hyphenated = false;
     next = NULL;
 }
 
@@ -813,7 +814,7 @@ int CrackleTextLine::cmpXY(const void *p1, const void *p2) {
 void CrackleTextLine::coalesce(UnicodeMap *uMap) {
     CrackleTextWord *word0, *word1;
     double space, delta, minSpace;
-    GBool isUnicode;
+    bool isUnicode;
     char buf[8];
     int i, j;
 
@@ -850,7 +851,7 @@ void CrackleTextLine::coalesce(UnicodeMap *uMap) {
         word1 = words->next;
         while (word1) {
             if (word0->primaryDelta(word1) >= space) {
-                word0->spaceAfter = gTrue;
+                word0->spaceAfter = true;
                 word0 = word1;
                 word1 = word1->next;
             } else if (word0->font == word1->font &&
@@ -870,7 +871,7 @@ void CrackleTextLine::coalesce(UnicodeMap *uMap) {
     }
 
     // build the line text
-    isUnicode = uMap ? uMap->isUnicode() : gFalse;
+    isUnicode = uMap ? uMap->isUnicode() : false;
     len = 0;
     for (word1 = words; word1; word1 = word1->next) {
         len += word1->len;
@@ -914,9 +915,9 @@ void CrackleTextLine::coalesce(UnicodeMap *uMap) {
        text[len-1] == (Unicode)0x2011) {
         // Non breaking hyphen is 2011 in unicode
         // Hyphen is 2010 in unicode
-        hyphenated = gTrue;
+        hyphenated = true;
     } else {
-        hyphenated = gFalse;
+        hyphenated = false;
     }
 }
 
@@ -936,7 +937,7 @@ public:
     int col;                      // first column
 
     void init(CrackleTextLine *lineA, int startA, int lenA);
-    void computeCoords(GBool oneRot);
+    void computeCoords(bool oneRot);
 
     static int cmpYXPrimaryRot(const void *p1, const void *p2);
     static int cmpYXLineRot(const void *p1, const void *p2);
@@ -952,7 +953,7 @@ void CrackleTextLineFrag::init(CrackleTextLine *lineA, int startA, int lenA) {
     col = line->col[start];
 }
 
-void CrackleTextLineFrag::computeCoords(GBool oneRot) {
+void CrackleTextLineFrag::computeCoords(bool oneRot) {
     CrackleTextBlock *blk;
     double d0, d1, d2, d3, d4;
 
@@ -1282,7 +1283,7 @@ void CrackleTextBlock::coalesce(UnicodeMap *uMap, double fixedPitch) {
     double minBase, maxBase;
     double fontSize, wordSpacing, delta, priDelta, secDelta;
     CrackleTextLine **lineArray;
-    GBool found, overlap;
+    bool found, overlap;
     int col1, col2;
     int i, j, k;
 
@@ -1293,7 +1294,7 @@ void CrackleTextBlock::coalesce(UnicodeMap *uMap, double fixedPitch) {
             priDelta = dupMaxPriDelta * word0->fontSize;
             secDelta = dupMaxSecDelta * word0->fontSize;
             maxBaseIdx = pool->getBaseIdx(word0->base + secDelta);
-            found = gFalse;
+            found = false;
             word1 = word2 = NULL; // make gcc happy
             for (idx1 = idx0; idx1 <= maxBaseIdx; ++idx1) {
                 if (idx1 == idx0) {
@@ -1398,7 +1399,7 @@ void CrackleTextBlock::coalesce(UnicodeMap *uMap, double fixedPitch) {
             // this line
             bestWordBaseIdx = 0;
             bestWord0 = bestWord1 = NULL;
-            overlap = gFalse;
+            overlap = false;
             for (baseIdx = minBaseIdx;
                  !overlap && baseIdx <= maxBaseIdx;
                  ++baseIdx) {
@@ -1409,7 +1410,7 @@ void CrackleTextBlock::coalesce(UnicodeMap *uMap, double fixedPitch) {
                         word1->base <= maxBase) {
                         delta = lastWord->primaryDelta(word1);
                         if (delta < minCharSpacing * fontSize) {
-                            overlap = gTrue;
+                            overlap = true;
                             break;
                         } else {
                             if (delta < wordSpacing &&
@@ -1550,9 +1551,9 @@ void CrackleTextBlock::coalesce(UnicodeMap *uMap, double fixedPitch) {
 
 void CrackleTextBlock::updatePriMinMax(CrackleTextBlock *blk) {
     double newPriMin, newPriMax;
-    GBool gotPriMin, gotPriMax;
+    bool gotPriMin, gotPriMax;
 
-    gotPriMin = gotPriMax = gFalse;
+    gotPriMin = gotPriMax = false;
     newPriMin = newPriMax = 0; // make gcc happy
     switch (page->primaryRot) {
     case 0:
@@ -1560,11 +1561,11 @@ void CrackleTextBlock::updatePriMinMax(CrackleTextBlock *blk) {
         if (blk->yMin < yMax && blk->yMax > yMin) {
             if (blk->xMin < xMin) {
                 newPriMin = blk->xMax;
-                gotPriMin = gTrue;
+                gotPriMin = true;
             }
             if (blk->xMax > xMax) {
                 newPriMax = blk->xMin;
-                gotPriMax = gTrue;
+                gotPriMax = true;
             }
         }
         break;
@@ -1573,11 +1574,11 @@ void CrackleTextBlock::updatePriMinMax(CrackleTextBlock *blk) {
         if (blk->xMin < xMax && blk->xMax > xMin) {
             if (blk->yMin < yMin) {
                 newPriMin = blk->yMax;
-                gotPriMin = gTrue;
+                gotPriMin = true;
             }
             if (blk->yMax > yMax) {
                 newPriMax = blk->yMin;
-                gotPriMax = gTrue;
+                gotPriMax = true;
             }
         }
         break;
@@ -1704,10 +1705,10 @@ double CrackleTextBlock::secondaryDelta(CrackleTextBlock *blk) {
     return delta;
 }
 
-GBool CrackleTextBlock::isBelow(CrackleTextBlock *blk) {
-    GBool below;
+bool CrackleTextBlock::isBelow(CrackleTextBlock *blk) {
+    bool below;
 
-    below = gFalse; // make gcc happy
+    below = false; // make gcc happy
     switch (page->primaryRot) {
     case 0:
         below = xMin >= blk->priMin && xMax <= blk->priMax &&
@@ -1777,15 +1778,15 @@ void CrackleTextFlow::addBlock(CrackleTextBlock *blk) {
     }
 }
 
-GBool CrackleTextFlow::blockFits(CrackleTextBlock *blk, CrackleTextBlock *prevBlk) {
-    GBool fits;
+bool CrackleTextFlow::blockFits(CrackleTextBlock *blk, CrackleTextBlock *prevBlk) {
+    bool fits;
     // lower blocks must use similar sized font - James mod
     if (fabs(blk->lines->words->fontSize - lastBlk->lines->words->fontSize) >
         maxBlockFontSizeDelta1) {
-        return gFalse;
+        return false;
     }
 
-    fits = gFalse; // make gcc happy
+    fits = false; // make gcc happy
     switch (page->primaryRot) {
     case 0:
         fits = blk->xMin >= priMin && blk->xMax <= priMax;
@@ -1809,7 +1810,7 @@ GBool CrackleTextFlow::blockFits(CrackleTextBlock *blk, CrackleTextBlock *prevBl
 // CrackleTextWordList
 //------------------------------------------------------------------------
 
-CrackleTextWordList::CrackleTextWordList(CrackleTextPage *text, GBool physLayout) {
+CrackleTextWordList::CrackleTextWordList(CrackleTextPage *text, bool physLayout) {
     CrackleTextFlow *flow;
     CrackleTextBlock *blk;
     CrackleTextLine *line;
@@ -1821,7 +1822,11 @@ CrackleTextWordList::CrackleTextWordList(CrackleTextPage *text, GBool physLayout
 
     if (text->rawOrder) {
         for (word = text->rawWords; word; word = word->next) {
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+            words->push_back(word);
+#else
             words->append(word);
+#endif
         }
 
     } else if (physLayout) {
@@ -1850,7 +1855,11 @@ CrackleTextWordList::CrackleTextWordList(CrackleTextPage *text, GBool physLayout
         }
         qsort(wordArray, nWords, sizeof(CrackleTextWord *), &CrackleTextWord::cmpYX);
         for (i = 0; i < nWords; ++i) {
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+            words->push_back(wordArray[i]);
+#else
             words->append(wordArray[i]);
+#endif
         }
         gfree(wordArray);
 
@@ -1859,7 +1868,11 @@ CrackleTextWordList::CrackleTextWordList(CrackleTextPage *text, GBool physLayout
             for (blk = flow->blocks; blk; blk = blk->next) {
                 for (line = blk->lines; line; line = line->next) {
                     for (word = line->words; word; word = word->next) {
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+                        words->push_back(word);
+#else
                         words->append(word);
+#endif
                     }
                 }
             }
@@ -1888,7 +1901,7 @@ CrackleTextWord *CrackleTextWordList::get(int idx) {
 // CrackleTextPage
 //------------------------------------------------------------------------
 
-CrackleTextPage::CrackleTextPage(GBool rawOrderA) {
+CrackleTextPage::CrackleTextPage(bool rawOrderA) {
     int rot;
 
     rawOrder = rawOrderA;
@@ -1898,7 +1911,7 @@ CrackleTextPage::CrackleTextPage(GBool rawOrderA) {
     curFontSize = 0;
     nest = 0;
     nTinyChars = 0;
-    lastCharOverlap = gFalse;
+    lastCharOverlap = false;
     actualText = NULL;
     actualTextLen = 0;
     actualTextNBytes = 0;
@@ -1913,7 +1926,7 @@ CrackleTextPage::CrackleTextPage(GBool rawOrderA) {
     rawLastWord = NULL;
     fonts = new GList();
     lastFindXMin = lastFindYMin = 0;
-    haveLastFind = gFalse;
+    haveLastFind = false;
     underlines = new GList();
     links = new GList();
 }
@@ -1928,8 +1941,13 @@ CrackleTextPage::~CrackleTextPage() {
         }
     }
     delete fonts; // just delete list, do not delete the objects themselves
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+    deleteGList<TextUnderline>(underlines);
+    deleteGList<TextLink>(links);
+#else
     deleteGList(underlines, TextUnderline);
     deleteGList(links, TextLink);
+#endif
 }
 
 void CrackleTextPage::startPage(GfxState *state) {
@@ -1975,9 +1993,15 @@ void CrackleTextPage::clear() {
         }
         gfree(blocks);
     }
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+    deleteGList<CrackleTextFontInfo>(fonts);
+    deleteGList<TextUnderline>(underlines);
+    deleteGList<TextLink>(links);
+#else
     deleteGList(fonts, CrackleTextFontInfo);
     deleteGList(underlines, TextUnderline);
     deleteGList(links, TextLink);
+#endif
 
     curWord = NULL;
     charPos = 0;
@@ -2004,8 +2028,8 @@ void CrackleTextPage::clear() {
 
 void CrackleTextPage::updateFont(GfxState *state) {
     GfxFont *gfxFont;
-    double *fm;
-    char *name;
+    const double *fm;
+    const char *name;
     int code, mCode, letterCode, anyCode;
     double w;
     int i;
@@ -2021,7 +2045,11 @@ void CrackleTextPage::updateFont(GfxState *state) {
     }
     if (!curFont) {
         curFont = new CrackleTextFontInfo(state);
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+        fonts->push_back(curFont);
+#else
         fonts->append(curFont);
+#endif
 
         if (state->getFont()) {
             // Store new font info for crackle use here since
@@ -2082,7 +2110,7 @@ void CrackleTextPage::updateFont(GfxState *state) {
 }
 
 void CrackleTextPage::beginWord(GfxState *state, double x0, double y0) {
-    double *fontm;
+    const double *fontm;
     double m[4], m2[4];
     int rot;
 
@@ -2126,7 +2154,7 @@ void CrackleTextPage::addChar(GfxState *state, double x, double y,
                               double dx, double dy,
                               CharCode c, int nBytes, Unicode *u, int uLen) {
     double x1, y1, w1, h1, dx2, dy2, base, sp, delta;
-    GBool overlap;
+    bool overlap;
     int i;
 
     // if we're in an ActualText span, save the position info (the
@@ -2163,8 +2191,7 @@ void CrackleTextPage::addChar(GfxState *state, double x, double y,
     }
 
     // check the tiny chars limit
-    if (!globalParams->getTextKeepTinyChars() &&
-        fabs(w1) < 3 && fabs(h1) < 3) {
+    if (fabs(w1) < 3 && fabs(h1) < 3) {
         if (++nTinyChars > 50000) {
             charPos += nBytes;
             return;
@@ -2253,7 +2280,7 @@ void CrackleTextPage::addChar(GfxState *state, double x, double y,
         }
         lastCharOverlap = overlap;
     } else {
-        lastCharOverlap = gFalse;
+        lastCharOverlap = false;
     }
 
     if (uLen != 0) {
@@ -2354,7 +2381,7 @@ void CrackleTextPage::endActualText(GfxState *state) {
     gfree(u);
     actualText = NULL;
     actualTextLen = 0;
-    actualTextNBytes = gFalse;
+    actualTextNBytes = false;
 }
 
 void CrackleTextPage::endWord() {
@@ -2393,14 +2420,22 @@ void CrackleTextPage::addWord(CrackleTextWord *word) {
 }
 
 void CrackleTextPage::addUnderline(double x0, double y0, double x1, double y1) {
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+    underlines->push_back(new TextUnderline(x0, y0, x1, y1));
+#else
     underlines->append(new TextUnderline(x0, y0, x1, y1));
+#endif
 }
 
 void CrackleTextPage::addLink(int xMin, int yMin, int xMax, int yMax, Link *link) {
+#if POPPLER_CHECK_VERSION(0, 70, 0)
+    links->push_back(new TextLink(xMin, yMin, xMax, yMax, link));
+#else
     links->append(new TextLink(xMin, yMin, xMax, yMax, link));
+#endif
 }
 
-void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML) {
+void CrackleTextPage::coalesce(bool physLayout, double fixedPitch, bool doHTML) {
     UnicodeMap *uMap;
     CrackleTextPool *pool;
     CrackleTextWord *word0, *word1, *word2;
@@ -2413,7 +2448,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
     int rot, poolMinBaseIdx, baseIdx, startBaseIdx, endBaseIdx;
     double minBase, maxBase, newMinBase, newMaxBase;
     double fontSize, colSpace1, colSpace2, lineSpace, intraLineSpace, blkSpace;
-    GBool found;
+    bool found;
     int count[4];
     int lrCount;
     int firstBlkIdx, nBlocksLeft;
@@ -2422,7 +2457,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
 
     if (rawOrder) {
         primaryRot = 0;
-        primaryLR = gTrue;
+        primaryLR = true;
         return;
     }
 
@@ -2475,7 +2510,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                             //~ need to check the y value against the word baseline
                             if (underline->x0 < word0->xMin + underlineSlack &&
                                 word0->xMax - underlineSlack < underline->x1) {
-                                word0->underlined = gTrue;
+                                word0->underlined = true;
                             }
                         }
                     }
@@ -2489,7 +2524,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                         for (word0 = pools[2]->getPool(j); word0; word0 = word0->next) {
                             if (underline->x0 < word0->xMin + underlineSlack &&
                                 word0->xMax - underlineSlack < underline->x1) {
-                                word0->underlined = gTrue;
+                                word0->underlined = true;
                             }
                         }
                     }
@@ -2503,7 +2538,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                         for (word0 = pools[1]->getPool(j); word0; word0 = word0->next) {
                             if (underline->y0 < word0->yMin + underlineSlack &&
                                 word0->yMax - underlineSlack < underline->y1) {
-                                word0->underlined = gTrue;
+                                word0->underlined = true;
                             }
                         }
                     }
@@ -2517,7 +2552,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                         for (word0 = pools[3]->getPool(j); word0; word0 = word0->next) {
                             if (underline->y0 < word0->yMin + underlineSlack &&
                                 word0->yMax - underlineSlack < underline->y1) {
-                                word0->underlined = gTrue;
+                                word0->underlined = true;
                             }
                         }
                     }
@@ -2648,7 +2683,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
 
             // add words to the block
             do {
-                found = gFalse;
+                found = false;
 
                 // look for words on the line above the current top edge of
                 // the block
@@ -2675,7 +2710,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                             word1 = word1->next;
                             word2->next = NULL;
                             blk->addWord(word2);
-                            found = gTrue;
+                            found = true;
                             newMinBase = word2->base;
                         } else {
                             word0 = word1;
@@ -2710,7 +2745,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                             word1 = word1->next;
                             word2->next = NULL;
                             blk->addWord(word2);
-                            found = gTrue;
+                            found = true;
                             newMaxBase = word2->base;
                         } else {
                             word0 = word1;
@@ -2746,7 +2781,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                             word1 = word1->next;
                             word2->next = NULL;
                             blk->addWord(word2);
-                            found = gTrue;
+                            found = true;
                         } else {
                             word0 = word1;
                             word1 = word1->next;
@@ -2813,7 +2848,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                                 } else if (word2->base > maxBase) {
                                     maxBase = word2->base;
                                 }
-                                found = gTrue;
+                                found = true;
                                 break;
                             } else {
                                 word0 = word1;
@@ -2876,7 +2911,7 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
                                 } else if (word2->base > maxBase) {
                                     maxBase = word2->base;
                                 }
-                                found = gTrue;
+                                found = true;
                                 break;
                             } else {
                                 word0 = word1;
@@ -3412,11 +3447,11 @@ void CrackleTextPage::coalesce(GBool physLayout, double fixedPitch, GBool doHTML
     }
 }
 
-GBool CrackleTextPage::findText(Unicode *s, int len,
-                                GBool startAtTop, GBool stopAtBottom,
-                                GBool startAtLast, GBool stopAtLast,
-                                GBool caseSensitive, GBool backward,
-                                GBool wholeWord,
+bool CrackleTextPage::findText(Unicode *s, int len,
+                                bool startAtTop, bool stopAtBottom,
+                                bool startAtLast, bool stopAtLast,
+                                bool caseSensitive, bool backward,
+                                bool wholeWord,
                                 double *xMin, double *yMin,
                                 double *xMax, double *yMax) {
     CrackleTextBlock *blk;
@@ -3427,12 +3462,12 @@ GBool CrackleTextPage::findText(Unicode *s, int len,
     double xStart, yStart, xStop, yStop;
     double xMin0, yMin0, xMax0, yMax0;
     double xMin1, yMin1, xMax1, yMax1;
-    GBool found;
+    bool found;
 
     //~ needs to handle right-to-left text
 
     if (rawOrder) {
-        return gFalse;
+        return false;
     }
 
     // convert the search string to uppercase
@@ -3464,7 +3499,7 @@ GBool CrackleTextPage::findText(Unicode *s, int len,
         yStop = *yMax;
     }
 
-    found = gFalse;
+    found = false;
     xMin0 = xMax0 = yMin0 = yMax0 = 0; // make gcc happy
     xMin1 = xMax1 = yMin1 = yMax1 = 0; // make gcc happy
 
@@ -3575,7 +3610,7 @@ GBool CrackleTextPage::findText(Unicode *s, int len,
                                     xMax0 = xMax1;
                                     yMin0 = yMin1;
                                     yMax0 = yMax1;
-                                    found = gTrue;
+                                    found = true;
                                 }
                             }
                         } else {
@@ -3589,7 +3624,7 @@ GBool CrackleTextPage::findText(Unicode *s, int len,
                                     xMax0 = xMax1;
                                     yMin0 = yMin1;
                                     yMax0 = yMax1;
-                                    found = gTrue;
+                                    found = true;
                                 }
                             }
                         }
@@ -3618,18 +3653,18 @@ GBool CrackleTextPage::findText(Unicode *s, int len,
         *yMax = yMax0;
         lastFindXMin = xMin0;
         lastFindYMin = yMin0;
-        haveLastFind = gTrue;
-        return gTrue;
+        haveLastFind = true;
+        return true;
     }
 
-    return gFalse;
+    return false;
 }
 
 GString *CrackleTextPage::getText(double xMin, double yMin,
                                   double xMax, double yMax) {
     GString *s;
     UnicodeMap *uMap;
-    //GBool isUnicode;
+    //bool isUnicode;
     CrackleTextBlock *blk;
     CrackleTextLine *line;
     CrackleTextLineFrag *frags;
@@ -3640,7 +3675,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
     int lastRot;
     double x, y, delta;
     int col, idx0, idx1, i, j;
-    GBool multiLine, oneRot;
+    bool multiLine, oneRot;
 
     s = new GString();
 
@@ -3675,7 +3710,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
     frags = (CrackleTextLineFrag *)gmallocn(fragsSize, sizeof(CrackleTextLineFrag));
     nFrags = 0;
     lastRot = -1;
-    oneRot = gTrue;
+    oneRot = true;
     for (i = 0; i < nBlocks; ++i) {
         blk = blocks[i];
         if (xMin < blk->xMax && blk->xMin < xMax &&
@@ -3779,7 +3814,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
                         frags[nFrags].init(line, idx0, idx1 - idx0 + 1);
                         ++nFrags;
                         if (lastRot >= 0 && line->rot != lastRot) {
-                            oneRot = gFalse;
+                            oneRot = false;
                         }
                         lastRot = line->rot;
                     }
@@ -3818,7 +3853,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
         }
 
         col = 0;
-        multiLine = gFalse;
+        multiLine = false;
         for (i = 0; i < nFrags; ++i) {
             frag = &frags[i];
 
@@ -3828,7 +3863,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
                  maxIntraLineDelta * frags[i-1].line->words->fontSize)) {
                 s->append(eol, eolLen);
                 col = 0;
-                multiLine = gTrue;
+                multiLine = true;
             }
 
             // column alignment
@@ -3851,7 +3886,7 @@ GString *CrackleTextPage::getText(double xMin, double yMin,
     return s;
 }
 
-GBool CrackleTextPage::findCharRange(int pos, int length,
+bool CrackleTextPage::findCharRange(int pos, int length,
                                      double *xMin, double *yMin,
                                      double *xMax, double *yMax) {
     CrackleTextBlock *blk;
@@ -3859,17 +3894,17 @@ GBool CrackleTextPage::findCharRange(int pos, int length,
     CrackleTextWord *word;
     double xMin0, xMax0, yMin0, yMax0;
     double xMin1, xMax1, yMin1, yMax1;
-    GBool first;
+    bool first;
     int i, j0, j1;
 
     if (rawOrder) {
-        return gFalse;
+        return false;
     }
 
     //~ this doesn't correctly handle ranges split across multiple lines
     //~ (the highlighted region is the bounding box of all the parts of
     //~ the range)
-    first = gTrue;
+    first = true;
     xMin0 = xMax0 = yMin0 = yMax0 = 0; // make gcc happy
     xMin1 = xMax1 = yMin1 = yMax1 = 0; // make gcc happy
     for (i = 0; i < nBlocks; ++i) {
@@ -3922,7 +3957,7 @@ GBool CrackleTextPage::findCharRange(int pos, int length,
                     if (first || yMax1 > yMax0) {
                         yMax0 = yMax1;
                     }
-                    first = gFalse;
+                    first = false;
                 }
             }
         }
@@ -3932,13 +3967,13 @@ GBool CrackleTextPage::findCharRange(int pos, int length,
         *xMax = xMax0;
         *yMin = yMin0;
         *yMax = yMax0;
-        return gTrue;
+        return true;
     }
-    return gFalse;
+    return false;
 }
 
 void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
-                           GBool physLayout) {
+                           bool physLayout) {
     UnicodeMap *uMap;
     CrackleTextFlow *flow;
     CrackleTextBlock *blk;
@@ -3949,7 +3984,7 @@ void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
     CrackleTextLineFrag *frag;
     char space[8], eol[16], eop[8];
     int spaceLen, eolLen, eopLen;
-    GBool pageBreaks;
+    bool pageBreaks;
     GString *s;
     double delta;
     int col, i, j, d, n;
@@ -3983,7 +4018,7 @@ void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
         for (word = rawWords; word; word = word->next) {
             s = new GString();
             dumpFragment(word->text, word->len, uMap, s);
-            (*outputFunc)(outputStream, s->getCString(), s->getLength());
+            (*outputFunc)(outputStream, s->c_str(), s->getLength());
             delete s;
             if (word->next &&
                 fabs(word->next->base - word->base) <
@@ -4014,7 +4049,7 @@ void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
                                                              fragsSize, sizeof(CrackleTextLineFrag));
                 }
                 frags[nFrags].init(line, 0, line->len);
-                frags[nFrags].computeCoords(gTrue);
+                frags[nFrags].computeCoords(true);
                 ++nFrags;
             }
         }
@@ -4057,7 +4092,7 @@ void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
             // print the line
             s = new GString();
             col += dumpFragment(frag->line->text + frag->start, frag->len, uMap, s);
-            (*outputFunc)(outputStream, s->getCString(), s->getLength());
+            (*outputFunc)(outputStream, s->c_str(), s->getLength());
             delete s;
 
             // print one or more returns if necessary
@@ -4096,7 +4131,7 @@ void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
                     }
                     s = new GString();
                     dumpFragment(line->text, n, uMap, s);
-                    (*outputFunc)(outputStream, s->getCString(), s->getLength());
+                    (*outputFunc)(outputStream, s->c_str(), s->getLength());
                     delete s;
                     if (!line->hyphenated) {
                         if (line->next) {
@@ -4127,7 +4162,7 @@ void CrackleTextPage::dump(void *outputStream, TextOutputFunc outputFunc,
     uMap->decRefCnt();
 }
 
-void CrackleTextPage::assignColumns(CrackleTextLineFrag *frags, int nFrags, GBool oneRot) {
+void CrackleTextPage::assignColumns(CrackleTextLineFrag *frags, int nFrags, bool oneRot) {
     CrackleTextLineFrag *frag0, *frag1;
     int rot, col1, col2, i, j, k;
 
@@ -4313,7 +4348,7 @@ int CrackleTextPage::dumpFragment(Unicode *text, int len, UnicodeMap *uMap,
 }
 
 #if TEXTOUT_WORD_LIST
-CrackleTextWordList *CrackleTextPage::makeWordList(GBool physLayout) {
+CrackleTextWordList *CrackleTextPage::makeWordList(bool physLayout) {
     return new CrackleTextWordList(this, physLayout);
 }
 #endif
@@ -4326,19 +4361,19 @@ static void outputToFile(void *stream, const char *text, int len) {
     fwrite(text, 1, len, (FILE *)stream);
 }
 
-CrackleTextOutputDev::CrackleTextOutputDev(char *fileName, GBool physLayoutA,
-                                           double fixedPitchA, GBool rawOrderA, GBool append)
+CrackleTextOutputDev::CrackleTextOutputDev(char *fileName, bool physLayoutA,
+                                           double fixedPitchA, bool rawOrderA, bool append)
     : _images(boost::shared_ptr<ImageCollection> (new ImageCollection))
 {
     text = NULL;
     physLayout = physLayoutA;
     fixedPitch = physLayout ? fixedPitchA : 0;
     rawOrder = rawOrderA;
-    doHTML = gFalse;
-    ok = gTrue;
+    doHTML = false;
+    ok = true;
 
     // open file
-    needClose = gFalse;
+    needClose = false;
     if (fileName) {
         if (!strcmp(fileName, "-")) {
             outputStream = stdout;
@@ -4347,10 +4382,10 @@ CrackleTextOutputDev::CrackleTextOutputDev(char *fileName, GBool physLayoutA,
             setmode(fileno(stdout), O_BINARY);
 #endif
         } else if ((outputStream = fopen(fileName, append ? "ab" : "wb"))) {
-            needClose = gTrue;
+            needClose = true;
         } else {
             error(errIO, -1, "Couldn't open text file '{0:s}'", fileName);
-            ok = gFalse;
+            ok = false;
             return;
         }
         outputFunc = &outputToFile;
@@ -4363,18 +4398,18 @@ CrackleTextOutputDev::CrackleTextOutputDev(char *fileName, GBool physLayoutA,
 }
 
 CrackleTextOutputDev::CrackleTextOutputDev(TextOutputFunc func, void *stream,
-                                           GBool physLayoutA, double fixedPitchA, GBool rawOrderA)
+                                           bool physLayoutA, double fixedPitchA, bool rawOrderA)
     : _images(boost::shared_ptr<ImageCollection> (new ImageCollection))
 {
     outputFunc = func;
     outputStream = stream;
-    needClose = gFalse;
+    needClose = false;
     physLayout = physLayoutA;
     fixedPitch = physLayout ? fixedPitchA : 0;
     rawOrder = rawOrderA;
-    doHTML = gFalse;
+    doHTML = false;
     text = new CrackleTextPage(rawOrderA);
-    ok = gTrue;
+    ok = true;
 }
 
 CrackleTextOutputDev::~CrackleTextOutputDev() {
@@ -4418,13 +4453,13 @@ void CrackleTextOutputDev::endString(GfxState *state) {
 
 void CrackleTextOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
                                      int width, int height, GfxImageColorMap *colorMap,
-                                     int *maskColors, GBool inlineImg, GBool interpolate)
+                                     int *maskColors, bool inlineImg, bool interpolate)
 {
     int c;
     size_t size;
     Image::ImageType type;
     char * data;
-    double *ctm;
+    const double *ctm;
     double mat[6];
     bool rot;
     double xScale, yScale;
@@ -4515,7 +4550,7 @@ void CrackleTextOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
         for (size_t y = 0; y < static_cast<size_t>(height); ++y) {
 
             // write the line
-            Guchar *p = imgStr->getLine();
+            unsigned char *p = imgStr->getLine();
             for (size_t x = 0; x < static_cast<size_t>(width); ++x) {
                 colorMap->getRGB(p, &rgb);
                 data[i++]=colToByte(rgb.r);
@@ -4699,11 +4734,11 @@ void CrackleTextOutputDev::processLink(Link *link) {
     text->addLink(xMin, yMin, xMax, yMax, link);
 }
 
-GBool CrackleTextOutputDev::findText(Unicode *s, int len,
-                                     GBool startAtTop, GBool stopAtBottom,
-                                     GBool startAtLast, GBool stopAtLast,
-                                     GBool caseSensitive, GBool backward,
-                                     GBool wholeWord,
+bool CrackleTextOutputDev::findText(Unicode *s, int len,
+                                     bool startAtTop, bool stopAtBottom,
+                                     bool startAtLast, bool stopAtLast,
+                                     bool caseSensitive, bool backward,
+                                     bool wholeWord,
                                      double *xMin, double *yMin,
                                      double *xMax, double *yMax) {
     return text->findText(s, len, startAtTop, stopAtBottom,
@@ -4717,7 +4752,7 @@ GString *CrackleTextOutputDev::getText(double xMin, double yMin,
     return text->getText(xMin, yMin, xMax, yMax);
 }
 
-GBool CrackleTextOutputDev::findCharRange(int pos, int length,
+bool CrackleTextOutputDev::findCharRange(int pos, int length,
                                           double *xMin, double *yMin,
                                           double *xMax, double *yMax) {
     return text->findCharRange(pos, length, xMin, yMin, xMax, yMax);

@@ -38,7 +38,7 @@
 
 namespace Crackle {
 
-    inline std::string gstring2UnicodeString(GString *str_)
+    inline std::string gstring2UnicodeString(const GString *str_)
     {
         uint16_t u;
         std::string result;

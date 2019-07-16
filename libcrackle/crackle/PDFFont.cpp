@@ -58,7 +58,7 @@ PDFFont::PDFFont (GfxFont *gfxfont_, const FontSizes &sizes_)
     :_sizes(sizes_)
 {
     // name
-    GString *nm(gfxfont_->getName());
+    const GString *nm(gfxfont_->getName());
 
     if(!nm) {
         nm=gfxfont_->getEmbeddedFontName();
@@ -74,17 +74,17 @@ PDFFont::PDFFont (GfxFont *gfxfont_, const FontSizes &sizes_)
 
     // tag
 
-    GString *tag(gfxfont_->getTag());
+    const GString *tag(gfxfont_->getTag());
     if(tag) {
         _tag=gstring2UnicodeString(tag);
     }
 
     // flags
-    _isFixedWidth=gfxfont_->isFixedWidth()!=gFalse;
-    _isSerif=gfxfont_->isSerif()!=gFalse;
-    _isSymbolic=gfxfont_->isSymbolic()!=gFalse;
-    _isItalic=gfxfont_->isItalic()!=gFalse;
-    _isBold=gfxfont_->isBold()!=gFalse;
+    _isFixedWidth=gfxfont_->isFixedWidth()!=false;
+    _isSerif=gfxfont_->isSerif()!=false;
+    _isSymbolic=gfxfont_->isSymbolic()!=false;
+    _isItalic=gfxfont_->isItalic()!=false;
+    _isBold=gfxfont_->isBold()!=false;
 
 
 }

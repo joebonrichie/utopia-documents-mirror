@@ -98,12 +98,12 @@ int Crackle::PDFTextCharacter::rotation() const
 bool Crackle::PDFTextCharacter::spaceAfter() const
 {
     return (_idx==_word->getLength()-1)
-        && (_word->getSpaceAfter()==gTrue);
+        && (_word->getSpaceAfter()==true);
 }
 
 bool Crackle::PDFTextCharacter::underlined() const
 {
-    return _word->isUnderlined()==gTrue;
+    return _word->isUnderlined()==true;
 }
 
 double Crackle::PDFTextCharacter::baseline() const

@@ -51,7 +51,6 @@
 #endif
 
 #include <stdio.h>
-#include "gtypes.h"
 #include <GString.h>
 #include <GList.h>
 #include "GfxFont.h"
@@ -105,18 +104,18 @@ public:
     CrackleTextFontInfo(GfxState *state);
     ~CrackleTextFontInfo();
 
-    GBool matches(GfxState *state);
+    bool matches(GfxState *state);
 
 #if TEXTOUT_WORD_LIST
     // Get the font name (which may be NULL).
     GString *getFontName() { return fontName; }
 
     // Get font descriptor flags.
-    GBool isFixedWidth() { return flags & fontFixedWidth; }
-    GBool isSerif() { return flags & fontSerif; }
-    GBool isSymbolic() { return flags & fontSymbolic; }
-    GBool isItalic() { return flags & fontItalic; }
-    GBool isBold() { return flags & fontBold; }
+    bool isFixedWidth() { return flags & fontFixedWidth; }
+    bool isSerif() { return flags & fontSerif; }
+    bool isSymbolic() { return flags & fontSymbolic; }
+    bool isItalic() { return flags & fontItalic; }
+    bool isBold() { return flags & fontBold; }
 #endif
 
     GfxFont *getFont() { return gfxFont; }
@@ -200,14 +199,14 @@ public:
     int getRotation() { return rot; }
     int getCharPos() { return charPos[0]; }
     int getCharLen() { return charPos[len] - charPos[0]; }
-    GBool getSpaceAfter() { return spaceAfter; }
+    bool getSpaceAfter() { return spaceAfter; }
 #endif
 
-    GBool isUnderlined() { return underlined; }
+    bool isUnderlined() { return underlined; }
     Link *getLink() { return link; }
     double getEdge(int i) { return edge[i]; }
     double getBaseline () { return base; }
-    GBool hasSpaceAfter  () { return spaceAfter; }
+    bool hasSpaceAfter  () { return spaceAfter; }
     CrackleTextWord* nextWord () { return next; };
 private:
 
@@ -226,7 +225,7 @@ private:
     int size;                   // size of text/edge/charPos arrays
     CrackleTextFontInfo *font;            // font information
     double fontSize;              // font size
-    GBool spaceAfter;             // set if there is a space between this
+    bool spaceAfter;             // set if there is a space between this
     //   word and the next word on the line
     CrackleTextWord *next;                // next word in line
 
@@ -236,7 +235,7 @@ private:
         colorB;
 #endif
 
-    GBool underlined;
+    bool underlined;
     Link *link;
 
     friend class CrackleTextPool;
@@ -315,7 +314,7 @@ public:
     CrackleTextLine *getNext() { return next; }
 
     // Returns true if the last char of the line is a hyphen.
-    GBool isHyphenated() { return hyphenated; }
+    bool isHyphenated() { return hyphenated; }
 
     void getBBox(double *xMinA, double *yMinA, double *xMaxA, double *yMaxA)
         { *xMinA = xMin; *yMinA = yMin; *xMaxA = xMax; *yMaxA = yMax; }
@@ -341,7 +340,7 @@ private:
     int *col;                     // starting column number of each Unicode char
     int len;                      // number of Unicode chars
     int convertedLen;             // total number of converted characters
-    GBool hyphenated;             // set if last char is a hyphen
+    bool hyphenated;             // set if last char is a hyphen
     CrackleTextLine *next;                // next line in block
 
     friend class CrackleTextLineFrag;
@@ -378,7 +377,7 @@ public:
 
     // Returns true if <this> is below <blk>, relative to the page's
     // primary rotation.
-    GBool isBelow(CrackleTextBlock *blk);
+    bool isBelow(CrackleTextBlock *blk);
 
     // Get the head of the linked list of CrackleTextLines.
     CrackleTextLine *getLines() { return lines; }
@@ -435,7 +434,7 @@ public:
     // it uses a font no larger than the last block added to the flow,
     // and (2) it fits within the flow's [priMin, priMax] along the
     // primary axis.
-    GBool blockFits(CrackleTextBlock *blk, CrackleTextBlock *prevBlk);
+    bool blockFits(CrackleTextBlock *blk, CrackleTextBlock *prevBlk);
 
     // Get the head of the linked list of CrackleTextBlocks.
     CrackleTextBlock *getBlocks() { return blocks; }
@@ -473,7 +472,7 @@ public:
     // text->rawOrder is true), physical layout order (if <physLayout>
     // is true and text->rawOrder is false), or reading order (if both
     // flags are false).
-    CrackleTextWordList(CrackleTextPage *text, GBool physLayout);
+    CrackleTextWordList(CrackleTextPage *text, bool physLayout);
 
     ~CrackleTextWordList();
 
@@ -498,7 +497,7 @@ class CrackleTextPage {
 public:
 
     // Constructor.
-    CrackleTextPage(GBool rawOrderA);
+    CrackleTextPage(bool rawOrderA);
 
     // Destructor.
     ~CrackleTextPage();
@@ -542,7 +541,7 @@ public:
     void addLink(int xMin, int yMin, int xMax, int yMax, Link *link);
 
     // Coalesce strings that look like parts of the same line.
-    void coalesce(GBool physLayout, double fixedPitch, GBool doHTML);
+    void coalesce(bool physLayout, double fixedPitch, bool doHTML);
 
     // Find a string.  If <startAtTop> is true, starts looking at the
     // top of the page; else if <startAtLast> is true, starts looking
@@ -551,11 +550,11 @@ public:
     // bottom of the page; else if <stopAtLast> is true, stops looking
     // just before the last find result; else stops looking at
     // <xMax>,<yMax>.
-    GBool findText(Unicode *s, int len,
-                   GBool startAtTop, GBool stopAtBottom,
-                   GBool startAtLast, GBool stopAtLast,
-                   GBool caseSensitive, GBool backward,
-                   GBool wholeWord,
+    bool findText(Unicode *s, int len,
+                   bool startAtTop, bool stopAtBottom,
+                   bool startAtLast, bool stopAtLast,
+                   bool caseSensitive, bool backward,
+                   bool wholeWord,
                    double *xMin, double *yMin,
                    double *xMax, double *yMax);
 
@@ -566,13 +565,13 @@ public:
     // Find a string by character position and length.  If found, sets
     // the text bounding rectangle and returns true; otherwise returns
     // false.
-    GBool findCharRange(int pos, int length,
+    bool findCharRange(int pos, int length,
                         double *xMin, double *yMin,
                         double *xMax, double *yMax);
 
     // Dump contents of page to a file.
     void dump(void *outputStream, TextOutputFunc outputFunc,
-              GBool physLayout);
+              bool physLayout);
 
     // Get the head of the linked list of CrackleTextFlows.
     CrackleTextFlow *getFlows() { return flows; }
@@ -582,7 +581,7 @@ public:
     // this->rawOrder is true), physical layout order (if <physLayout>
     // is true and this->rawOrder is false), or reading order (if both
     // flags are false).
-    CrackleTextWordList *makeWordList(GBool physLayout);
+    CrackleTextWordList *makeWordList(bool physLayout);
 #endif
 
     GList * getFontList() { return this->fonts; };
@@ -591,12 +590,12 @@ public:
 private:
 
     void clear();
-    void assignColumns(CrackleTextLineFrag *frags, int nFrags, GBool rot);
+    void assignColumns(CrackleTextLineFrag *frags, int nFrags, bool rot);
     int dumpFragment(Unicode *text, int len, UnicodeMap *uMap, GString *s);
 
     Crackle::PDFFontCollection _font_collection;
 
-    GBool rawOrder;               // keep text in content stream order
+    bool rawOrder;               // keep text in content stream order
 
     double pageWidth, pageHeight; // width and height of current page
     CrackleTextWord *curWord;             // currently active string
@@ -606,7 +605,7 @@ private:
     double curFontSize;           // current font size
     int nest;                     // current nesting level (for Type 3 fonts)
     int nTinyChars;               // number of "tiny" chars seen so far
-    GBool lastCharOverlap;        // set if the last added char overlapped the
+    bool lastCharOverlap;        // set if the last added char overlapped the
     //   previous char
     Unicode *actualText;                // current "ActualText" span
     int actualTextLen;
@@ -621,7 +620,7 @@ private:
     CrackleTextBlock **blocks;            // array of blocks, in yx order
     int nBlocks;                  // number of blocks
     int primaryRot;               // primary rotation
-    GBool primaryLR;              // primary direction (true means L-to-R,
+    bool primaryLR;              // primary direction (true means L-to-R,
     //   false means R-to-L)
     CrackleTextWord *rawWords;            // list of words, in raw order (only if
     //   rawOrder is set)
@@ -632,7 +631,7 @@ private:
 
     double lastFindXMin,          // coordinates of the last "find" result
         lastFindYMin;
-    GBool haveLastFind;
+    bool haveLastFind;
 
     GList *underlines;            // [TextUnderline]
     GList *links;                 // [TextLink]
@@ -656,42 +655,42 @@ public:
     // <physLayoutA> is true, the original physical layout of the text
     // is maintained.  If <rawOrder> is true, the text is kept in
     // content stream order.
-    CrackleTextOutputDev(char *fileName, GBool physLayoutA,
-                         double fixedPitchA, GBool rawOrderA, GBool append);
+    CrackleTextOutputDev(char *fileName, bool physLayoutA,
+                         double fixedPitchA, bool rawOrderA, bool append);
 
     // Create a CrackleTextOutputDev which will write to a generic stream.  If
     // <physLayoutA> is true, the original physical layout of the text
     // is maintained.  If <rawOrder> is true, the text is kept in
     // content stream order.
     CrackleTextOutputDev(TextOutputFunc func, void *stream,
-                         GBool physLayoutA, double fixedPitchA,
-                         GBool rawOrderA);
+                         bool physLayoutA, double fixedPitchA,
+                         bool rawOrderA);
 
     // Destructor.
     virtual ~CrackleTextOutputDev();
 
     // Check if file was successfully created.
-    virtual GBool isOk() { return ok; }
+    virtual bool isOk() { return ok; }
 
     //---- get info about output device
 
     // Does this device use upside-down coordinates?
     // (Upside-down means (0,0) is the top left corner of the page.)
-    virtual GBool upsideDown() { return gTrue; }
+    virtual bool upsideDown() { return true; }
 
     // Does this device use drawChar() or drawString()?
-    virtual GBool useDrawChar() { return gTrue; }
+    virtual bool useDrawChar() { return true; }
 
     // Does this device use beginType3Char/endType3Char?  Otherwise,
     // text in Type 3 fonts will be drawn with drawChar/drawString.
-    virtual GBool interpretType3Chars() { return gFalse; }
+    virtual bool interpretType3Chars() { return false; }
 
     // Does this device need non-text content?
-    virtual GBool needNonText() { return gTrue; }
+    virtual bool needNonText() { return true; }
 
     // Does this device require incCharCount to be called for text on
     // non-shown layers?
-    virtual GBool needCharCount() { return gTrue; }
+    virtual bool needCharCount() { return true; }
 
     //----- initialization and control
 
@@ -743,11 +742,11 @@ public:
     // bottom of the page; else if <stopAtLast> is true, stops looking
     // just before the last find result; else stops looking at
     // <xMax>,<yMax>.
-    GBool findText(Unicode *s, int len,
-                   GBool startAtTop, GBool stopAtBottom,
-                   GBool startAtLast, GBool stopAtLast,
-                   GBool caseSensitive, GBool backward,
-                   GBool wholeWord,
+    bool findText(Unicode *s, int len,
+                   bool startAtTop, bool stopAtBottom,
+                   bool startAtLast, bool stopAtLast,
+                   bool caseSensitive, bool backward,
+                   bool wholeWord,
                    double *xMin, double *yMin,
                    double *xMax, double *yMax);
 
@@ -758,7 +757,7 @@ public:
     // Find a string by character position and length.  If found, sets
     // the text bounding rectangle and returns true; otherwise returns
     // false.
-    GBool findCharRange(int pos, int length,
+    bool findCharRange(int pos, int length,
                         double *xMin, double *yMin,
                         double *xMax, double *yMax);
 
@@ -775,7 +774,7 @@ public:
     CrackleTextPage *takeText();
 
     // Turn extra processing for HTML conversion on or off.
-    void enableHTMLExtras(GBool doHTMLA) { doHTML = doHTMLA; }
+    void enableHTMLExtras(bool doHTMLA) { doHTML = doHTMLA; }
 
     boost::shared_ptr<Crackle::ImageCollection> pageImages() {
         return _images;
@@ -784,12 +783,12 @@ public:
 
     virtual void drawImage(GfxState *state, Object *ref, Stream *str,
                            int width, int height, GfxImageColorMap *colorMap,
-                           int *maskColors, GBool inlineImg, GBool interpolate);
+                           int *maskColors, bool inlineImg, bool interpolate);
 
 #ifdef UTOPIA_SPINE_BACKEND_POPPLER
     virtual void drawImage(GfxState *state, Object *ref, Stream *str,
 			   int width, int height, GfxImageColorMap *colorMap,
-			   GBool interpolate, int *maskColors, GBool inlineImg) {
+			   bool interpolate, int *maskColors, bool inlineImg) {
       // Poppler compatibility
       drawImage(state, ref, str, width, height, colorMap, maskColors, inlineImg, interpolate);
     }
@@ -798,17 +797,17 @@ public:
 private:
     TextOutputFunc outputFunc;    // output function
     void *outputStream;           // output stream
-    GBool needClose;              // need to close the output file?
+    bool needClose;              // need to close the output file?
     //   (only if outputStream is a FILE*)
     CrackleTextPage *text;                // text for the current page
-    GBool physLayout;             // maintain original physical layout when
+    bool physLayout;             // maintain original physical layout when
     //   dumping text
     double fixedPitch;          // if physLayout is true and this is non-zero,
                                 //   assume fixed-pitch characters with this
                                 //   width
-    GBool rawOrder;               // keep text in content stream order
-    GBool doHTML;                 // extra processing for HTML conversion
-    GBool ok;                     // set up ok?
+    bool rawOrder;               // keep text in content stream order
+    bool doHTML;                 // extra processing for HTML conversion
+    bool ok;                     // set up ok?
 
     // store extracted images
     boost::shared_ptr<Crackle::ImageCollection> _images;

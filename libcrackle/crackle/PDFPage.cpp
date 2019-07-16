@@ -103,7 +103,7 @@ int Crackle::PDFPage::pageNumber() const
 BoundingBox Crackle::PDFPage::boundingBox() const
 {
     int rotate = _doc->xpdfDoc()->getCatalog()->getPage(_page)->getRotate();
-    PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getCropBox();
+    const PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getCropBox();
     //PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getTrimBox();
     if (rotate % 180 == 0) { // No change to rectangle
         return BoundingBox(rect->x1, rect->y1, rect->x2, rect->y2);
@@ -140,7 +140,7 @@ BoundingBox Crackle::PDFPage::boundingBox() const
 
 Spine::BoundingBox Crackle::PDFPage::mediaBox() const
 {
-    PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getMediaBox();
+    const PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getMediaBox();
     return BoundingBox(rect->x1, rect->y1, rect->x2, rect->y2);
 }
 
@@ -193,7 +193,7 @@ Spine::Image Crackle::PDFPage::render(double resolution_, bool antialias_) const
 {
     boost::lock_guard<boost::mutex> g(Crackle::PDFDocument::_globalMutexDocument);
     _doc->xpdfDoc()->displayPage(_renderDevice.get(), _page, resolution_,
-                                 resolution_, 0, gFalse, gFalse, gFalse);
+                                 resolution_, 0, false, false, false);
 
     SplashBitmap *bitmap(_renderDevice->getBitmap());
 
@@ -247,7 +247,7 @@ Spine::Image Crackle::PDFPage::renderArea(const Spine::BoundingBox & slice,
     }
 
     _doc->xpdfDoc()->displayPageSlice(dev.get(), _page, resolutionX_,
-                                      resolutionY_, 0, gFalse, gFalse, gFalse,
+                                      resolutionY_, 0, false, false, false,
                                       (int) scaledSlice.x1, (int) scaledSlice.y1,
                                       (int) (scaledSlice.x2-scaledSlice.x1),
                                       (int) (scaledSlice.y2-scaledSlice.y1));
@@ -274,13 +274,13 @@ void Crackle::PDFPage::_extractTextAndImages() const
         double w(_doc->xpdfDoc()->getPageMediaWidth(_page));
         double h(_doc->xpdfDoc()->getPageMediaHeight(_page));
 
-        PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getMediaBox();
+        const PDFRectangle *rect=_doc->xpdfDoc()->getCatalog()->getPage(_page)->getMediaBox();
 
         double resolution_w = (72.0 * (rect->x2-rect->x1)) / w;
         double resolution_h = (72.0 * (rect->y2-rect->y1)) / h;
 
         _doc->xpdfDoc()->displayPage(_textDevice.get(), _page, resolution_w, resolution_h,
-                                     0, gFalse, gFalse, gFalse);
+                                     0, false, false, false);
     }
 
     boost::lock_guard<boost::mutex> g(_mutexSharedData);

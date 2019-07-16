@@ -53,6 +53,7 @@
 #include "Outline.h"
 #include "GList.h"
 #include "Link.h"
+#include "glib/poppler-features.h"
 
 #include <cwctype>
 #include <algorithm>
@@ -85,13 +86,10 @@ namespace {
         Object obj, val;
         string data;
 
-        doc_->getDocInfo(&obj);
-        if (obj.isDict() && obj.getDict()->lookup(const_cast<char *>(key_), &val)->isString()) {
+        obj = doc_->getDocInfo();
+        if (obj.isDict() && (val = obj.getDict()->lookup(const_cast<char *>(key_))).isString()) {
             data=gstring2UnicodeString(val.getString());
         }
-
-        obj.free();
-        val.free();
 
         return data;
     }
@@ -99,15 +97,15 @@ namespace {
     time_t getPDFInfoDate(boost::shared_ptr<PDFDoc> doc_, const char *key_)
     {
         Object obj,val;
-        char *s;
+        const char *s;
         int year, mon, day, hour, min, sec, n;
         struct tm tmStruct;
         time_t res(0);
 
-        doc_->getDocInfo(&obj);
-        if (obj.isDict() && obj.getDict()->lookup(const_cast<char *>(key_), &val)->isString()) {
+        obj = doc_->getDocInfo();
+        if (obj.isDict() && (val = obj.getDict()->lookup(const_cast<char *>(key_))).isString()) {
 
-            s = val.getString()->getCString();
+            s = val.getString()->c_str();
 
             if (s[0] == 'D' && s[1] == ':') {
                 s += 2;
@@ -134,8 +132,6 @@ namespace {
                 res=mktime(&tmStruct);
             }
         }
-        obj.free();
-        val.free();
         return res;
     }
 
@@ -211,7 +207,7 @@ Crackle::PDFDocument::isOK()
 {
     bool res(false);
     if(_doc) {
-        res=(_doc->isOk()==gTrue);
+        res=(_doc->isOk()==true);
     }
     return res;
 }
@@ -303,12 +299,12 @@ void Crackle::PDFDocument::readBuffer(shared_array<char> data_, size_t length_)
 
     // stream and file ownership is passed to PDFDoc
     _dict=boost::shared_ptr<Object>(new Object);
-    _dict->initNull();
+    _dict->setToNull();
 
     _data=data_;
     _datalen=length_;
 
-    MemStream *stream=new MemStream(_data.get(), 0, _datalen, _dict.get());
+    MemStream *stream=new MemStream(_data.get(), 0, _datalen, std::move(*_dict.get()));
     _open(stream);
 
     Spine::Sha256 hash;
@@ -330,10 +326,9 @@ std::string Crackle::PDFDocument::_addAnchor( Object *obj, std::string name)
     if (obj->isArray()) {
         dest = new LinkDest(obj->getArray());
     } else if (obj->isDict()) {
-        if (obj->dictLookup("D", &obj2)->isArray()) {
+        if ((obj2 = obj->dictLookup("D")).isArray()) {
             dest = new LinkDest(obj2.getArray());
         }
-        obj2.free();
     }
 
     if (dest && dest->isOk()) {
@@ -386,8 +381,9 @@ static Spine::BoundingBox rotateRect(Spine::BoundingBox rect, int rotation, cons
     return rotated;
 }
 
-std::string Crackle::PDFDocument::_addAnchor(LinkDest * dest, std::string name)
+std::string Crackle::PDFDocument::_addAnchor(const LinkDest * dest1, std::string name)
 {
+    LinkDest *dest = const_cast<LinkDest *>(dest1);
     size_t page;
     ostringstream anchorname;
 
@@ -470,41 +466,38 @@ std::string Crackle::PDFDocument::_addAnchor(LinkDest * dest, std::string name)
 void Crackle::PDFDocument::_updateNameTree(Object *tree)
 {
     if (tree->isDict()) {
-        Object names, name;
-        Object kids, kid;
-        Object obj, obj2;
+        Object names;
+        Object kids;
 
         // leaf node
-        if (tree->dictLookup("Names", &names)->isArray()) {
+        if ((names = tree->dictLookup("Names")).isArray()) {
             for (int i = 0; i < names.arrayGetLength(); i += 2) {
-                if (names.arrayGet(i, &name)->isString()) {
+                Object name;
+                if ((name = names.arrayGet(i)).isString()) {
                     string namestring(gstring2UnicodeString(name.getString()));
-                    names.arrayGet(i+1, &obj);
+                    Object obj = names.arrayGet(i+1);
                     _addAnchor(&obj, namestring);
-                    obj.free();
                 }
-                name.free();
             }
         }
-        names.free();
 
         // root or intermediate node - process children
-        if (tree->dictLookup("Kids", &kids)->isArray()) {
+        if ((kids = tree->dictLookup("Kids")).isArray()) {
             for (int i = 0; i < kids.arrayGetLength(); ++i) {
-                if (kids.arrayGet(i, &kid)->isDict()) {
+                Object kid;
+                if ((kid = kids.arrayGet(i)).isDict()) {
                     _updateNameTree(&kid);
                 }
-                kid.free();
             }
         }
-        kids.free();
     }
 }
 
 /****************************************************************************/
 
-void Crackle::PDFDocument::_extractOutline(GList *items, string prefix, UnicodeMap *uMap)
+void Crackle::PDFDocument::_extractOutline(const GList *items1, string prefix, UnicodeMap *uMap)
 {
+    GList *items = const_cast<GList *>(items1);
     char buf[8];
 
     for (int i = 0; i < items->getLength(); ++i) {
@@ -528,8 +521,8 @@ void Crackle::PDFDocument::_extractOutline(GList *items, string prefix, UnicodeM
 
         if (item->getAction()->getKind()==actionGoTo || item->getAction()->getKind()==actionGoToR )
         {
-            LinkDest *dest(0);
-            GString *namedDest(0);
+            const LinkDest *dest(0);
+            const GString *namedDest(0);
             if (item->getAction()->getKind()==actionGoTo) {
                 string anchor;
 
@@ -562,7 +555,7 @@ void Crackle::PDFDocument::_extractOutline(GList *items, string prefix, UnicodeM
 
         item->open();
 
-        GList * kids;
+        const GList * kids;
         if ((kids = item->getKids())) {
             _extractOutline(kids, position.str(), uMap);
         }
@@ -583,9 +576,7 @@ void Crackle::PDFDocument::_extractLinks()
 #ifdef UTOPIA_SPINE_BACKEND_POPPLER
         Links *links=new Links(catalog->getPage(page+1)->getAnnots());
 #else // XPDF
-        Object annotsObj;
-        Links *links=new Links(catalog->getPage(page+1)->getAnnots(&annotsObj), catalog->getBaseURI());
-        annotsObj.free();
+        Links *links=new Links(catalog->getPage(page+1)->getAnnots(), catalog->getBaseURI());
 #endif
 
         for (int i(0); i<links->getNumLinks(); ++i) {
@@ -607,8 +598,8 @@ void Crackle::PDFDocument::_extractLinks()
 
             if (action->getKind()==actionGoTo || action->getKind()==actionGoToR ) {
 
-                LinkDest *dest(0);
-                GString *namedDest(0);
+                const LinkDest *dest(0);
+                const GString *namedDest(0);
                 if (action->getKind()==actionGoTo) {
                     string anchor;
 
@@ -637,7 +628,7 @@ void Crackle::PDFDocument::_extractLinks()
             }
 
             if (action->getKind()==actionURI ) {
-                GString *uri;
+                const GString *uri;
                 if ((uri = ((LinkURI *)action)->getURI())) {
                     AnnotationHandle ann(new Annotation());
                     ann->setProperty("concept", "Hyperlink");
@@ -662,18 +653,15 @@ void Crackle::PDFDocument::_updateAnnotations()
 
     // extract anchors from name tree
     Object catDict;
-    _doc->getXRef()->getCatalog(&catDict);
+    catDict = _doc->getXRef()->getCatalog();
     if (catDict.isDict()) {
       Object obj;
-      if (catDict.dictLookup("Names", &obj)->isDict()) {
+      if ((obj = catDict.dictLookup("Names")).isDict()) {
         Object nameTree;
-        obj.dictLookup("Dests", &nameTree);
+        nameTree = obj.dictLookup("Dests");
         _updateNameTree(&nameTree);
-        nameTree.free();
       }
-      obj.free();
     }
-    catDict.free();
 
 #else // XPDF
 
@@ -691,16 +679,19 @@ void Crackle::PDFDocument::_updateAnnotations()
         for (int i=0; i< dests->dictGetLength(); ++i) {
             string namestring(dests->dictGetKey(i));
             Object obj;
-            dests->dictGetVal(i, &obj);
+            obj = dests->dictGetVal(i);
             _addAnchor(&obj, namestring);
-            obj.free();
         }
     }
 
     // extract contents outline
     Outline *outline(_doc->getOutline());
     if(outline) {
+#if POPPLER_CHECK_VERSION(0, 64, 0)
+        const GList *items(outline->getItems());
+#else
         GList *items(outline->getItems());
+#endif
         if (items && items->getLength() > 0) {
             GString *enc = new GString("Latin1");
             UnicodeMap *uMap = globalParams->getUnicodeMap(enc);
@@ -800,9 +791,9 @@ void Crackle::PDFDocument::_initialise()
 
         const char *verbose=getenv("PDF_VERBOSE");
         if(verbose && strcmp(verbose,"0")!=0) {
-            ::globalParams->setErrQuiet(gFalse);
+            ::globalParams->setErrQuiet(false);
         } else {
-            ::globalParams->setErrQuiet(gTrue);
+            ::globalParams->setErrQuiet(true);
         }
     }
 }
@@ -814,7 +805,7 @@ void Crackle::PDFDocument::_open(BaseStream *stream_)
     _doc      = boost::shared_ptr<PDFDoc>(new PDFDoc(stream_));
 
     if (_doc->isOk()) {
-        _textDevice=boost::shared_ptr<CrackleTextOutputDev>(new CrackleTextOutputDev ((char *)0, gFalse, 0.0, gFalse, gFalse));
+        _textDevice=boost::shared_ptr<CrackleTextOutputDev>(new CrackleTextOutputDev ((char *)0, false, 0.0, false, false));
 
         SplashColor paperColour;
         paperColour[0] = 255;
@@ -823,24 +814,24 @@ void Crackle::PDFDocument::_open(BaseStream *stream_)
 
 #ifdef UTOPIA_SPINE_BACKEND_POPPLER
         // defaults setup anti aliasing for screen
-        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue));
+        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, false, paperColour, true));
 
   #ifdef HAVE_POPPLER_SPLASH_SET_FONT_ANTIALIAS
         // newer versions of poppler no longer sets font anti-aliasing in constructor
-        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue));
-        _printDevice->setFontAntialias(gFalse);
+        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, false, paperColour, true));
+        _printDevice->setFontAntialias(false);
   #else
-        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gFalse));
+        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, false, paperColour, true, false));
         // original
   #endif
 
   #ifdef HAVE_POPPLER_SPLASH_SET_VECTOR_ANTIALIAS
-        _printDevice->setVectorAntialias(gFalse);
+        _printDevice->setVectorAntialias(false);
   #endif
 
 #else // XPDF
-        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gTrue));
-        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, gFalse, paperColour, gTrue, gFalse));
+        _renderDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, false, paperColour, true, true));
+        _printDevice=boost::shared_ptr<SplashOutputDev>(new SplashOutputDev(splashModeRGB8, 3, false, paperColour, true, false));
 #endif
 
 #ifdef UTOPIA_SPINE_BACKEND_POPPLER
@@ -865,11 +856,11 @@ Crackle::PDFDocument::ViewMode Crackle::PDFDocument::viewMode()
     XRef *xref(_doc->getXRef());
     Object catDict;
 
-    xref->getCatalog(&catDict);
+    catDict = xref->getCatalog();
     if (catDict.isDict()) {
         Object obj;
 
-        if (catDict.dictLookup("PageMode", &obj)->isName()) {
+        if ((obj = catDict.dictLookup("PageMode")).isName()) {
             if (obj.isName("UseNone"))
                 // Neither document outline nor thumbnail images visible.
                 res=ViewNone;
@@ -889,9 +880,7 @@ Crackle::PDFDocument::ViewMode Crackle::PDFDocument::viewMode()
                 // Attachments panel visible.
                 res=ViewAttach;
         }
-        obj.free();
     }
-    catDict.free();
 
     return res;
 }
@@ -905,10 +894,10 @@ Crackle::PDFDocument::PageLayout Crackle::PDFDocument::pageLayout()
     XRef *xref(_doc->getXRef());
     Object catDict;
 
-    xref->getCatalog(&catDict);
+    catDict = xref->getCatalog();
     if (catDict.isDict()) {
         Object obj;
-        if (catDict.dictLookup("PageLayout", &obj)->isName()) {
+        if ((obj = catDict.dictLookup("PageLayout")).isName()) {
             if (obj.isName("SinglePage"))
                 res=LayoutSinglePage;
             if (obj.isName("OneColumn"))
@@ -922,9 +911,7 @@ Crackle::PDFDocument::PageLayout Crackle::PDFDocument::pageLayout()
             if (obj.isName("TwoPageRight"))
                 res=LayoutTwoPageRight;
         }
-        obj.free();
     }
-    catDict.free();
 
     return res;
 }
@@ -934,7 +921,7 @@ Crackle::PDFDocument::PageLayout Crackle::PDFDocument::pageLayout()
 string Crackle::PDFDocument::metadata()
 {
     string result;
-    GString *md(_doc->readMetadata());
+    const GString *md(_doc->readMetadata());
     if(md) {
         result=gstring2UnicodeString(md);
     }
@@ -1055,13 +1042,13 @@ string Crackle::PDFDocument::pdfFileID()
     _docid.clear();
 
     Object fileIDArray;
-    _doc->getXRef()->getTrailerDict()->dictLookup("ID", &fileIDArray);
+    fileIDArray = _doc->getXRef()->getTrailerDict()->dictLookup("ID");
 
     if (fileIDArray.isArray()) {
         Object fileIDObj0;
-        if (fileIDArray.arrayGet(0, &fileIDObj0)->isString()) {
+        if ((fileIDObj0 = fileIDArray.arrayGet(0)).isString()) {
 
-            GString *str(fileIDObj0.getString());
+            const GString *str(fileIDObj0.getString());
 
             ostringstream s;
             s.setf (ios::hex, std::ios::basefield);
@@ -1073,9 +1060,7 @@ string Crackle::PDFDocument::pdfFileID()
             }
             _docid=Spine::Fingerprint::pdfFileIDFingerprintIri(s.str());;
         }
-        fileIDObj0.free();
     }
-    fileIDArray.free();
 
     return _docid;
 }

@@ -267,9 +267,9 @@ namespace Crackle
         void _open(BaseStream *stream_);
 
         std::string _addAnchor(Object *obj, std::string name="");
-        std::string _addAnchor(LinkDest *dest, std::string name="");
+        std::string _addAnchor(const LinkDest *dest1, std::string name="");
         void _updateNameTree(Object *tree);
-        void _extractOutline(GList *items, std::string label_prefix, UnicodeMap *uMap);
+        void _extractOutline(const GList *items1, std::string label_prefix, UnicodeMap *uMap);
         void _extractLinks();
 
         boost::shared_ptr<PDFDoc> _doc;
